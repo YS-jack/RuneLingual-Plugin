@@ -1,6 +1,6 @@
 package com.RuneLingual;
 
-import static com.RuneLingual.WidgetsUtil.getAllWidgets;
+import static com.RuneLingual.WidgetsUtil.getAllChildren;
 
 import net.runelite.api.Client;
 import net.runelite.api.MessageNode;
@@ -60,7 +60,7 @@ public class DialogCapture
         Widget chatBox = client.getWidget(ComponentID.CHATBOX_MESSAGES);
         
         // gets all children widgets from chatBox (other than chat messages)
-        List<Widget> tempWidgetList = getAllWidgets(chatBox);
+        List<Widget> tempWidgetList = getAllChildren(chatBox);
         
         if(tempWidgetList.size() != 0 && !tempWidgetList.equals(widgetsLoaded))
         {

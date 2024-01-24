@@ -1,14 +1,18 @@
 package com.RuneLingual;
 
+import javax.annotation.Nullable;
 import java.text.Normalizer;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TranscriptManager implements Serializable
 {
+    
     private Map<String, Map<String, String>> transcript = new HashMap<>();
     
     private LogHandler logger;
@@ -212,6 +216,74 @@ public class TranscriptManager implements Serializable
         }
         
         return sanitizedString;
+    }
+    
+    @Nullable
+    private List<String> splitFormattedString(String input)
+    {
+        int initIndex = input.indexOf("<");
+        int endIndex = input.indexOf(">");
+        if(initIndex == -1 || endIndex == -1)
+        {
+            return null;
+        }
+        
+        List<String> currentList = new ArrayList<String>();
+        currentList.add(input.substring(0, initIndex));
+        currentList.add(input.substring(initIndex, endIndex + 1));
+        String remain = input.substring(endIndex + 1);
+        
+        if(remain.length() > 0)
+        {
+            // recursive call for remaining string elements
+            List<String> remainingList = splitFormattedString(remain);
+            if(remainingList == null)
+            {
+                return currentList;
+            }
+            
+            for(String element : remainingList)
+            {
+                currentList.add(element);
+            }
+        }
+        return currentList;
+    }
+    
+    private boolean isFormatted(List<String> stringList, int index, boolean requiresBoth)
+    {
+        try
+        {
+            if(stringList.get(index - 1).indexOf("<") != -1)
+            {
+                if(stringList.get(index - 1).indexOf(">") != -1)
+                {
+                    if(!requiresBoth)
+                    {
+                        return true;
+                    }
+                    
+                    if(stringList.get(index + 1).indexOf("<") != -1)
+                    {
+                        if(stringList.get(index + 1).indexOf(">") != -1)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+        }
+        catch(Exception e)
+        {
+            return false;
+        }
+        return false;
+    }
+    
+    private boolean isFormatter(String input)
+    {
+        return (input.indexOf("<") != -1);
     }
     
     public void setLogger(LogHandler newLogger) {this.logger = newLogger;}

@@ -24,7 +24,7 @@ public class MenuCapture
 	private LogHandler log;
 	private boolean debugMessages = true;
 	
-	// TODO: as is the menu title 'Chose Options' seems to not be directly editable
+	// TODO: right click menu title 'Chose Options' - seems to not be directly editable
 	
 	public void handleMenuEvent(MenuEntryAdded event)
 	{
@@ -43,19 +43,7 @@ public class MenuCapture
 		{
 			if(isPlayerMenu(menuType))
 			{
-				// translates menu action
-				try
-				{
-					String newAction = actionTranslator.getTranslatedText("playeractions", menuAction, true);
-					event.getMenuEntry().setOption(newAction);
-				}
-				catch(Exception f)
-				{
-					if(debugMessages)
-					{
-						log.log("Could not translate player action: " + menuAction);
-					}
-				}
+				translateMenuAction("playeractions", event, menuTarget);
 			}
 			else if(isNpcMenu(menuType))
 			{
@@ -65,12 +53,10 @@ public class MenuCapture
 				try
 				{
 					int combatLevel = targetNpc.getCombatLevel();
-					
 					if(combatLevel > 0)
 					{
 						// attackable npcs
 						int levelIndicatorIndex = menuTarget.indexOf('(');
-						
 						if(levelIndicatorIndex != -1)
 						{  // npc has a combat level
 							String actualName = menuTarget.substring(0, levelIndicatorIndex);
@@ -87,8 +73,7 @@ public class MenuCapture
 						}
 					}
 					else
-					{
-						// non attackable npcs
+					{  // non attackable npcs
 						String newName = npcTranslator.getTranslatedName(menuTarget, true);
 						event.getMenuEntry().setTarget(newName);
 					}
@@ -118,47 +103,25 @@ public class MenuCapture
 				translateItemName("items", event, menuTarget);
 				translateMenuAction("iteminterfaceactions", event, menuAction);
 			}
+			else if(isKnownMenu(menuType))
+			{
+				try
+				{
+					String newAction = actionTranslator.getTranslatedText("generalactions", menuAction, true);
+					event.getMenuEntry().setOption(newAction);
+				}
+				catch(Exception f)
+				{
+					if(debugMessages)
+					{
+						log.log("Could not translate action: " + f.getMessage());
+					}
+				}
+			}
 			else
 			{
 				// nor a player or npc
 				log.log("Menu action:" + menuAction + " - Menu target:" + menuTarget + "type:" + event.getMenuEntry().getType());
-				
-				if(menuType.equals(MenuAction.CANCEL))
-				{
-					// tries to translate action
-					try
-					{
-						String newAction = actionTranslator.getTranslatedText("generalactions", menuAction, true);
-						event.getMenuEntry().setOption(newAction);
-					}
-					catch(Exception f)
-					{
-						if(debugMessages)
-						{
-							log.log("Could not translate action: " + f.getMessage());
-						}
-					}
-				}
-				else if(menuType.equals(MenuAction.WALK))
-				{
-					// tries to translate action
-					try
-					{
-						String newAction = actionTranslator.getTranslatedText("generalactions", menuAction, true);
-						event.getMenuEntry().setOption(newAction);
-					}
-					catch(Exception f)
-					{
-						if(debugMessages)
-						{
-							log.log("Could not translate action: " + f.getMessage());
-						}
-					}
-				}
-				else
-				{
-					// other menus
-				}
 				
 				/*
 				// tries to translate general actions
@@ -200,13 +163,13 @@ public class MenuCapture
 			if(source.equals("items"))
 			{
 				newName = itemTranslator.getTranslatedText(source, target, true);
+				entryAdded.getMenuEntry().setTarget(newName);
 			}
 			else if(source.equals("objects"))
 			{
 				newName = objectTranslator.getTranslatedText(source, target, true);
+				entryAdded.getMenuEntry().setTarget(newName);
 			}
-			
-			entryAdded.getMenuEntry().setTarget(newName);
 		}
 		catch(Exception f)
 		{
@@ -255,6 +218,26 @@ public class MenuCapture
 		}
 	}
 	
+	private boolean isKnownMenu(MenuAction action)
+	{
+		if(action.equals(MenuAction.CC_OP))
+		{
+			return true;
+		}
+		else if(action.equals(MenuAction.CC_OP_LOW_PRIORITY))
+		{
+			return true;
+		}
+		else if(action.equals(MenuAction.CANCEL))
+		{
+			return true;
+		}
+		else if(action.equals(MenuAction.WALK))
+		{
+			return true;
+		}
+		return false;
+	}
 	private boolean isObjectMenu(MenuAction action)
 	{
 		if(action.equals(MenuAction.EXAMINE_OBJECT))

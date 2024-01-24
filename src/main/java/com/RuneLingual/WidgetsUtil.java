@@ -15,7 +15,7 @@ public class WidgetsUtil
 		this.debugPrints = false;
 	}
 	
-	public static List<Widget> getAllWidgets(Widget widget)
+	public static List<Widget> getAllChildren(Widget widget)
 	{
 		// Create a list to store widgets
 		List<Widget> widgetList = new ArrayList<>();
