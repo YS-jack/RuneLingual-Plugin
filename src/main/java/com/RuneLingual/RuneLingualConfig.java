@@ -10,8 +10,8 @@ public interface RuneLingualConfig extends Config
 {
 	String GROUP = "lingualConfig";
 	@ConfigSection(
-			name = "Live translating",
-			description = "Player chat translation options",
+			name = "Dynamic translating",
+			description = "Online translation options",
 			position = 1,
 			closedByDefault = false
 	)
@@ -28,7 +28,7 @@ public interface RuneLingualConfig extends Config
 
 	@ConfigItem(
 			name = "Translating service",
-			description = "Select the translating service you'd like to use",
+			description = "Select your preferred translation service",
 			section = "chatSettings",
 			keyName = "translatingService",
 			position = 2
@@ -37,7 +37,7 @@ public interface RuneLingualConfig extends Config
 
 	default String getAPIKey() {return APIKey();}
 	@ConfigItem(
-			name = "Enable API translating",
+			name = "Enable dynamic translating",
 			description = "Mostly for player messages",
 			section = "chatSettings",
 			keyName = "enableAPI",
@@ -63,32 +63,35 @@ public interface RuneLingualConfig extends Config
 	default LangCodeSelectableList presetLang() {return LangCodeSelectableList.PORTUGUÊS_BRASILEIRO;}
 
 	@ConfigItem(
-			name = "Translate public chat",
+			name = "Public chat",
 			description = "Requires a valid API key",
 			section = "generalSettings",
 			keyName = "translatePublic",
 			position = 2
 	)
 	default boolean getAllowPublic() {return false;}
+	
 	@ConfigItem(
-			name = "Translate friends chat",
+			name = "Friends chat",
 			description = "Requires a valid API key",
 			section = "generalSettings",
 			keyName = "translateFriends",
 			position = 3
 	)
 	default boolean getAllowFriends() {return false;}
+	
 	@ConfigItem(
-			name = "Translate clan chat",
+			name = "Clan chats/channels",
 			description = "Requires a valid API key",
 			section = "generalSettings",
 			keyName = "translateClan",
 			position = 4
 	)
 	default boolean getAllowClan() {return false;}
+	
 	@ConfigItem(
-			name = "Translate own chat messages",
-			description = "With this other players should recieve your messages in english",
+			name = "Your own chat messages",
+			description = "With this other players should receive your messages in english",
 			section = "generalSettings",
 			keyName = "allowLocalPlayerTranslate",
 			position = 5
@@ -96,29 +99,31 @@ public interface RuneLingualConfig extends Config
 	default boolean getAllowLocal() {return false;}
 
 	@ConfigItem(
-			name = "Translate game messages",
-			description = "Translate all game messages (boss kc, item charges...)",
+			name = "Game messages",
+			description = "Translate all game messages",
 			section = "generalSettings",
 			keyName = "allowGameTranslate",
 			position = 6
 	)
 	default boolean getAllowGame() {return true;}
+	
 	@ConfigItem(
-			name = "Translate overhead text",
-			description = "Translate overhead messages",
+			name = "Game spam messages",
+			description = "Translate all spammy game messages",
 			section = "generalSettings",
-			keyName = "allowOverHeadTranslate",
+			keyName = "allowSpamTranslate",
 			position = 7
 	)
-	default boolean getAllowOverHead() {return false;}
+	default boolean getAllowSpam() {return true;}
 	@ConfigItem(
-			name = "Translate item names",
+			name = "Item names",
 			description = "Change item names",
 			section = "generalSettings",
 			keyName = "allowItemTranslate",
 			position = 8
 	)
 	default boolean getAllowItems() {return true;}
+	
 	@ConfigItem(
 			name = "Change NPC names",
 			description = "Translate NPC names",
@@ -127,30 +132,14 @@ public interface RuneLingualConfig extends Config
 			position = 9
 	)
 	default boolean getAllowName() {return true;}
-
-	@ConfigSection(
-			name = "Contribution settings",
-			description = "Options regarding crowdsourcing",
-			position = 3,
-			closedByDefault = false
-	)
-	String CONTRIBUTION = "contributionSettings";
+	
 	@ConfigItem(
-			name = "Contribute with new transcriptions",
-			description = "Send found untranslated text to our public repository",
-			section = "contributionSettings",
-			keyName = "allowLocalPlayerTranslate",
-			position = 1
+			name = "Overhead messages",
+			description = "Translate overhead messages",
+			section = "generalSettings",
+			keyName = "allowOverHeadTranslate",
+			position = 7
 	)
-	default boolean allowContributions() {return false;}
-
-	@ConfigItem(
-			name = "Send contributions when",
-			description = "Set when to send new contibutions to the public repository",
-			section = "contributionSettings",
-			keyName = "contributePeriod",
-			position = 2
-	)
-	default SendUpdates presetContribute() {return SendUpdates.ANYTIME;}
+	default boolean getAllowOverHead() {return false;}
 
 }

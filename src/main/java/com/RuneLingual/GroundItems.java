@@ -39,8 +39,6 @@ public class GroundItems
 	
 	public void handleGroundItems()
 	{
-		/* TODO: lookup if it is possible to get items from an Overlay object
-		* to then replace its name
-		*/
+		/* TODO: lookup if it is possible to get items from an Overlay object */
 	}
 }

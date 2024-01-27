@@ -7,12 +7,15 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.VarClientInt;
 import net.runelite.api.events.*;
+import net.runelite.client.config.ConfigClient;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
-import java.awt.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Slf4j
 @PluginDescriptor(
@@ -20,6 +23,7 @@ import java.awt.*;
 	name = "RuneLingual",
 	description = "All-in-one translation plugin for OSRS."
 )
+
 public class RuneLingualPlugin extends Plugin
 {
 	@Inject
@@ -28,10 +32,10 @@ public class RuneLingualPlugin extends Plugin
 	private RuneLingualConfig config;
 
 	private LangCodeSelectableList targetLanguage;
-	private TranscriptsDatabaseManager dialogTranscriptManager = new TranscriptsDatabaseManager();
-	private TranscriptsDatabaseManager actionTranscriptManager = new TranscriptsDatabaseManager();
-	private TranscriptsDatabaseManager objectTranscriptManager = new TranscriptsDatabaseManager();
-	private TranscriptsDatabaseManager itemTrancriptManager = new TranscriptsDatabaseManager();
+	private TranscriptsFileManager dialogTranscriptManager = new TranscriptsFileManager();
+	private TranscriptsFileManager actionTranscriptManager = new TranscriptsFileManager();
+	private TranscriptsFileManager objectTranscriptManager = new TranscriptsFileManager();
+	private TranscriptsFileManager itemTranscriptManager = new TranscriptsFileManager();
 	
 	// main modules
 	@Inject
@@ -44,62 +48,35 @@ public class RuneLingualPlugin extends Plugin
 	private GroundItems groundItemsTranslator;
 	@Inject
 	private MenuBar menuBar;
-	
-	private boolean changesDetected = false;
-	
-	public void pluginLog(String contents)
-	{
-		log.info(contents);
-	}
 
 	@Override
 	protected void startUp() throws Exception
 	{
 		log.info("Starting...");
 
-		// plugin startup
 		targetLanguage = config.presetLang();
 		log.info(targetLanguage.getCode());
 		
-		/* General dialog transcript
-		* used for npc conversations action interfaces,
-		* pretty much everything that happens withing the
-		* dialog box widget
-		*/
-		dialogTranscriptManager.setLogger(this::pluginLog);
-		String dialogFilePath = "/npc_dialog_" + targetLanguage.getCode() + ".json";
-		dialogTranscriptManager.setFile(dialogFilePath);
-		dialogTranscriptManager.loadTranscripts();
+		// initializes transcript modules
+		initTranscripts();
+		loadTranscripts();
 		
 		// main dialog widget manager
 		dialogTranslator.setLogger(this::pluginLog);
-		dialogTranslator.setLocalTextTranslationService(dialogTranscriptManager.transcript);
+		dialogTranslator.setOriginalDialog(dialogTranscriptManager.originalTranscript);
+		dialogTranslator.setTranslatedDialog(dialogTranscriptManager.translatedTranscript);
 		
 		// chat translator handles game messages, contained also by the dialog transcript
 		chatTranslator.setLogger(this::pluginLog);
-		chatTranslator.setLocalTranslationService(dialogTranscriptManager.transcript);
-		//chatTranslator.setOnlineTranslationService(this::temporaryTranslator);
-		
-		actionTranscriptManager.setLogger(this::pluginLog);
-		String actionFilePath = "/actions_" + targetLanguage.getCode() + ".json";
-		actionTranscriptManager.setFile(actionFilePath);
-		actionTranscriptManager.loadTranscripts();
-		
-		objectTranscriptManager.setLogger(this::pluginLog);
-		String objectFilePath = "/objects_" + targetLanguage.getCode() + ".json";
-		objectTranscriptManager.setFile(objectFilePath);
-		objectTranscriptManager.loadTranscripts();
-		
-		itemTrancriptManager.setLogger(this::pluginLog);
-		String itemFilePath = "/items_" + targetLanguage.getCode() + ".json";
-		itemTrancriptManager.setFile(itemFilePath);
-		itemTrancriptManager.loadTranscripts();
+		chatTranslator.setOriginalDialog(dialogTranscriptManager.originalTranscript);
+		chatTranslator.setTranslatedDialog(dialogTranscriptManager.translatedTranscript);
+		//chatTranslator.setOnlineTranslator(this::temporaryTranslator);
 		
 		menuTranslator.setLogger(this::pluginLog);
-		menuTranslator.setActionTranslator(actionTranscriptManager.transcript);
-		menuTranslator.setNpcTranslator(dialogTranscriptManager.transcript);
-		menuTranslator.setObjectTranslator(objectTranscriptManager.transcript);
-		menuTranslator.setItemTranslator(itemTrancriptManager.transcript);
+		menuTranslator.setActionTranslator(actionTranscriptManager.translatedTranscript);
+		menuTranslator.setNpcTranslator(dialogTranscriptManager.translatedTranscript);
+		menuTranslator.setObjectTranslator(objectTranscriptManager.translatedTranscript);
+		menuTranslator.setItemTranslator(itemTranscriptManager.translatedTranscript);
 		
 		log.info("RuneLingual started!");
 	}
@@ -160,13 +137,30 @@ public class RuneLingualPlugin extends Plugin
 	@Subscribe
 	public void onChatMessage(ChatMessage event) throws Exception
 	{
-		chatTranslator.onChatMessage(event);
+		chatTranslator.handleChatMessage(event);
 	}
 	
 	@Subscribe
-	public void onGameStateChanged(GameStateChanged event) throws Exception
+	public void onGameStateChanged(GameStateChanged event)
 	{
 		//transcriptManager.saveTranscript();
+	}
+	
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		if(dialogTranscriptManager != null)
+		{
+			if(dialogTranscriptManager.isChanged())
+			{
+				dialogTranscriptManager.saveOriginalTranscript();
+			}
+		}
+		
+		if(chatTranslator != null)
+		{
+			chatTranslator.updateConfigs();
+		}
 	}
 	
 	@Override
@@ -174,6 +168,31 @@ public class RuneLingualPlugin extends Plugin
 	{
 		//transcriptManager.saveTranscript();
 		log.info("RuneLingual plugin stopped!");
+	}
+	
+	public void pluginLog(String contents)
+	{
+		log.info(contents);
+	}
+	
+	private void initTranscripts()
+	{
+		dialogTranscriptManager.setLogger(this::pluginLog);
+		dialogTranscriptManager.setFilePrefix("npc_dialog");
+		actionTranscriptManager.setLogger(this::pluginLog);
+		actionTranscriptManager.setFilePrefix("actions");
+		objectTranscriptManager.setLogger(this::pluginLog);
+		objectTranscriptManager.setFilePrefix("objects");
+		itemTranscriptManager.setLogger(this::pluginLog);
+		itemTranscriptManager.setFilePrefix("items");
+	}
+	
+	private void loadTranscripts()
+	{
+		dialogTranscriptManager.loadTranscripts();
+		actionTranscriptManager.loadTranscripts();
+		objectTranscriptManager.loadTranscripts();
+		itemTranscriptManager.loadTranscripts();
 	}
 
 	@Provides

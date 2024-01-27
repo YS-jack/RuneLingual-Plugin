@@ -3,13 +3,14 @@ package com.RuneLingual;
 import static com.RuneLingual.WidgetsUtil.getAllChildren;
 
 import net.runelite.api.Client;
-import net.runelite.api.MessageNode;
 import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.Widget;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.Setter;
 
 public class DialogCapture
 {
@@ -20,17 +21,32 @@ public class DialogCapture
     @Inject
     private RuneLingualConfig config;
     
-    private LogHandler log;
+    // transcript managers
+    @Setter
+    private TranscriptManager translatedDialog;
+    @Setter
+    private TranscriptManager originalDialog;
+    @Setter
+    private TranscriptManager translatedNames;
+    @Setter
+    private TranscriptManager originalNames;
+    @Setter
     private MessageReplacer overheadReplacer;
-    private TranscriptManager dialogTranslationService;
-    private TranscriptManager nameTranslationService;
-    private boolean debugPrints;
-    private boolean logEveryTranslation;
     
-    // item translation control
+    // logging control
+    @Setter
+    private LogHandler logger;
+    private boolean logErrors;
+    private boolean logTranslations;
+    private boolean logCaptures;
+    
+    // configs - translation control
     private boolean translateNames;
-    private boolean translateGame;
+    private boolean translateDialog;
+    private boolean translateMenus;
     private boolean translateOverheads;
+    
+    // widget control
     private String lastNpc;
     private List<Widget> widgetsLoaded;
     
@@ -40,18 +56,22 @@ public class DialogCapture
         this.client = client;
         this.config = config;
         
-        // TODO: change to false later on
-        this.debugPrints = true;
-        this.logEveryTranslation = false;
-        this.translateOverheads = true;
-        this.translateNames = true;
+        this.logErrors = true;
+        this.logTranslations = false;
+        this.logCaptures = false;
         
+        this.translateNames = true;
+        this.translateDialog = true;
+        this.translateMenus = true;
+        this.translateOverheads = true;
     }
     
     private void updateConfigs()
     {
         this.translateNames = config.getAllowName();
-        this.translateGame = config.getAllowGame();
+        this.translateDialog = config.getAllowGame();
+        this.translateMenus = config.getAllowGame();
+        this.translateOverheads = config.getAllowOverHead();
     }
     
     public void handleDialogs()
@@ -147,7 +167,7 @@ public class DialogCapture
                 String currentText = widget.getText();
                 // unknown-source widgets
                 String newText = localTextTranslatorCaller("dialogflow", currentText, widget);
-                log.log("UNKNOWN WIDGET " + widgetId + ": " + currentText);
+                logger.log("UNKNOWN WIDGET " + widgetId + ": " + currentText);
                 handledWidgetsIds.add(widgetId);
             }
         }
@@ -157,12 +177,12 @@ public class DialogCapture
     {
         try
         {
-            String newMessage = dialogTranslationService.getTranslatedText(senderName, currentMessage, true);
+            String newMessage = translatedDialog.getText(senderName, currentMessage, true);
             messageWidget.setText(newMessage);
             
-            if(debugPrints && logEveryTranslation)
+            if(logTranslations)
             {
-                log.log("Dialog message '"
+                logger.log("Dialog message '"
                     + currentMessage
                     + "' was translated and replaced for '"
                     + newMessage
@@ -181,16 +201,19 @@ public class DialogCapture
                 }
                 catch(Exception unknownException)
                 {
-                    log.log("Could not add '"
-                        + currentMessage
-                        + "'line to transcript: "
-                        + unknownException.getMessage());
+                    if(logErrors)
+                    {
+                        logger.log("Could not add '"
+                            + currentMessage
+                            + "'line to transcript: "
+                            + unknownException.getMessage());
+                    }
                 }
             }
             
-            if(debugPrints)
+            if(logErrors)
             {
-                log.log("Could not translate dialog message '"
+                logger.log("Could not translate dialog message '"
                     + currentMessage
                     + "'! Exception captured: "
                     + e.getMessage());
@@ -200,6 +223,7 @@ public class DialogCapture
     }
     private void overheadTextReplacerCaller(String currentMessage, String newMessage)
     {
+        // TODO: remove this
         if(true)
             return;
         
@@ -207,23 +231,20 @@ public class DialogCapture
         {
             overheadReplacer.replace(currentMessage, newMessage);
             
-            if(debugPrints)
+            if(logTranslations)
             {
-                log.log("Found and replaced overhead message for '" + currentMessage + "'.");
+                logger.log("Found and replaced overhead message for '" + currentMessage + "'.");
             }
         }
         catch(Exception e)
         {
-            if(debugPrints)
+            if(logErrors)
             {
-                log.log("Could not replace overhead message '"
+                logger.log("Could not replace overhead message '"
                     + currentMessage
                     + "'! Exception captured: "
                     + e);
             }
         }
     }
-    public void setLocalTextTranslationService(TranscriptManager newHandler) {this.dialogTranslationService = newHandler;}
-    public void setOverheadTextReplacer(MessageReplacer overheadReplacer) {this.overheadReplacer = overheadReplacer;}
-    public void setLogger(LogHandler logger) {this.log = logger;}
 }

@@ -1,5 +1,8 @@
 package com.RuneLingual;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.annotation.Nullable;
 import java.text.Normalizer;
 import java.io.Serializable;
@@ -15,8 +18,17 @@ public class TranscriptManager implements Serializable
     
     private Map<String, Map<String, String>> transcript = new HashMap<>();
     
+    @Setter
     private LogHandler logger;
     private static final long serialVersionUID = 9190132562154153951L;
+    
+    @Getter
+    private boolean changed;
+    
+    TranscriptManager()
+    {
+        this.changed = false;
+    }
 
     public void addTranscript(String name, String text) throws Exception
     {
@@ -46,7 +58,7 @@ public class TranscriptManager implements Serializable
         npcTranscripts.put(textKey, text);
     }
 
-    public String getTranslatedText(String name, String text, boolean keepColor) throws Exception
+    public String getText(String sourceName, String originalText, boolean keepColor) throws Exception
     {
         // ensures valid access to local npc transcript database
         if(transcript == null)
@@ -55,8 +67,8 @@ public class TranscriptManager implements Serializable
         }
 
         // sanitizes arguments to access correct entry
-        String textKey = sanitizeString(text, false);
-        String nameKey = sanitizeString(name, false);
+        String textKey = sanitizeString(originalText, false);
+        String nameKey = sanitizeString(sourceName, false);
         
         if(transcript.containsKey(nameKey))
         {
@@ -66,8 +78,8 @@ public class TranscriptManager implements Serializable
             {
                 if(keepColor)
                 {
-                    String prefix = getPrefix(text);
-                    String suffix = getSuffix(text);
+                    String prefix = getPrefix(originalText);
+                    String suffix = getSuffix(originalText);
                     String output = "";
                 
                     if(prefix != null)
@@ -95,7 +107,7 @@ public class TranscriptManager implements Serializable
         throw new Exception("EntryNotFound");
     }
     
-    public String getTranslatedName(String name, boolean keepColor) throws Exception
+    public String getName(String sourceName, boolean keepColor) throws Exception
     {
         // ensures valid access to local npc transcript
         if(transcript == null)
@@ -104,7 +116,7 @@ public class TranscriptManager implements Serializable
         }
         
         // polishes arguments to get transcript keys
-        String nameKey = sanitizeString(name, false);
+        String nameKey = sanitizeString(sourceName, false);
         if(transcript.containsKey(nameKey))
         {
             // retrieves all dialog lines from any given NPC
@@ -114,8 +126,8 @@ public class TranscriptManager implements Serializable
             {
                 try
                 {
-                    String prefix = getPrefix(name);
-                    String suffix = getSuffix(name);
+                    String prefix = getPrefix(sourceName);
+                    String suffix = getSuffix(sourceName);
                     String output = "";
                     if(prefix != null)
                     {
@@ -132,7 +144,7 @@ public class TranscriptManager implements Serializable
                     }
                     else
                     {
-                        String suffixAlt = getSuffixAlt(name);
+                        String suffixAlt = getSuffixAlt(sourceName);
                         if(suffixAlt != null)
                         {
                             output += suffixAlt;
@@ -285,6 +297,4 @@ public class TranscriptManager implements Serializable
     {
         return (input.indexOf("<") != -1);
     }
-    
-    public void setLogger(LogHandler newLogger) {this.logger = newLogger;}
 }

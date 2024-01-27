@@ -1,17 +1,19 @@
 package com.RuneLingual;
 
-import lombok.Getter;
-import lombok.Setter;
+import static com.RuneLingual.WidgetsUtil.getAllChildren;
+
 import net.runelite.api.Client;
 import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.Widget;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.RuneLingual.WidgetsUtil.getAllChildren;
+import lombok.Getter;
+import lombok.Setter;
 
 public class MenuBar
 {
@@ -23,13 +25,29 @@ public class MenuBar
 	@Setter
 	private TranscriptManager interfaceTranslator;
 	
+	// logging control
 	@Setter
-	private LogHandler log;
+	private LogHandler logger;
+	private boolean logTranslations;
+	private boolean logErrors;
+	private boolean logCaptures;
 	
-	@Setter
-	private boolean debugMessages;
+	// configs - translation control
+	private boolean translateMenus;
 	
 	private List<Widget> worldMapWidgetsLoaded;
+	
+	public MenuBar(RuneLingualConfig config, Client client)
+	{
+		this.client = client;
+		this.config = config;
+		
+		this.logErrors = true;
+		this.logTranslations = false;
+		this.logCaptures = false;
+		
+		this.translateMenus = true;
+	}
 	
 	public void handleCharacterSummaryTab()
 	{
@@ -51,7 +69,7 @@ public class MenuBar
 					String questTitle;
 					try
 					{
-						questTitle = interfaceTranslator.getTranslatedText(
+						questTitle = interfaceTranslator.getText(
 								"charactersummary",
 								originalQuestTitle,
 								true);
@@ -59,12 +77,12 @@ public class MenuBar
 					catch(Exception e)
 					{
 						questTitle = originalQuestTitle;
-						if(debugMessages)
+						if(logErrors)
 						{
-							log.log("Could not translate("
-									        + e.getMessage()
-									        + "):"
-									        + originalQuestTitle);
+							logger.log("Could not translate("
+						        + e.getMessage()
+						        + "):"
+						        + originalQuestTitle);
 						}
 					}
 					if(questTitle.length() > 0)
@@ -77,20 +95,20 @@ public class MenuBar
 					String questText;
 					try
 					{
-						questText = interfaceTranslator.getTranslatedText(
-								"charactersummary",
-								originalQuestText,
-								true);
+						questText = interfaceTranslator.getText(
+							"charactersummary",
+							originalQuestText,
+							true);
 					}
 					catch(Exception e)
 					{
 						questText = originalQuestText;
-						if(debugMessages)
+						if(logErrors)
 						{
-							log.log("Could not translate("
-									        + e.getMessage()
-									        + "):"
-									        + originalQuestText);
+							logger.log("Could not translate("
+						        + e.getMessage()
+						        + "):"
+						        + originalQuestText);
 						}
 					}
 					if(questText.length() > 0)
@@ -123,7 +141,7 @@ public class MenuBar
 					String questTitle;
 					try
 					{
-						questTitle = interfaceTranslator.getTranslatedText(
+						questTitle = interfaceTranslator.getText(
 							"quests",
 							originalQuestTitle,
 							true);
@@ -131,9 +149,9 @@ public class MenuBar
 					catch(Exception e)
 					{
 						questTitle = originalQuestTitle;
-						if(debugMessages)
+						if(logErrors)
 						{
-							log.log("Could not translate("
+							logger.log("Could not translate("
 						        + e.getMessage()
 						        + "):"
 						        + originalQuestTitle);
@@ -148,7 +166,7 @@ public class MenuBar
 					String questText;
 					try
 					{
-						questText = interfaceTranslator.getTranslatedText(
+						questText = interfaceTranslator.getText(
 							"quests",
 							originalQuestTitle,
 							true);
@@ -156,9 +174,9 @@ public class MenuBar
 					catch(Exception e)
 					{
 						questText = originalQuestTitle;
-						if(debugMessages)
+						if(logErrors)
 						{
-							log.log("Could not translate("
+							logger.log("Could not translate("
 						        + e.getMessage()
 						        + "):"
 						        + originalQuestText);
@@ -180,9 +198,9 @@ public class MenuBar
 		Widget achievementDiaryBox = client.getWidget(ComponentID.ACHIEVEMENT_DIARY_CONTAINER);
 		if(achievementDiaryBox == null)
 		{
-			if(debugMessages)
+			if(logErrors)
 			{
-				log.log("Could not retrieve achievement diary container widget! Null widget!");
+				logger.log("Could not retrieve achievement diary container widget! Null widget!");
 			}
 			return;
 		}
@@ -202,7 +220,7 @@ public class MenuBar
 					String widgetTitle;
 					try
 					{
-						widgetTitle = interfaceTranslator.getTranslatedText(
+						widgetTitle = interfaceTranslator.getText(
 							"achievementdiary",
 							originalWidgetTitle,
 							true);
@@ -210,9 +228,9 @@ public class MenuBar
 					catch(Exception e)
 					{
 						widgetTitle = originalWidgetTitle;
-						if(debugMessages)
+						if(logErrors)
 						{
-							log.log("Could not translate("
+							logger.log("Could not translate("
 						        + e.getMessage()
 						        + "):"
 						        + originalWidgetTitle);
@@ -227,7 +245,7 @@ public class MenuBar
 					String widgetText;
 					try
 					{
-						widgetText = interfaceTranslator.getTranslatedText(
+						widgetText = interfaceTranslator.getText(
 							"achievementdiary",
 							originalWidgetText,
 							true);
@@ -235,9 +253,9 @@ public class MenuBar
 					catch(Exception e)
 					{
 						widgetText = originalWidgetText;
-						if(debugMessages)
+						if(logErrors)
 						{
-							log.log("Could not translate("
+							logger.log("Could not translate("
 						        + e.getMessage()
 						        + "):"
 						        + originalWidgetText);
@@ -252,9 +270,10 @@ public class MenuBar
 		}
 		else
 		{
-			if(debugMessages)
+			if(logErrors)
 			{
-				log.log("Could not retrieve achievement diary children widgets! Null widget list!");
+				logger.log("Could not retrieve achievement diary children widgets!"
+			        + " Widget list is null!");
 			}
 		}
 	}
@@ -297,9 +316,9 @@ public class MenuBar
 		}
 		catch(Exception e)
 		{
-			if(debugMessages)
+			if(logErrors)
 			{
-				log.log("Could not translate one or more world map widgets :" + e.getMessage());
+				logger.log("Could not translate one or more world map widgets :" + e.getMessage());
 			}
 		}
 		
@@ -313,9 +332,9 @@ public class MenuBar
 		}
 		catch(Exception e)
 		{
-			if(debugMessages)
+			if(logErrors)
 			{
-				log.log("Could not replace widget(ID "
+				logger.log("Could not replace widget(ID "
 			        + widgetId
 			        + ") text contents! Exception captured: "
 			        + e.getMessage());
@@ -330,9 +349,9 @@ public class MenuBar
 		}
 		catch(Exception e)
 		{
-			if(debugMessages)
+			if(logErrors)
 			{
-				log.log("Could not replace widget(ID "
+				logger.log("Could not replace widget(ID "
 		            + widgetId
 			        + ") name! Exception captured: "
 					+ e.getMessage());
@@ -343,13 +362,13 @@ public class MenuBar
 	{
 		try
 		{
-			return interfaceTranslator.getTranslatedText(contentSource, originalContents, true);
+			return interfaceTranslator.getText(contentSource, originalContents, true);
 		}
 		catch(Exception e)
 		{
-			if(debugMessages)
+			if(logErrors)
 			{
-				log.log("Could not translate '"
+				logger.log("Could not translate '"
 			        + contentSource
 		            + "' contents: "
 			        + originalContents

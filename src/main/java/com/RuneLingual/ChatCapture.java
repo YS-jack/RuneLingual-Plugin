@@ -1,29 +1,49 @@
 package com.RuneLingual;
 
-import lombok.extern.java.Log;
 import net.runelite.api.Client;
 import net.runelite.api.MessageNode;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.events.ChatMessage;
-import net.runelite.client.eventbus.Subscribe;
 
 import javax.inject.Inject;
 
+import lombok.Setter;
+
 public class ChatCapture
 {
-    // Captures chat messages from any source
+    /* Captures chat messages from any source
+    ignores npc dialog, as they are handled in DialogCapture*/
+    
     @Inject
     private Client client;
     @Inject
     private RuneLingualConfig config;
     
-    private boolean allowOnlineTranslations;
-    private boolean allowOverHeads;
-    private boolean debugPrints;
-    private LogHandler log;
-    private TranscriptManager localTranslationService;
-    private TranslationHandler onlineTranslationService;
+    // transcript managers
+    @Setter
+    private TranscriptManager translatedDialog;
+    @Setter
+    private TranscriptManager originalDialog;
+    @Setter
+    private TranscriptManager onlineTranslator;
+    @Setter
     private MessageReplacer overheadReplacer;
+    
+    // logging control
+    @Setter
+    private LogHandler logger;
+    private boolean logErrors;
+    private boolean logTranslations;
+    private boolean logCaptures;
+    
+    // configs - translation control
+    private boolean translateNames;
+    private boolean translateGame;
+    private boolean translatePublic;
+    private boolean translateClan;
+    private boolean translateFriends;
+    private boolean translateOverHeads;
+    private boolean dynamicTranslations;
     
     @Inject
     ChatCapture(RuneLingualConfig config, Client client)
@@ -31,234 +51,221 @@ public class ChatCapture
         this.config = config;
         this.client = client;
         
-        // TODO: change to false later on
-        this.debugPrints = false;
+        this.logErrors = true;
+        this.logTranslations = false;
+        this.logCaptures = false;
+        
+        this.translateNames = true;
+        this.translateGame = true;
+        this.translateOverHeads = true;
     }
     
-    public boolean messageTypeRequiresKey(ChatMessageType type)
-    {
-        // Checks if the message requires an API key for translating
-        if(type.equals(ChatMessageType.AUTOTYPER)
-            || type.equals(ChatMessageType.BROADCAST)
-            || type.equals(ChatMessageType.CLAN_CHAT)
-            || type.equals(ChatMessageType.CLAN_GIM_CHAT)
-            || type.equals(ChatMessageType.CLAN_GUEST_CHAT)
-            || type.equals(ChatMessageType.BROADCAST)
-            || type.equals(ChatMessageType.MODCHAT)
-            || type.equals(ChatMessageType.MODPRIVATECHAT)
-            || type.equals(ChatMessageType.PRIVATECHAT)
-            || type.equals(ChatMessageType.PUBLICCHAT)
-            || type.equals(ChatMessageType.SPAM)
-            || type.equals(ChatMessageType.UNKNOWN))
-        {
-            return true;
-        }
-        return false;
-    }
     
-    public void onChatMessage(ChatMessage event) throws Exception {
+    
+    public void handleChatMessage(ChatMessage event) throws Exception {
         // tries to translate and replace chat messages by their given message node
         ChatMessageType type = event.getType();
         MessageNode messageNode = event.getMessageNode();
         String message = event.getMessage();
         
-        boolean allowGame = config.getAllowGame();
-        boolean allowPublic = config.getAllowPublic();
-        boolean allowClan = config.getAllowClan();
-        boolean allowFriends = config.getAllowFriends();
-        
-        if(messageTypeRequiresKey(type) && allowOnlineTranslations)  // if the current translation iteration requires an api key
+        if(messageTypeRequiresKey(type) && dynamicTranslations)
         {
-            //TODO: fix configs here
-            if(type.equals(ChatMessageType.AUTOTYPER) && allowPublic)
+            if(type.equals(ChatMessageType.AUTOTYPER) && translatePublic)
             {
-                onlineTextTranslatorCaller(message, messageNode);
+                onlineTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.BROADCAST) && allowGame)
+            else if(type.equals(ChatMessageType.BROADCAST) && translateGame)
             {
-                onlineTextTranslatorCaller(message, messageNode);
+                onlineTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.CLAN_CHAT) && allowClan)
+            else if(type.equals(ChatMessageType.CLAN_CHAT) && translateClan)
             {
-                onlineTextTranslatorCaller(message, messageNode);
+                onlineTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.CLAN_GIM_CHAT) && allowClan)
+            else if(type.equals(ChatMessageType.CLAN_GIM_CHAT) && translateClan)
             {
-                onlineTextTranslatorCaller(message, messageNode);
+                onlineTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.CLAN_GUEST_CHAT) && allowClan)
+            else if(type.equals(ChatMessageType.CLAN_GUEST_CHAT) && translateClan)
             {
-                onlineTextTranslatorCaller(message, messageNode);
+                onlineTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.FRIENDSCHAT) && allowFriends)
+            else if(type.equals(ChatMessageType.FRIENDSCHAT) && translateFriends)
             {
-                onlineTextTranslatorCaller(message, messageNode);
+                onlineTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.MODAUTOTYPER) && allowPublic)
+            else if(type.equals(ChatMessageType.MODAUTOTYPER) && translatePublic)
             {
-                onlineTextTranslatorCaller(message, messageNode);
+                onlineTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.MODCHAT) && allowPublic)
+            else if(type.equals(ChatMessageType.MODCHAT) && translatePublic)
             {
-                onlineTextTranslatorCaller(message, messageNode);
+                onlineTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.MODPRIVATECHAT) && allowFriends)
+            else if(type.equals(ChatMessageType.MODPRIVATECHAT) && translateFriends)
             {
-                onlineTextTranslatorCaller(message, messageNode);
+                onlineTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.PRIVATECHAT) && allowFriends)
+            else if(type.equals(ChatMessageType.PRIVATECHAT) && translateFriends)
             {
-                onlineTextTranslatorCaller(message, messageNode);
+                onlineTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.PRIVATECHATOUT) && allowFriends)
+            else if(type.equals(ChatMessageType.PRIVATECHATOUT) && translateFriends)
             {
-                onlineTextTranslatorCaller(message, messageNode);
+                onlineTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.PUBLICCHAT) && allowPublic)
+            else if(type.equals(ChatMessageType.PUBLICCHAT) && translatePublic)
             {
-                onlineTextTranslatorCaller(message, messageNode);
-                if(allowOverHeads)
+                onlineTranslator(message, messageNode);
+                if(dynamicTranslations)
                 {
                     // avoids duplicate translation requests
                     // looks for the player that sent the message and translates it
                     String newMessage = messageNode.getValue();
-                    overheadTranslatorCaller(message, newMessage);
+                    overheadReplacer(message, newMessage);
                 }
             }
-            else if(type.equals(ChatMessageType.SPAM) && allowPublic)
+            else if(type.equals(ChatMessageType.TRADE) && translatePublic)
             {
-                onlineTextTranslatorCaller(message, messageNode);
+                onlineTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.TRADE) && allowGame)
+            else if(type.equals(ChatMessageType.UNKNOWN) && translatePublic)
             {
-                onlineTextTranslatorCaller(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.UNKNOWN) && allowPublic)
-            {
-                onlineTextTranslatorCaller(message, messageNode);
+                onlineTranslator(message, messageNode);
             }
             else
             {
-                // messages whose translations were not allowed by user - do not translate these messages
+                if(logErrors)
+                {
+                    logger.log("Unknown message '" + message + "' type: " + type.toString());
+                }
             }
         }
         else
         {
-            if(type.equals(ChatMessageType.CHALREQ_CLANCHAT) && allowGame)
+            if(type.equals(ChatMessageType.CHALREQ_CLANCHAT) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.CHALREQ_FRIENDSCHAT) && allowGame)
+            else if(type.equals(ChatMessageType.CHALREQ_FRIENDSCHAT) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.CHALREQ_TRADE) && allowGame)
+            else if(type.equals(ChatMessageType.CHALREQ_TRADE) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.CLAN_CREATION_INVITATION) && allowGame)
+            else if(type.equals(ChatMessageType.CLAN_CREATION_INVITATION) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.CLAN_GIM_FORM_GROUP) && allowGame)
+            else if(type.equals(ChatMessageType.CLAN_GIM_FORM_GROUP) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.CLAN_GIM_GROUP_WITH) && allowGame)
+            else if(type.equals(ChatMessageType.CLAN_GIM_GROUP_WITH) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.CLAN_GIM_MESSAGE) && allowClan)
+            else if(type.equals(ChatMessageType.CLAN_GIM_MESSAGE) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.CLAN_GUEST_MESSAGE) && allowClan)
+            else if(type.equals(ChatMessageType.CLAN_GUEST_MESSAGE) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.CLAN_MESSAGE) && allowClan)
+            else if(type.equals(ChatMessageType.CLAN_MESSAGE) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.CONSOLE) && allowGame)
+            else if(type.equals(ChatMessageType.CONSOLE) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.ENGINE) && allowGame)
+            else if(type.equals(ChatMessageType.ENGINE) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.FRIENDNOTIFICATION) && allowGame)
+            else if(type.equals(ChatMessageType.FRIENDNOTIFICATION) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.FRIENDSCHATNOTIFICATION) && allowGame)
+            else if(type.equals(ChatMessageType.FRIENDSCHATNOTIFICATION) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.GAMEMESSAGE) && allowGame)
+            else if(type.equals(ChatMessageType.GAMEMESSAGE) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.IGNORENOTIFICATION) && allowFriends)
+            else if(type.equals(ChatMessageType.IGNORENOTIFICATION) && translateFriends)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.ITEM_EXAMINE) && allowGame)
+            else if(type.equals(ChatMessageType.ITEM_EXAMINE) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.LOGINLOGOUTNOTIFICATION) && allowGame)
+            else if(type.equals(ChatMessageType.LOGINLOGOUTNOTIFICATION) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.NPC_EXAMINE) && allowGame)
+            else if(type.equals(ChatMessageType.NPC_EXAMINE) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.OBJECT_EXAMINE) && allowGame)
+            else if(type.equals(ChatMessageType.OBJECT_EXAMINE) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.SNAPSHOTFEEDBACK) && allowGame)
+            else if(type.equals(ChatMessageType.SNAPSHOTFEEDBACK) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.TENSECTIMEOUT) && allowGame)
+            else if(type.equals(ChatMessageType.TENSECTIMEOUT) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.TRADE_SENT) && allowGame)
+            else if(type.equals(ChatMessageType.TRADE_SENT) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.TRADEREQ) && allowGame)
+            else if(type.equals(ChatMessageType.TRADEREQ) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
-            else if(type.equals(ChatMessageType.WELCOME) && allowGame)
+            else if(type.equals(ChatMessageType.WELCOME) && translateGame)
             {
-                localTextTranslatorCaller(message, messageNode);
+                localTranslator(message, messageNode);
             }
             else
             {
-                // messages whose translations were not allowed by user
-                // do not translate these messages
-                log.log("pasou" + event.getMessage());
+                if(logErrors)
+                {
+                    logger.log("Unknown message '" + message + "' type: " + type.toString());
+                }
             }
         }
     }
     
-    private void localTextTranslatorCaller(String message, MessageNode node)
+    public void updateConfigs()
+    {
+        this.translateNames = config.getAllowName();
+        this.translateGame = config.getAllowGame();
+        this.translateOverHeads = config.getAllowOverHead();
+    }
+    
+    private void localTranslator(String message, MessageNode node)
     {
         try
         {
-            String translatedMessage = localTranslationService.getTranslatedText("game", message, true);
+            String translatedMessage = translatedDialog.getText("game", message, true);
             node.setValue(translatedMessage);
             
-            if(debugPrints)
+            if(logTranslations)
             {
-                log.log("Translation found! Replaced item '" + message + "'.");
+                logger.log("Replaced game message '" + message + "'.");
             }
         }
         catch (Exception e)
@@ -267,72 +274,77 @@ public class ChatCapture
             {
                 try
                 {
-                    localTranslationService.addTranscript("game", message);
+                    originalDialog.addTranscript("game", message);
                     return;
                 }
                 catch(Exception unknownException)
                 {
-                    log.log("Could not add '"
-                        + message
-                        + "'line to transcript: "
-                        + unknownException.getMessage());
+                    if(logErrors)
+                    {
+                        logger.log("Could not add '"
+                            + message
+                            + "'line to transcript: "
+                            + unknownException.getMessage());
+                    }
                 }
             }
             
-            if(debugPrints)
+            if(logErrors)
             {
                 String originalContents = node.getValue();
-                log.log("Could not replace contents for '" + originalContents + "', exception ocurred: " + e.getMessage());
+                logger.log("Could not replace contents for '"
+                   + originalContents + "', exception occurred: "
+                   + e.getMessage());
             }
         }
     }
     
-    private void onlineTextTranslatorCaller(String message, MessageNode node)
+    private void onlineTranslator(String message, MessageNode node)
     {
-        try
-        {
-            String translatedMessage = onlineTranslationService.translate("online", message);
-            node.setValue(translatedMessage);
-            
-            if(debugPrints)
-            {
-                log.log("Translation found! Replaced item '" + message + "'.");
-            }
-        }
-        catch (Exception e)
-        {
-            if(debugPrints)
-            {
-                String originalContents = node.getValue();
-                log.log("Could not replace contents for '" + originalContents + "', exception occurred: " + e.getMessage());
-            }
-        }
+        // TODO: this
     }
     
-    private void overheadTranslatorCaller(String currentMessage, String newMessage)
+    private void overheadReplacer(String currentMessage, String newMessage)
     {
         try
         {
             String translatedMessage = overheadReplacer.replace(currentMessage, newMessage);
             
-            if(debugPrints)
+            if(logTranslations)
             {
-                log.log("Translation found! Overhead replaced for item '" + currentMessage + "'.");
+                logger.log("Replaced overhead message '" + currentMessage + "'.");
             }
         }
         catch (Exception e)
         {
-            if(debugPrints)
+            if(logErrors)
             {
-                log.log("Could not replace contents for '" + currentMessage + "', exception ocurred: " + e.getMessage());
+                logger.log("Could not replace contents for '"
+                    + currentMessage
+                    + "', exception occurred: "
+                    + e.getMessage());
             }
         }
     }
     
-    public void setLogger(LogHandler logger) {this.log = logger;}
-    public void setOverheadReplacer(MessageReplacer overheadReplacer) {this.overheadReplacer = overheadReplacer;}
-    public void setOnlineTranslationService(TranslationHandler newHandler) {this.onlineTranslationService = newHandler;}
-    public void setLocalTranslationService(TranscriptManager newHandler) {this.localTranslationService = newHandler;}
-    public void setOnlineTranslations(boolean newValue) {this.allowOnlineTranslations = newValue;}
-    public void setOverHeads(boolean newValue) {this.allowOverHeads = newValue;}
+    private boolean messageTypeRequiresKey(ChatMessageType type)
+    {
+        // checks if the message requires an API key for translating
+        if(type.equals(ChatMessageType.AUTOTYPER)
+                || type.equals(ChatMessageType.BROADCAST)
+                || type.equals(ChatMessageType.CLAN_CHAT)
+                || type.equals(ChatMessageType.CLAN_GIM_CHAT)
+                || type.equals(ChatMessageType.CLAN_GUEST_CHAT)
+                || type.equals(ChatMessageType.BROADCAST)
+                || type.equals(ChatMessageType.MODCHAT)
+                || type.equals(ChatMessageType.MODPRIVATECHAT)
+                || type.equals(ChatMessageType.PRIVATECHAT)
+                || type.equals(ChatMessageType.PUBLICCHAT)
+                || type.equals(ChatMessageType.SPAM)
+                || type.equals(ChatMessageType.UNKNOWN))
+        {
+            return true;
+        }
+        return false;
+    }
 }

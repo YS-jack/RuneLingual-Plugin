@@ -1,20 +1,12 @@
 package com.RuneLingual;
 
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetUtil;
 
 import java.util.List;
 import java.util.ArrayList;
 
 public class WidgetsUtil
 {
-	private boolean debugPrints;
-	private LogHandler logger;
-	public WidgetsUtil()
-	{
-		this.debugPrints = false;
-	}
-	
 	public static List<Widget> getAllChildren(Widget widget)
 	{
 		// Create a list to store widgets
@@ -36,8 +28,6 @@ public class WidgetsUtil
 			if(widget.getText().length() > 0 || widget.getName().length() > 0)
 			{
 				widgetList.add(widget);
-				
-				//System.out.println("Widget " + widget.getName() + " is not null and was added to list. " + widget.getText());
 			}
 			
 			Widget[] staticChildren = widget.getStaticChildren();

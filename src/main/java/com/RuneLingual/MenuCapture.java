@@ -1,13 +1,16 @@
 package com.RuneLingual;
 
-import net.runelite.api.*;
 import net.runelite.api.events.MenuEntryAdded;
-import net.runelite.api.events.MenuOpened;
-import net.runelite.api.events.WidgetLoaded;
-import net.runelite.api.widgets.Widget;
+import net.runelite.api.Client;
+import net.runelite.api.MenuAction;
+import net.runelite.api.MenuEntry;
+import net.runelite.api.NPC;
+import net.runelite.api.Player;
 
 import javax.inject.Inject;
-import java.awt.*;
+
+import lombok.Getter;
+import lombok.Setter;
 
 public class MenuCapture
 {
@@ -16,12 +19,17 @@ public class MenuCapture
 	@Inject
 	private RuneLingualConfig config;
 	
+	@Setter
 	private TranscriptManager actionTranslator;
+	@Setter
 	private TranscriptManager npcTranslator;
+	@Setter
 	private TranscriptManager objectTranslator;
+	@Setter
 	private TranscriptManager itemTranslator;
 	
-	private LogHandler log;
+	@Setter
+	private LogHandler logger;
 	private boolean debugMessages = true;
 	
 	// TODO: right click menu title 'Chose Options' - seems to not be directly editable
@@ -60,21 +68,21 @@ public class MenuCapture
 						if(levelIndicatorIndex != -1)
 						{  // npc has a combat level
 							String actualName = menuTarget.substring(0, levelIndicatorIndex);
-							String newName = npcTranslator.getTranslatedName(actualName, true);
+							String newName = npcTranslator.getName(actualName, true);
 							
-							String levelIndicator = actionTranslator.getTranslatedText("npcactions", "level", true);
+							String levelIndicator = actionTranslator.getText("npcactions", "level", true);
 							newName += " (" + levelIndicator + "-" + combatLevel + ")";
 							event.getMenuEntry().setTarget(newName);
 						}
 						else
 						{  // npc does not have a combat level
-							String newName = npcTranslator.getTranslatedName(menuTarget, true);
+							String newName = npcTranslator.getName(menuTarget, true);
 							event.getMenuEntry().setTarget(newName);
 						}
 					}
 					else
 					{  // non attackable npcs
-						String newName = npcTranslator.getTranslatedName(menuTarget, true);
+						String newName = npcTranslator.getName(menuTarget, true);
 						event.getMenuEntry().setTarget(newName);
 					}
 					
@@ -83,7 +91,10 @@ public class MenuCapture
 				{
 					if(debugMessages)
 					{
-						log.log("Could not translate npc name: " + menuTarget + " - " + f.getMessage());
+						logger.log("Could not translate npc name: "
+			                + menuTarget
+			                + " - "
+				            + f.getMessage());
 					}
 				}
 				
@@ -103,25 +114,31 @@ public class MenuCapture
 				translateItemName("items", event, menuTarget);
 				translateMenuAction("iteminterfaceactions", event, menuAction);
 			}
-			else if(isKnownMenu(menuType))
+			else if(isGeneralMenu(menuType))
 			{
 				try
 				{
-					String newAction = actionTranslator.getTranslatedText("generalactions", menuAction, true);
+					String newAction = actionTranslator.getText("generalactions", menuAction, true);
 					event.getMenuEntry().setOption(newAction);
 				}
 				catch(Exception f)
 				{
 					if(debugMessages)
 					{
-						log.log("Could not translate action: " + f.getMessage());
+						logger.log("Could not translate action: " + f.getMessage());
 					}
 				}
 			}
 			else
 			{
+				// TODO: this
 				// nor a player or npc
-				log.log("Menu action:" + menuAction + " - Menu target:" + menuTarget + "type:" + event.getMenuEntry().getType());
+				logger.log("Menu action:"
+			           + menuAction
+			           + " - Menu target:"
+			           + menuTarget
+			           + "type:"
+			           + event.getMenuEntry().getType());
 				
 				/*
 				// tries to translate general actions
@@ -133,7 +150,7 @@ public class MenuCapture
 				catch(Exception f)
 				{
 				
-					log.log("Could not translate action: " + f.getMessage());
+					logger.logger("Could not translate action: " + f.getMessage());
 					
 				}*/
 				
@@ -144,7 +161,7 @@ public class MenuCapture
 		{
 			if(debugMessages)
 			{
-				log.log("Critical error happened while processing right click menus: " + e.getMessage());
+				logger.log("Critical error happened while processing right click menus: " + e.getMessage());
 			}
 		}
 	}
@@ -162,12 +179,12 @@ public class MenuCapture
 			String newName = target;
 			if(source.equals("items"))
 			{
-				newName = itemTranslator.getTranslatedText(source, target, true);
+				newName = itemTranslator.getText(source, target, true);
 				entryAdded.getMenuEntry().setTarget(newName);
 			}
 			else if(source.equals("objects"))
 			{
-				newName = objectTranslator.getTranslatedText(source, target, true);
+				newName = objectTranslator.getText(source, target, true);
 				entryAdded.getMenuEntry().setTarget(newName);
 			}
 		}
@@ -175,7 +192,7 @@ public class MenuCapture
 		{
 			if(debugMessages)
 			{
-				log.log("Could not translate '"
+				logger.log("Could not translate '"
 		            + source
 			        + "' name: "
 		            + target
@@ -184,17 +201,19 @@ public class MenuCapture
 			}
 		}
 	}
-	private void translateMenuAction(String source, MenuEntryAdded entryAdded, String target)
+	private void translateMenuAction(String actionSource, MenuEntryAdded entryAdded, String target)
 	{
 		// translates menu action
 		try
 		{
-			String newAction = actionTranslator.getTranslatedText(source, target, true);
+			String newAction = actionTranslator.getText(actionSource, target, true);
 			entryAdded.getMenuEntry().setOption(newAction);
 		}
 		catch(Exception f)
 		{
-			if(!source.equals("generalactions"))
+			// if current action is not from the informed category
+			// checks if it is a generic action
+			if(!actionSource.equals("generalactions"))
 			{
 				try
 				{
@@ -204,8 +223,8 @@ public class MenuCapture
 				{
 					if(debugMessages)
 					{
-						log.log("Could not translate menu '"
-					        + source
+						logger.log("Could not translate menu '"
+					        + actionSource
 					        + "' action: "
 					        + target
 					        + " - "
@@ -215,11 +234,19 @@ public class MenuCapture
 					}
 				}
 			}
+			else if(debugMessages)
+			{
+				logger.log("Could not translate general action menu entry: "
+		            + target
+			        + " - "
+			        + f.getMessage());
+			}
 		}
 	}
 	
-	private boolean isKnownMenu(MenuAction action)
+	private boolean isGeneralMenu(MenuAction action)
 	{
+		// checks if current action target is a menu that introduces general actions
 		if(action.equals(MenuAction.CC_OP))
 		{
 			return true;
@@ -365,11 +392,4 @@ public class MenuCapture
 		}
 		return false;
 	}
-	
-	public void setDebug(boolean newValue) {this.debugMessages = newValue;}
-	public void setLogger(LogHandler logger) {this.log = logger;}
-	public void setActionTranslator(TranscriptManager newTranslator) {this.actionTranslator = newTranslator;}
-	public void setNpcTranslator(TranscriptManager newTranslator) {this.npcTranslator = newTranslator;}
-	public void setObjectTranslator(TranscriptManager newTranslator) {this.objectTranslator = newTranslator;}
-	public void setItemTranslator(TranscriptManager newTranslator) {this.itemTranslator = newTranslator;}
 }
