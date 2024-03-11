@@ -259,10 +259,10 @@ public class TranscriptsFileManager
     
     private String getOriginalFilePath()
     {
-        return "/" + this.filePrefix + "_en";
+        return "/" + this.filePrefix + "_en.json";
     }
     private String getTranslationFilePath()
     {
-        return "/" + this.filePrefix + "_" + currentLang;
+        return "/" + this.filePrefix + "_" + currentLang + ".json";
     }
 }
