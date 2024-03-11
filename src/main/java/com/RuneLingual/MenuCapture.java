@@ -51,7 +51,7 @@ public class MenuCapture
 		{
 			if(isPlayerMenu(menuType))
 			{
-				translateMenuAction("playeractions", event, menuTarget);
+				translateMenuAction("playeractions", event, menuAction);
 			}
 			else if(isNpcMenu(menuType))
 			{
