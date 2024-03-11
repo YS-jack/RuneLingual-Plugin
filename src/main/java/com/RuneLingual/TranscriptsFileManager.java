@@ -141,8 +141,8 @@ public class TranscriptsFileManager
                     if(json.startsWith("{") && json.endsWith("}"))
                     {
                         Gson gson = new Gson();
-                        originalTranscript = gson.fromJson(json, TranscriptManager.class);
-                        originalTranscript.setLogger(this.logger);
+                        translatedTranscript = gson.fromJson(json, TranscriptManager.class);
+                        translatedTranscript.setLogger(this.logger);
                         
                         if(logLoad)
                         {
