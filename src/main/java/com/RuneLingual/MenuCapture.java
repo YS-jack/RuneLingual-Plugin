@@ -128,6 +128,18 @@ public class MenuCapture
 						logger.log("Could not translate action: " + f.getMessage());
 					}
 				}
+				try
+				{
+					translateItemName("items", event, menuTarget);
+					translateMenuAction("iteminterfaceaction", event, menuAction);
+				}
+				catch(Exception f)
+				{
+					if(debugMessages)
+					{
+						logger.log("Could not translate action: " + f.getMessage());
+					}
+				}
 			}
 			else
 			{
