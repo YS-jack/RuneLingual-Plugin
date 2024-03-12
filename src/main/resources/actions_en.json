@@ -326,9 +326,14 @@
             "wind": "Wind",
             "withdraw": "Withdraw",
             "withdraw1": "Withdraw 1",
+            "withdraw5": "Withdraw 5",
+            "withdraw10": "Withdraw 10",
+            "withdrawx": "Withdraw x",
+            "withdrawallbut1": "Withdraw-All-but-1",
             "withdrawall": "Withdraw All",
             "writerole": "Write-Role",
-            "yanille": "Yanille"
+            "yanille": "Yanille",
+            "examine": "Examine"
         },
         "itemactions": {
             "activate": "Activate",
@@ -337,9 +342,12 @@
             "none": "None",
             "remove": "Remove",
             "study": "Study",
-            "take": "Take"
+            "take": "Take",
+            "examine": "Examine"
         },
         "npcactions": {
+            "examine": "Examine",
+            "level": "Level",
             "age": "Age",
             "ammo": "Ammo",
             "ardougne": "Ardougne",
@@ -1461,11 +1469,41 @@
             "zanaris": "Zanaris"
         },
         "generalactions": {
+            "play": "Play",
             "cancel": "Cancel",
-            "walkhere": "Walk Here"
+            "walkhere": "Walk Here",
+            "examine": "Examine",
+            "remove": "Remove",
+            "inventory": "Inventory",
+            "logout": "Logout",
+            "questlist": "Quest List",
+            "accountmanagement": "Account Management",
+            "chatchannel": "Chat channel",
+            "combatoptions": "Combat Options",
+            "skills": "Skills",
+            "wornequipment": "Worn equipment",
+            "prayer": "Prayer",
+            "magic": "Magic",
+            "friendslist": "Friends list",
+            "ignorelist": "Ignore list",
+            "settings": "Settings",
+            "emotes": "Emotes",
+            "musicplayer": "Music Player",
+            "activate": "Activate",
+            "cast": "Cast",
+            "animation": "Animation",
+            "togglerun": "Toggle Run",
+            "boost": "Boost",
+            "teleport": "Teleport",
+            "teletopoh": "Tele to POH",
+            "enablespellfiltering": "Enable spell filtering"
         },
         "playeractions":
         {
+            "level": "level",
+            "follow": "Follow",
+            "tradewith": "Trade with",
+            "lookup": "Lookup"
         }
     }
 }

@@ -36,7 +36,7 @@ public class MenuBar
 	private boolean translateMenus;
 	
 	private List<Widget> worldMapWidgetsLoaded;
-	
+	@Inject
 	public MenuBar(RuneLingualConfig config, Client client)
 	{
 		this.client = client;

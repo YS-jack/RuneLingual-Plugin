@@ -51,7 +51,7 @@ public class MenuCapture
 		{
 			if(isPlayerMenu(menuType))
 			{
-				translateMenuAction("playeractions", event, menuTarget);
+				translateMenuAction("playeractions", event, menuAction);
 			}
 			else if(isNpcMenu(menuType))
 			{
@@ -120,6 +120,18 @@ public class MenuCapture
 				{
 					String newAction = actionTranslator.getText("generalactions", menuAction, true);
 					event.getMenuEntry().setOption(newAction);
+				}
+				catch(Exception f)
+				{
+					if(debugMessages)
+					{
+						logger.log("Could not translate action: " + f.getMessage());
+					}
+				}
+				try
+				{
+					translateItemName("items", event, menuTarget);
+					translateMenuAction("iteminterfaceaction", event, menuAction);
 				}
 				catch(Exception f)
 				{
@@ -247,149 +259,51 @@ public class MenuCapture
 	private boolean isGeneralMenu(MenuAction action)
 	{
 		// checks if current action target is a menu that introduces general actions
-		if(action.equals(MenuAction.CC_OP))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.CC_OP_LOW_PRIORITY))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.CANCEL))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.WALK))
-		{
-			return true;
-		}
-		return false;
+		return ((action.equals(MenuAction.CC_OP))
+				|| (action.equals(MenuAction.CC_OP_LOW_PRIORITY))
+				|| (action.equals(MenuAction.CANCEL))
+				|| (action.equals(MenuAction.WALK)));
 	}
 	private boolean isObjectMenu(MenuAction action)
 	{
-		if(action.equals(MenuAction.EXAMINE_OBJECT))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.GAME_OBJECT_FIRST_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.GAME_OBJECT_SECOND_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.GAME_OBJECT_THIRD_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.GAME_OBJECT_THIRD_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.GAME_OBJECT_FOURTH_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.GAME_OBJECT_FIFTH_OPTION))
-		{
-			return true;
-		}
-		return false;
+		return ((action.equals(MenuAction.EXAMINE_OBJECT))
+				|| (action.equals(MenuAction.GAME_OBJECT_FIRST_OPTION))
+				|| (action.equals(MenuAction.GAME_OBJECT_SECOND_OPTION))
+				|| (action.equals(MenuAction.GAME_OBJECT_THIRD_OPTION))
+				|| (action.equals(MenuAction.GAME_OBJECT_FOURTH_OPTION))
+				|| (action.equals(MenuAction.GAME_OBJECT_FIFTH_OPTION)));
 	}
 	
 	private boolean isNpcMenu(MenuAction action)
 	{
-		if(action.equals(MenuAction.EXAMINE_NPC))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.NPC_FIRST_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.NPC_SECOND_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.NPC_THIRD_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.NPC_FOURTH_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.NPC_FIFTH_OPTION))
-		{
-			return true;
-		}
-		return false;
+		return ((action.equals(MenuAction.EXAMINE_NPC))
+				|| (action.equals(MenuAction.NPC_FIRST_OPTION))
+				|| (action.equals(MenuAction.NPC_SECOND_OPTION))
+				|| (action.equals(MenuAction.NPC_THIRD_OPTION))
+				|| (action.equals(MenuAction.NPC_FOURTH_OPTION))
+				|| (action.equals(MenuAction.NPC_FIFTH_OPTION)));
 	}
 	
 	private boolean isItemMenu(MenuAction action)
 	{
-		if(action.equals(MenuAction.EXAMINE_ITEM_GROUND))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.GROUND_ITEM_FIRST_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.GROUND_ITEM_SECOND_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.GROUND_ITEM_THIRD_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.GROUND_ITEM_FOURTH_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.GROUND_ITEM_FIFTH_OPTION))
-		{
-			return true;
-		}
-		return false;
+		return ((action.equals(MenuAction.EXAMINE_ITEM_GROUND))
+				|| (action.equals(MenuAction.GROUND_ITEM_FIRST_OPTION))
+				|| (action.equals(MenuAction.GROUND_ITEM_SECOND_OPTION))
+				|| (action.equals(MenuAction.GROUND_ITEM_THIRD_OPTION))
+				|| (action.equals(MenuAction.GROUND_ITEM_FOURTH_OPTION))
+				|| (action.equals(MenuAction.GROUND_ITEM_FIFTH_OPTION)));
 	}
 	
 	private boolean isPlayerMenu(MenuAction action)
 	{
-		if(action.equals(MenuAction.PLAYER_FIRST_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.PLAYER_SECOND_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.PLAYER_THIRD_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.PLAYER_FOURTH_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.PLAYER_FIFTH_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.PLAYER_SIXTH_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.PLAYER_SEVENTH_OPTION))
-		{
-			return true;
-		}
-		else if(action.equals(MenuAction.PLAYER_EIGHTH_OPTION))
-		{
-			return true;
-		}
-		return false;
+		return ((action.equals(MenuAction.PLAYER_FIRST_OPTION))
+				|| (action.equals(MenuAction.PLAYER_SECOND_OPTION))
+				|| (action.equals(MenuAction.PLAYER_THIRD_OPTION))
+				|| (action.equals(MenuAction.PLAYER_FOURTH_OPTION))
+				|| (action.equals(MenuAction.PLAYER_FIFTH_OPTION))
+				|| (action.equals(MenuAction.PLAYER_SIXTH_OPTION))
+				|| (action.equals(MenuAction.PLAYER_SEVENTH_OPTION))
+				|| (action.equals(MenuAction.PLAYER_EIGHTH_OPTION))
+				|| (action.equals(MenuAction.RUNELITE_PLAYER)));
 	}
 }

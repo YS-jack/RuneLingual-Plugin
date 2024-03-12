@@ -9708,7 +9708,10 @@
             "zurielsrobetopbhinactive": "Zuriel's robe top (bh)(inactive)",
             "zurielsstaff": "Zuriel's staff",
             "zurielsstaffbh": "Zuriel's staff (bh)",
-            "zurielsstaffbhinactive": "Zuriel's staff (bh)(inactive)"
+            "zurielsstaffbhinactive": "Zuriel's staff (bh)(inactive)",
+            "protectfrommelee": "Protect from Melee",
+            "protectfrommissiles": "Protect from Missiles",
+            "protectfrommagic": "Protect from Magic"
         }
     }
 }
