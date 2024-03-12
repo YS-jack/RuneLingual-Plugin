@@ -91,7 +91,7 @@ public class RuneLingualPlugin extends Plugin
 		// of every client tick is actually less resource intensive
 		dialogTranslator.handleDialogs();
 		
-		int currentHudTab = client.getVarcIntValue(VarClientInt.INVENTORY_TAB);
+		int currentHudTab = -1; // client.getVarcIntValue(VarClientInt.INVENTORY_TAB);
 		switch(currentHudTab)
 		{
 			case 0:
