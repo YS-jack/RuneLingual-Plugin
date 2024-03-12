@@ -11,6 +11,8 @@ import javax.inject.Inject;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetInfo;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class MenuCapture
@@ -102,15 +104,9 @@ public class MenuCapture
 			}
 			else if(isWidgetOnSomething(menuType))
 			{
-				//System.out.println(menuAction);
-				//System.out.println(menuType);
-				//System.out.println(event);
-
 				Pair<String, String> result = convertWidgetOnSomething(currentMenu);
 				String itemName = result.getLeft();
 				String useOnX = result.getRight();
-				System.out.println(itemName);
-				System.out.println(useOnX);
 				String newName = itemTranslator.getText("items", itemName, true);
 				if (menuType.equals(MenuAction.WIDGET_TARGET_ON_NPC))
 				{
@@ -159,6 +155,7 @@ public class MenuCapture
 				{
 					useOnX = itemTranslator.getText("items", useOnX, true);
 				}
+				translateMenuAction("iteminterfaceactions", event, menuAction);
 				event.getMenuEntry().setTarget(newName + " -> " + useOnX);
 			}
 			else if(isObjectMenu(menuType))
@@ -203,6 +200,7 @@ public class MenuCapture
 					}
 				}
 			}
+			else
 			{
 				// TODO: this
 				// nor a player or npc
@@ -228,7 +226,6 @@ public class MenuCapture
 				}*/
 				
 			}
-			
 		}
 		catch (Exception e)
 		{
@@ -238,7 +235,47 @@ public class MenuCapture
 			}
 		}
 	}
-	
+
+	static void mapWidgetText(Widget[] childComponents) {
+		for (Widget component : childComponents) {
+			remapWidget(component);
+			String text = component.getText();
+			if (text.isEmpty())
+				continue;
+			RemapWidgetText(component, text);
+		}
+	}
+	static void remapWidget(Widget widget) {
+		final int groupId = WidgetInfo.TO_GROUP(widget.getId());
+		final int CHAT_MESSAGE = 162, PRIVATE_MESSAGE = 163, FRIENDS_LIST = 429;
+
+		if (groupId == CHAT_MESSAGE || groupId == PRIVATE_MESSAGE || groupId == FRIENDS_LIST)
+			return;
+
+		Widget[] children = widget.getDynamicChildren();
+		if (children == null)
+			return;
+
+		Widget[] childComponents = widget.getDynamicChildren();
+		if (childComponents != null)
+			mapWidgetText(childComponents);
+
+		childComponents = widget.getStaticChildren();
+		if (childComponents != null)
+			mapWidgetText(childComponents);
+
+		childComponents = widget.getNestedChildren();
+		if (childComponents != null)
+			mapWidgetText(childComponents);
+	}
+	static void RemapWidgetText(Widget component, String text)
+	{
+		if (component.getText().contains("Rapid"))
+		{
+			component.setText(text.replace("Rapid", "Hurtig"));
+		}
+	}
+
 	private void translateItemName(String source, MenuEntryAdded entryAdded, String target)
 	{
 		if(target.length() == 0)
@@ -316,15 +353,14 @@ public class MenuCapture
 			}
 		}
 	}
-
-	private Pair<String, String> convertWidgetOnSomething(MenuEntry entry) {
+	private Pair<String, String> convertWidgetOnSomething(MenuEntry entry)
+	{
 		String menuTarget = entry.getTarget();
 		String[] parts = menuTarget.split(" -> ");
 		String itemName = parts[0];
 		String useOnName = parts[1];
 		return Pair.of(itemName, useOnName);
 	}
-
 	private boolean isGeneralMenu(MenuAction action)
 	{
 		// checks if current action target is a menu that introduces general actions
@@ -342,7 +378,6 @@ public class MenuCapture
 				|| (action.equals(MenuAction.GAME_OBJECT_FOURTH_OPTION))
 				|| (action.equals(MenuAction.GAME_OBJECT_FIFTH_OPTION)));
 	}
-	
 	private boolean isNpcMenu(MenuAction action)
 	{
 		return ((action.equals(MenuAction.EXAMINE_NPC))
@@ -352,7 +387,6 @@ public class MenuCapture
 				|| (action.equals(MenuAction.NPC_FOURTH_OPTION))
 				|| (action.equals(MenuAction.NPC_FIFTH_OPTION)));
 	}
-	
 	private boolean isItemMenu(MenuAction action)
 	{
 		return ((action.equals(MenuAction.EXAMINE_ITEM_GROUND))
@@ -362,7 +396,6 @@ public class MenuCapture
 				|| (action.equals(MenuAction.GROUND_ITEM_FOURTH_OPTION))
 				|| (action.equals(MenuAction.GROUND_ITEM_FIFTH_OPTION)));
 	}
-	
 	private boolean isPlayerMenu(MenuAction action)
 	{
 		return ((action.equals(MenuAction.PLAYER_FIRST_OPTION))
@@ -375,7 +408,8 @@ public class MenuCapture
 				|| (action.equals(MenuAction.PLAYER_EIGHTH_OPTION))
 				|| (action.equals(MenuAction.RUNELITE_PLAYER)));
 	}
-	private boolean isWidgetOnSomething(MenuAction action) {
+	private boolean isWidgetOnSomething(MenuAction action)
+	{
 		return ((action.equals(MenuAction.WIDGET_TARGET_ON_WIDGET))
 				|| (action.equals(MenuAction.WIDGET_TARGET_ON_GAME_OBJECT))
 				|| (action.equals(MenuAction.WIDGET_TARGET_ON_NPC))
