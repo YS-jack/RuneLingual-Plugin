@@ -189,10 +189,10 @@ public class RuneLingualPlugin extends Plugin
 	
 	private void loadTranscripts()
 	{
-		dialogTranscriptManager.loadTranscripts();
-		actionTranscriptManager.loadTranscripts();
-		objectTranscriptManager.loadTranscripts();
-		itemTranscriptManager.loadTranscripts();
+		dialogTranscriptManager.loadTranscripts(targetLanguage.getCode());
+		actionTranscriptManager.loadTranscripts(targetLanguage.getCode());
+		objectTranscriptManager.loadTranscripts(targetLanguage.getCode());
+		itemTranscriptManager.loadTranscripts(targetLanguage.getCode());
 	}
 
 	@Provides
