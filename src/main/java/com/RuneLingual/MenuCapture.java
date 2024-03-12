@@ -11,6 +11,7 @@ import javax.inject.Inject;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class MenuCapture
 {
@@ -99,6 +100,67 @@ public class MenuCapture
 				}
 				
 			}
+			else if(isWidgetOnSomething(menuType))
+			{
+				//System.out.println(menuAction);
+				//System.out.println(menuType);
+				//System.out.println(event);
+
+				Pair<String, String> result = convertWidgetOnSomething(currentMenu);
+				String itemName = result.getLeft();
+				String useOnX = result.getRight();
+				System.out.println(itemName);
+				System.out.println(useOnX);
+				String newName = itemTranslator.getText("items", itemName, true);
+				if (menuType.equals(MenuAction.WIDGET_TARGET_ON_NPC))
+				{
+					try
+					{
+						int combatLevel = targetNpc.getCombatLevel();
+						if(combatLevel > 0)
+						{
+							// attackable npcs
+							int levelIndicatorIndex = useOnX.indexOf('(');
+							if(levelIndicatorIndex != -1)
+							{  // npc has a combat level
+								String actualName = useOnX.substring(0, levelIndicatorIndex);
+								String NPCname = npcTranslator.getName(actualName, true);
+
+								String levelIndicator = actionTranslator.getText("npcactions", "level", true);
+								useOnX = NPCname + " (" + levelIndicator + "-" + combatLevel + ")";
+								//event.getMenuEntry().setTarget(newName);
+							}
+							else
+							{  // npc does not have a combat level
+								useOnX = npcTranslator.getName(useOnX, true);
+							}
+						}
+						else
+						{  // non attackable npcs
+							useOnX = npcTranslator.getName(useOnX, true);
+						}
+					}
+					catch(Exception f)
+					{
+						if(debugMessages)
+						{
+							logger.log("Could not translate npc name: "
+									+ menuTarget
+									+ " - "
+									+ f.getMessage());
+						}
+					}
+				}
+				else if (menuType.equals(MenuAction.WIDGET_TARGET_ON_GAME_OBJECT))
+				{
+					useOnX = objectTranslator.getText("objects", useOnX, true);
+				}
+				else if (menuType.equals(MenuAction.WIDGET_TARGET_ON_WIDGET) || menuType.equals(MenuAction.WIDGET_TARGET_ON_GROUND_ITEM))
+				{
+					useOnX = itemTranslator.getText("items", useOnX, true);
+				}
+				event.getMenuEntry().setTarget(newName + " -> " + useOnX);
+			}
 			else if(isObjectMenu(menuType))
 			{
 				translateItemName("objects", event, menuTarget);
@@ -141,7 +203,6 @@ public class MenuCapture
 					}
 				}
 			}
-			else
 			{
 				// TODO: this
 				// nor a player or npc
@@ -255,7 +316,15 @@ public class MenuCapture
 			}
 		}
 	}
-	
+
+	private Pair<String, String> convertWidgetOnSomething(MenuEntry entry) {
+		String menuTarget = entry.getTarget();
+		String[] parts = menuTarget.split(" -> ");
+		String itemName = parts[0];
+		String useOnName = parts[1];
+		return Pair.of(itemName, useOnName);
+	}
+
 	private boolean isGeneralMenu(MenuAction action)
 	{
 		// checks if current action target is a menu that introduces general actions
@@ -305,5 +374,12 @@ public class MenuCapture
 				|| (action.equals(MenuAction.PLAYER_SEVENTH_OPTION))
 				|| (action.equals(MenuAction.PLAYER_EIGHTH_OPTION))
 				|| (action.equals(MenuAction.RUNELITE_PLAYER)));
+	}
+	private boolean isWidgetOnSomething(MenuAction action) {
+		return ((action.equals(MenuAction.WIDGET_TARGET_ON_WIDGET))
+				|| (action.equals(MenuAction.WIDGET_TARGET_ON_GAME_OBJECT))
+				|| (action.equals(MenuAction.WIDGET_TARGET_ON_NPC))
+				|| (action.equals(MenuAction.WIDGET_TARGET_ON_GROUND_ITEM))
+				|| (action.equals(MenuAction.WIDGET_TARGET_ON_PLAYER)));
 	}
 }
