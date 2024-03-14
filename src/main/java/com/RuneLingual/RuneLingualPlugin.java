@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.VarClientInt;
 import net.runelite.api.events.*;
+import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigClient;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -90,8 +91,10 @@ public class RuneLingualPlugin extends Plugin
 		// so having this happen every game tick instead
 		// of every client tick is actually less resource intensive
 		dialogTranslator.handleDialogs();
-		
-		int currentHudTab = client.getVarcIntValue(VarClientInt.INVENTORY_TAB);
+		for (Widget widgetRoot : client.getWidgetRoots()) {
+			MenuCapture.remapWidget(widgetRoot);
+		}
+		int currentHudTab = -1; // client.getVarcIntValue(VarClientInt.INVENTORY_TAB);
 		switch(currentHudTab)
 		{
 			case 0:
@@ -189,11 +192,12 @@ public class RuneLingualPlugin extends Plugin
 	
 	private void loadTranscripts()
 	{
-		dialogTranscriptManager.loadTranscripts();
-		actionTranscriptManager.loadTranscripts();
-		objectTranscriptManager.loadTranscripts();
-		itemTranscriptManager.loadTranscripts();
+		dialogTranscriptManager.loadTranscripts(targetLanguage.getCode());
+		actionTranscriptManager.loadTranscripts(targetLanguage.getCode());
+		objectTranscriptManager.loadTranscripts(targetLanguage.getCode());
+		itemTranscriptManager.loadTranscripts(targetLanguage.getCode());
 	}
+
 
 	@Provides
 	RuneLingualConfig provideConfig(ConfigManager configManager)

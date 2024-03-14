@@ -84,8 +84,9 @@ public class TranscriptsFileManager
         }
     }
     
-    public void loadTranscripts()
+    public void loadTranscripts(String currentLang)
     {
+        this.currentLang = currentLang;
         loadOriginalTranscript();
         loadTranslatedTranscript();
     }

@@ -11,6 +11,9 @@ import javax.inject.Inject;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetInfo;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class MenuCapture
 {
@@ -99,6 +102,62 @@ public class MenuCapture
 				}
 				
 			}
+			else if(isWidgetOnSomething(menuType))
+			{
+				Pair<String, String> result = convertWidgetOnSomething(currentMenu);
+				String itemName = result.getLeft();
+				String useOnX = result.getRight();
+				String newName = itemTranslator.getText("items", itemName, true);
+				if (menuType.equals(MenuAction.WIDGET_TARGET_ON_NPC))
+				{
+					try
+					{
+						int combatLevel = targetNpc.getCombatLevel();
+						if(combatLevel > 0)
+						{
+							// attackable npcs
+							int levelIndicatorIndex = useOnX.indexOf('(');
+							if(levelIndicatorIndex != -1)
+							{  // npc has a combat level
+								String actualName = useOnX.substring(0, levelIndicatorIndex);
+								String NPCname = npcTranslator.getName(actualName, true);
+
+								String levelIndicator = actionTranslator.getText("npcactions", "level", true);
+								useOnX = NPCname + " (" + levelIndicator + "-" + combatLevel + ")";
+								//event.getMenuEntry().setTarget(newName);
+							}
+							else
+							{  // npc does not have a combat level
+								useOnX = npcTranslator.getName(useOnX, true);
+							}
+						}
+						else
+						{  // non attackable npcs
+							useOnX = npcTranslator.getName(useOnX, true);
+						}
+					}
+					catch(Exception f)
+					{
+						if(debugMessages)
+						{
+							logger.log("Could not translate npc name: "
+									+ menuTarget
+									+ " - "
+									+ f.getMessage());
+						}
+					}
+				}
+				else if (menuType.equals(MenuAction.WIDGET_TARGET_ON_GAME_OBJECT))
+				{
+					useOnX = objectTranslator.getText("objects", useOnX, true);
+				}
+				else if (menuType.equals(MenuAction.WIDGET_TARGET_ON_WIDGET) || menuType.equals(MenuAction.WIDGET_TARGET_ON_GROUND_ITEM))
+				{
+					useOnX = itemTranslator.getText("items", useOnX, true);
+				}
+				translateMenuAction("iteminterfaceactions", event, menuAction);
+				event.getMenuEntry().setTarget(newName + " -> " + useOnX);
+			}
 			else if(isObjectMenu(menuType))
 			{
 				translateItemName("objects", event, menuTarget);
@@ -167,7 +226,6 @@ public class MenuCapture
 				}*/
 				
 			}
-			
 		}
 		catch (Exception e)
 		{
@@ -177,7 +235,47 @@ public class MenuCapture
 			}
 		}
 	}
-	
+
+	static void mapWidgetText(Widget[] childComponents) {
+		for (Widget component : childComponents) {
+			remapWidget(component);
+			String text = component.getText();
+			if (text.isEmpty())
+				continue;
+			RemapWidgetText(component, text);
+		}
+	}
+	static void remapWidget(Widget widget) {
+		final int groupId = WidgetInfo.TO_GROUP(widget.getId());
+		final int CHAT_MESSAGE = 162, PRIVATE_MESSAGE = 163, FRIENDS_LIST = 429;
+
+		if (groupId == CHAT_MESSAGE || groupId == PRIVATE_MESSAGE || groupId == FRIENDS_LIST)
+			return;
+
+		Widget[] children = widget.getDynamicChildren();
+		if (children == null)
+			return;
+
+		Widget[] childComponents = widget.getDynamicChildren();
+		if (childComponents != null)
+			mapWidgetText(childComponents);
+
+		childComponents = widget.getStaticChildren();
+		if (childComponents != null)
+			mapWidgetText(childComponents);
+
+		childComponents = widget.getNestedChildren();
+		if (childComponents != null)
+			mapWidgetText(childComponents);
+	}
+	static void RemapWidgetText(Widget component, String text)
+	{
+		if (component.getText().contains("Rapid"))
+		{
+			component.setText(text.replace("Rapid", "Hurtig"));
+		}
+	}
+
 	private void translateItemName(String source, MenuEntryAdded entryAdded, String target)
 	{
 		if(target.length() == 0)
@@ -255,7 +353,14 @@ public class MenuCapture
 			}
 		}
 	}
-	
+	private Pair<String, String> convertWidgetOnSomething(MenuEntry entry)
+	{
+		String menuTarget = entry.getTarget();
+		String[] parts = menuTarget.split(" -> ");
+		String itemName = parts[0];
+		String useOnName = parts[1];
+		return Pair.of(itemName, useOnName);
+	}
 	private boolean isGeneralMenu(MenuAction action)
 	{
 		// checks if current action target is a menu that introduces general actions
@@ -273,7 +378,6 @@ public class MenuCapture
 				|| (action.equals(MenuAction.GAME_OBJECT_FOURTH_OPTION))
 				|| (action.equals(MenuAction.GAME_OBJECT_FIFTH_OPTION)));
 	}
-	
 	private boolean isNpcMenu(MenuAction action)
 	{
 		return ((action.equals(MenuAction.EXAMINE_NPC))
@@ -283,7 +387,6 @@ public class MenuCapture
 				|| (action.equals(MenuAction.NPC_FOURTH_OPTION))
 				|| (action.equals(MenuAction.NPC_FIFTH_OPTION)));
 	}
-	
 	private boolean isItemMenu(MenuAction action)
 	{
 		return ((action.equals(MenuAction.EXAMINE_ITEM_GROUND))
@@ -293,7 +396,6 @@ public class MenuCapture
 				|| (action.equals(MenuAction.GROUND_ITEM_FOURTH_OPTION))
 				|| (action.equals(MenuAction.GROUND_ITEM_FIFTH_OPTION)));
 	}
-	
 	private boolean isPlayerMenu(MenuAction action)
 	{
 		return ((action.equals(MenuAction.PLAYER_FIRST_OPTION))
@@ -305,5 +407,13 @@ public class MenuCapture
 				|| (action.equals(MenuAction.PLAYER_SEVENTH_OPTION))
 				|| (action.equals(MenuAction.PLAYER_EIGHTH_OPTION))
 				|| (action.equals(MenuAction.RUNELITE_PLAYER)));
+	}
+	private boolean isWidgetOnSomething(MenuAction action)
+	{
+		return ((action.equals(MenuAction.WIDGET_TARGET_ON_WIDGET))
+				|| (action.equals(MenuAction.WIDGET_TARGET_ON_GAME_OBJECT))
+				|| (action.equals(MenuAction.WIDGET_TARGET_ON_NPC))
+				|| (action.equals(MenuAction.WIDGET_TARGET_ON_GROUND_ITEM))
+				|| (action.equals(MenuAction.WIDGET_TARGET_ON_PLAYER)));
 	}
 }
