@@ -29,9 +29,10 @@ public class RuneLingualPlugin extends Plugin
 {
 	@Inject
 	private Client client;
-	@Inject
+	@Inject @Getter
 	private RuneLingualConfig config;
 
+	@Getter
 	private LangCodeSelectableList targetLanguage;
 	private TranscriptsFileManager dialogTranscriptManager = new TranscriptsFileManager();
 	private TranscriptsFileManager actionTranscriptManager = new TranscriptsFileManager();
@@ -49,6 +50,8 @@ public class RuneLingualPlugin extends Plugin
 	private GroundItems groundItemsTranslator;
 	@Inject
 	private MenuBar menuBar;
+	@Inject
+	private Downloader downloader;
 
 	@Override
 	protected void startUp() throws Exception
@@ -57,7 +60,7 @@ public class RuneLingualPlugin extends Plugin
 
 		targetLanguage = config.presetLang();
 		log.info(targetLanguage.getCode());
-		
+		downloader.initDownloader(targetLanguage.getCode());
 		// initializes transcript modules
 		initTranscripts();
 		loadTranscripts();

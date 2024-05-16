@@ -1,9 +1,12 @@
 package com.RuneLingual;
 
+import net.runelite.client.RuneLite;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+
+import java.io.File;
 
 @ConfigGroup(RuneLingualConfig.GROUP)
 public interface RuneLingualConfig extends Config
@@ -141,5 +144,14 @@ public interface RuneLingualConfig extends Config
 			position = 7
 	)
 	default boolean getAllowOverHead() {return false;}
+
+	@ConfigItem(
+			name = "Local file location",
+			description = "Location of the files to be translated",
+			keyName = "fileLocation",
+			position = 200
+	)
+	default String getFileLocation() {return RuneLite.RUNELITE_DIR.getPath() + File.separator + "RuneLingual_resources";}
+
 
 }
