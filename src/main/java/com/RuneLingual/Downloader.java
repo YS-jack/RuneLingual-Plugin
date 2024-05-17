@@ -19,15 +19,17 @@ public class Downloader {//downloads translations and japanese char images to ex
     @Inject
     private RuneLingualPlugin plugin;
 
-    public static File localBaseFolder;
+    public File localBaseFolder;
+    public File localLangFolder;
     private String GITHUB_BASE_URL;
     private String langCode;
 
     public void initDownloader(String langCodeGiven) {
         langCode = "jp";//todo: replace with langCodeGiven after rling transcripts are ready
         localBaseFolder = new File(RuneLite.RUNELITE_DIR.getPath() + File.separator + "RuneLingual_resources");
-        createDir(localBaseFolder.getPath() + File.separator + langCode);
-        String LOCAL_HASH_NAME = langCode + File.separator + "hashListLocal_" + langCode + ".txt";
+        localLangFolder = new File(localBaseFolder.getPath() + File.separator + langCode);
+        createDir(localLangFolder.getPath());
+        String LOCAL_HASH_NAME = "hashListLocal_" + langCode + ".txt";
         String REMOTE_HASH_FILE = "https://raw.githubusercontent.com/YS-jack/Runelingual-Transcripts/original-main/draft/" + langCode + "/hashList_" + langCode + ".txt";
         GITHUB_BASE_URL = "https://raw.githubusercontent.com/YS-jack/Runelingual-Transcripts/original-main/";
         try {
@@ -41,7 +43,7 @@ public class Downloader {//downloads translations and japanese char images to ex
                 }
             }
 
-            Map<String, String> localHashes = readHashFile(Paths.get(localBaseFolder.getPath(), LOCAL_HASH_NAME));
+            Map<String, String> localHashes = readHashFile(Paths.get(localLangFolder.getPath(), LOCAL_HASH_NAME));
             Map<String, String> remoteHashes = readHashFile(new URL(REMOTE_HASH_FILE));
 
             for (Map.Entry<String, String> entry : remoteHashes.entrySet()) {
@@ -58,7 +60,7 @@ public class Downloader {//downloads translations and japanese char images to ex
             }
 
             // Overwrite local hash file with the updated remote hash file
-            Files.copy(new URL(REMOTE_HASH_FILE).openStream(), Paths.get(localBaseFolder.getPath(), LOCAL_HASH_NAME), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(new URL(REMOTE_HASH_FILE).openStream(), Paths.get(localLangFolder.getPath(), LOCAL_HASH_NAME), StandardCopyOption.REPLACE_EXISTING);
 
 //            //create webhook dir if none
 //            createDir(localBaseFolder.getPath() + "/webhookSent");
@@ -147,23 +149,23 @@ public class Downloader {//downloads translations and japanese char images to ex
 
 
         // Download and replace the file
-        if (!filePath.startsWith("char")) {
+        if (!filePath.contains("char_"+langCode+".zip")) {
             Files.copy(fileUrl.openStream(), localPath, StandardCopyOption.REPLACE_EXISTING);
         } else {
-            localPath = Paths.get(localBaseFolder.getPath(), "char_" + langCode + ".zip");
-            //localPath = Paths.get("/com/japanese/char.zip");
+            localPath = Paths.get(localLangFolder.getPath(), "char_" + langCode + ".zip");
             updateCharDir(localPath);
 
         }
     }
     public  void  updateCharDir(Path localPath) throws IOException {
-        URL fileUrl3 = new URL(GITHUB_BASE_URL + "/draft/" + langCode + "/char_" + plugin.getTargetLanguage().getLangCode() + "zip");
+        URL fileUrl3 = new URL(GITHUB_BASE_URL + "/draft/" + langCode + "/char_" + langCode + ".zip");
         Files.copy(fileUrl3.openStream(), localPath, StandardCopyOption.REPLACE_EXISTING);
-        unzip(String.valueOf(localPath), localBaseFolder.getPath());
+        unzip(String.valueOf(localPath), localLangFolder.getPath());
         Files.delete(localPath);
     }
 
     public  void unzip(String zipFilePath, String destDir) {
+        log.info("unzipping " + zipFilePath + " to " + destDir);
         File dir = new File(destDir);
         // create output directory if it doesn't exist
         if (!dir.exists()) dir.mkdirs();
