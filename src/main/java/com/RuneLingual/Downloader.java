@@ -23,6 +23,8 @@ public class Downloader {//downloads translations and japanese char images to ex
     public File localLangFolder;
     private String GITHUB_BASE_URL;
     private String langCode;
+    private final List<String> extensions_to_download = Arrays.asList("tsv", "zip"); // will download all files with these extensions
+    private final List<String> file_name_to_download = List.of("char_" + langCode + ".zip"); // will download all files with these names
 
     public void initDownloader(String langCodeGiven) {
         langCode = "jp";//todo: replace with langCodeGiven after rling transcripts are ready
@@ -30,8 +32,12 @@ public class Downloader {//downloads translations and japanese char images to ex
         localLangFolder = new File(localBaseFolder.getPath() + File.separator + langCode);
         createDir(localLangFolder.getPath());
         String LOCAL_HASH_NAME = "hashListLocal_" + langCode + ".txt";
-        String REMOTE_HASH_FILE = "https://raw.githubusercontent.com/YS-jack/Runelingual-Transcripts/original-main/draft/" + langCode + "/hashList_" + langCode + ".txt";
-        GITHUB_BASE_URL = "https://raw.githubusercontent.com/YS-jack/Runelingual-Transcripts/original-main/";
+        String remote_sub_folder = "draft"; //todo: this value is "draft" if reading from draft folder, "public" if reading from the public folder
+        GITHUB_BASE_URL = "https://raw.githubusercontent.com/YS-jack/Runelingual-Transcripts/original-main/" +
+                remote_sub_folder + "/" + langCode + "/"; //todo: replace the string after .com/ with the correct username
+
+        String REMOTE_HASH_FILE = GITHUB_BASE_URL  + "hashList_" + langCode + ".txt";
+
         try {
             Path dirPath = Paths.get(localBaseFolder.getPath());
             if (!Files.exists(dirPath)) {
@@ -49,13 +55,15 @@ public class Downloader {//downloads translations and japanese char images to ex
             for (Map.Entry<String, String> entry : remoteHashes.entrySet()) {
                 String localHash = localHashes.get(entry.getKey());
                 String remoteHash = entry.getValue();
-                String remoteDir = entry.getKey();
-                Path localPath = Paths.get(localBaseFolder.getPath(), remoteDir.replace("draft\\",""));
+                String remote_full_path = entry.getKey();
 
-                if (localHash == null || !localHash.equals(remoteHash) ||
-                        (!remoteDir.startsWith("char") && Files.notExists(localPath))) {
-                    log.info("hash value not same as remote: " + entry.getKey());
-                    downloadAndUpdateFile(entry.getKey());
+                if ( (localHash == null ||!localHash.equals(remoteHash)) && // if the file is not in the local hash file or the hash value is different
+                        (file_extension_included(remote_full_path, extensions_to_download) || // and if the file extension is in the list of extensions to download
+                                same_file_included(remote_full_path, file_name_to_download)) ) { // or if the file name is in the list of file names to download
+                    downloadAndUpdateFile(remote_full_path);
+                    if(file_extension_included(remote_full_path, List.of("zip"))){ // if its a zip file, unzip it
+                        updateCharDir(Paths.get(localLangFolder.getPath(), "char_" + langCode + ".zip")); // currently only supports char images, which should suffice
+                    }
                 }
             }
 
@@ -90,6 +98,23 @@ public class Downloader {//downloads translations and japanese char images to ex
         }
     }
 
+    private Boolean file_extension_included(String file_full_path, List<String> extensions){
+        String extension = get_file_extension(file_full_path);
+        return extensions.contains(extension);
+    }
+
+    private String get_file_extension(String file_full_path){
+        String[] parts = file_full_path.split("\\.");
+        return parts[parts.length-1];
+    }
+
+    private Boolean same_file_included(String file_full_path, List<String> file_names){
+        Path fullPath = Paths.get(file_full_path);
+        Path fileName = fullPath.getFileName();
+        String fileNameString = fileName.toString();
+        return file_names.contains(fileNameString);
+    }
+
     private  Map<String, String> readHashFile(Path filePath) throws IOException {
         Map<String, String> hashes = new HashMap<>();
         if (!Files.exists(filePath)) {
@@ -121,44 +146,22 @@ public class Downloader {//downloads translations and japanese char images to ex
         return hashes;
     }
 
-    private  void downloadAndUpdateFile(String filePath) throws IOException {
-        // filePath example: "draft\jp\actions_jp.json" this is the location of files relative to the GitHub repo root of RuneLite-Transcripts
-        log.info("updating file " + filePath);
-        URL fileUrl = new URL(GITHUB_BASE_URL + filePath.replace("\\","/"));
-        Path localPath = Paths.get(localBaseFolder.getPath(), filePath.replace("draft\\",""));
+    private  void downloadAndUpdateFile(String remoteFullPath) throws IOException {
+        // filePath example: "draft\jp\actions_jp.xliff" this is the location of files relative to the GitHub repo root of RuneLite-Transcripts
+        URL fileUrl = new URL(GITHUB_BASE_URL + remoteFullPath.replace("\\","/"));
+        Path localPath = Paths.get(localLangFolder.getPath(), remoteFullPath.replace("draft\\",""));
+        log.info("updating file " + localPath.toString());
 
-        if (filePath.startsWith("char") && Files.notExists(localPath)) {
-            Files.createDirectories(localPath);
-        }
 
-        // Check if the char directory exists, if not, create it
-        if (!filePath.startsWith("char") && Files.notExists(localPath.getParent())) {
+        // Check if the language directory exists, if not, create it
+        if (Files.notExists(localPath.getParent())) {
             Files.createDirectories(localPath.getParent());
         }
-
-        // Special handling for the 'char' directory
-        if (filePath.startsWith("char") && Files.isDirectory(localPath)) {
-            Files.walkFileTree(localPath, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        }
-
-
-        // Download and replace the file
-        if (!filePath.contains("char_"+langCode+".zip")) {
-            Files.copy(fileUrl.openStream(), localPath, StandardCopyOption.REPLACE_EXISTING);
-        } else {
-            localPath = Paths.get(localLangFolder.getPath(), "char_" + langCode + ".zip");
-            updateCharDir(localPath);
-
-        }
+        Files.copy(fileUrl.openStream(), localPath, StandardCopyOption.REPLACE_EXISTING);
     }
+
     public  void  updateCharDir(Path localPath) throws IOException {
-        URL fileUrl3 = new URL(GITHUB_BASE_URL + "/draft/" + langCode + "/char_" + langCode + ".zip");
+        URL fileUrl3 = new URL(GITHUB_BASE_URL + "/char_" + langCode + ".zip");
         Files.copy(fileUrl3.openStream(), localPath, StandardCopyOption.REPLACE_EXISTING);
         unzip(String.valueOf(localPath), localLangFolder.getPath());
         Files.delete(localPath);
