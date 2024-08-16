@@ -19,7 +19,7 @@ public class Downloader {//downloads translations and japanese char images to ex
     @Inject
     private RuneLingualPlugin plugin;
 
-    public File localBaseFolder;
+    public static File localBaseFolder = new File(RuneLite.RUNELITE_DIR.getPath() + File.separator + "RuneLingual_resources");;
     public File localLangFolder;
     private String GITHUB_BASE_URL;
     private String langCode;
@@ -28,7 +28,7 @@ public class Downloader {//downloads translations and japanese char images to ex
 
     public void initDownloader(String langCodeGiven) {
         langCode = "jp";//todo: replace with langCodeGiven after rling transcripts are ready
-        localBaseFolder = new File(RuneLite.RUNELITE_DIR.getPath() + File.separator + "RuneLingual_resources");
+
         localLangFolder = new File(localBaseFolder.getPath() + File.separator + langCode);
         createDir(localLangFolder.getPath());
         String LOCAL_HASH_NAME = "hashListLocal_" + langCode + ".txt";

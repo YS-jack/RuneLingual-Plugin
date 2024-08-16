@@ -5,18 +5,23 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
-import net.runelite.api.VarClientInt;
 import net.runelite.api.events.*;
 import net.runelite.api.widgets.Widget;
-import net.runelite.client.config.ConfigClient;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.ImageUtil;
 
 import lombok.Getter;
-import lombok.Setter;
+
+import com.RuneLingual.sidePanel.SidePanel;
+import com.RuneLingual.commonFunctions.FileActions;
+
+import java.awt.image.BufferedImage;
 
 @Slf4j
 @PluginDescriptor(
@@ -29,11 +34,16 @@ public class RuneLingualPlugin extends Plugin
 {
 	@Inject
 	private Client client;
+	@Inject
+	private ClientToolbar clientToolBar;
+
 	@Inject @Getter
 	private RuneLingualConfig config;
 
 	@Getter
-	private LangCodeSelectableList targetLanguage;
+	private LangCodeSelectableList targetLanguage; // old todo: remove this
+	@Getter
+	private String selectedLanguageName;
 	private TranscriptsFileManager dialogTranscriptManager = new TranscriptsFileManager();
 	private TranscriptsFileManager actionTranscriptManager = new TranscriptsFileManager();
 	private TranscriptsFileManager objectTranscriptManager = new TranscriptsFileManager();
@@ -52,15 +62,26 @@ public class RuneLingualPlugin extends Plugin
 	private MenuBar menuBar;
 	@Inject
 	private Downloader downloader;
+	@Inject
+	private SidePanel panel;
+	private NavigationButton navButton;
+
 
 	@Override
 	protected void startUp() throws Exception
 	{
 		log.info("Starting...");
 
-		targetLanguage = config.presetLang();
+		//selectedLanguageName = config.getSelectedLanguageName();
+		targetLanguage = config.presetLang(); // old
 		log.info(targetLanguage.getCode());
+
+		//download necessary files
 		downloader.initDownloader(targetLanguage.getCode());
+
+		// side panel
+		startPanel();
+
 		// initializes transcript modules
 		initTranscripts();
 		loadTranscripts();
@@ -155,6 +176,12 @@ public class RuneLingualPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
+		//update Language named folder (which is used to determine what language is selected)
+		FileActions.deleteAllLangCodeNamedFile();
+		FileActions.createLangCodeNamedFile(config.getSelectedLanguage());
+		clientToolBar.removeNavigation(navButton);
+		startPanel();
+
 		if(dialogTranscriptManager != null)
 		{
 			if(dialogTranscriptManager.isChanged())
@@ -172,6 +199,7 @@ public class RuneLingualPlugin extends Plugin
 	@Override
 	protected void shutDown() throws Exception
 	{
+		clientToolBar.removeNavigation(navButton);
 		//transcriptManager.saveTranscript();
 		log.info("RuneLingual plugin stopped!");
 	}
@@ -207,5 +235,20 @@ public class RuneLingualPlugin extends Plugin
 	{
 		return configManager.getConfig(RuneLingualConfig.class);
 	}
+
+	private void startPanel(){
+		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "globe.png");
+		//panel.setTargetLanguage(config.getSelectedLanguage());
+		panel = injector.getInstance(SidePanel.class);
+
+		navButton = NavigationButton.builder()
+				.tooltip("RuneLingual")
+				.icon(icon)
+				.priority(6)
+				.panel(panel)
+				.build();
+		clientToolBar.addNavigation(navButton);
+	}
+
 }
 

@@ -6,7 +6,9 @@ public enum LangCodeSelectableList
 {
     ENGLISH ("en"),
     PORTUGUÊS_BRASILEIRO ("pt_br"),
-    NORSK("no");
+    NORSK("no"),
+    日本語("ja");
+    // todo: add languages here
 
     @Getter
     private final String langCode;
