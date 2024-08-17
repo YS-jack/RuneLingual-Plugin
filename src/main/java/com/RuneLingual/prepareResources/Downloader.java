@@ -1,34 +1,37 @@
-package com.RuneLingual;
+package com.RuneLingual.prepareResources;
 
+import com.RuneLingual.RuneLingualPlugin;
+import com.RuneLingual.commonFunctions.FileNameAndPath;
+import com.RuneLingual.commonFunctions.FileActions;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.RuneLite;
 
 import javax.inject.Inject;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+
 @Slf4j
 public class Downloader {//downloads translations and japanese char images to external file
     @Inject
     private RuneLingualPlugin plugin;
 
-    public static File localBaseFolder = new File(RuneLite.RUNELITE_DIR.getPath() + File.separator + "RuneLingual_resources");;
-    public File localLangFolder;
+    private static File localBaseFolder = FileNameAndPath.getLocalBaseFolder();
+    private File localLangFolder;
     private String GITHUB_BASE_URL;
+    @Setter
     private String langCode;
-    private final List<String> extensions_to_download = Arrays.asList("tsv", "zip"); // will download all files with these extensions
-    private final List<String> file_name_to_download = List.of("char_" + langCode + ".zip"); // will download all files with these names
+
 
     public void initDownloader(String langCodeGiven) {
-        langCode = "jp";//todo: replace with langCodeGiven after rling transcripts are ready
-
+        final List<String> extensions_to_download = Arrays.asList("tsv", "zip"); // will download all files with these extensions
+        final List<String> file_name_to_download = List.of("char_" + langCode + ".zip"); // will download all files with these names
         localLangFolder = new File(localBaseFolder.getPath() + File.separator + langCode);
         createDir(localLangFolder.getPath());
         String LOCAL_HASH_NAME = "hashListLocal_" + langCode + ".txt";
@@ -52,24 +55,42 @@ public class Downloader {//downloads translations and japanese char images to ex
             Map<String, String> localHashes = readHashFile(Paths.get(localLangFolder.getPath(), LOCAL_HASH_NAME));
             Map<String, String> remoteHashes = readHashFile(new URL(REMOTE_HASH_FILE));
 
+            boolean dataChanged = false;
+            boolean transcriptChanged = false;
+            List<String> remoteHashFiles = new ArrayList<>(); // list of tsv files to include in the sql database
+
+
             for (Map.Entry<String, String> entry : remoteHashes.entrySet()) {
                 String localHash = localHashes.get(entry.getKey());
                 String remoteHash = entry.getValue();
                 String remote_full_path = entry.getKey();
 
-                if ( (localHash == null ||!localHash.equals(remoteHash)) && // if the file is not in the local hash file or the hash value is different
-                        (file_extension_included(remote_full_path, extensions_to_download) || // and if the file extension is in the list of extensions to download
-                                same_file_included(remote_full_path, file_name_to_download)) ) { // or if the file name is in the list of file names to download
+                if ( (localHash == null ||!localHash.equals(remoteHash)) // if the file is not in the local hash file or the hash value is different
+                        && (fileExtensionIncludedIn(remote_full_path, extensions_to_download) // and if the file extension is in the list of extensions to download
+                             || same_file_included(remote_full_path, file_name_to_download)) ) { // or if the file name is in the list of file names to download
+
+                    dataChanged = true;
                     downloadAndUpdateFile(remote_full_path);
-                    if(file_extension_included(remote_full_path, List.of("zip"))){ // if its a zip file, unzip it
+                    if(fileExtensionIncludedIn(remote_full_path, List.of("zip"))){ // if its a zip file, unzip it
                         updateCharDir(Paths.get(localLangFolder.getPath(), "char_" + langCode + ".zip")); // currently only supports char images, which should suffice
+                    } else {
+                        transcriptChanged = true; // if the file is not a zip file, then one of the transcripts has changed
                     }
+                }
+
+                if(fileExtensionIncludedIn(remote_full_path, List.of("tsv"))){
+                    remoteHashFiles.add(remote_full_path);
                 }
             }
 
-            // Overwrite local hash file with the updated remote hash file
-            Files.copy(new URL(REMOTE_HASH_FILE).openStream(), Paths.get(localLangFolder.getPath(), LOCAL_HASH_NAME), StandardCopyOption.REPLACE_EXISTING);
-
+            if (dataChanged){
+                // Overwrite local hash file with the updated remote hash file
+                Files.copy(new URL(REMOTE_HASH_FILE).openStream(), Paths.get(localLangFolder.getPath(), LOCAL_HASH_NAME), StandardCopyOption.REPLACE_EXISTING);
+                if (transcriptChanged) {
+                    String[] tsvFiles = remoteHashFiles.toArray(new String[0]);
+                    DataFormater.updateSqlFromTsv(localLangFolder.getPath(), tsvFiles);
+                }
+            }
 //            //create webhook dir if none
 //            createDir(localBaseFolder.getPath() + "/webhookSent");
 //            String[] webhookType = {"sentAPITranslationMsg.txt","sentGameMsgAndDialog.txt",
@@ -98,7 +119,7 @@ public class Downloader {//downloads translations and japanese char images to ex
         }
     }
 
-    private Boolean file_extension_included(String file_full_path, List<String> extensions){
+    private Boolean fileExtensionIncludedIn(String file_full_path, List<String> extensions){
         String extension = get_file_extension(file_full_path);
         return extensions.contains(extension);
     }
@@ -147,7 +168,7 @@ public class Downloader {//downloads translations and japanese char images to ex
     }
 
     private  void downloadAndUpdateFile(String remoteFullPath) throws IOException {
-        // filePath example: "draft\jp\actions_jp.xliff" this is the location of files relative to the GitHub repo root of RuneLite-Transcripts
+        // filePath example: "draft\ja\actions_ja.xliff" this is the location of files relative to the GitHub repo root of RuneLite-Transcripts
         URL fileUrl = new URL(GITHUB_BASE_URL + remoteFullPath.replace("\\","/"));
         Path localPath = Paths.get(localLangFolder.getPath(), remoteFullPath.replace("draft\\",""));
         log.info("updating file " + localPath.toString());
@@ -157,6 +178,7 @@ public class Downloader {//downloads translations and japanese char images to ex
         if (Files.notExists(localPath.getParent())) {
             Files.createDirectories(localPath.getParent());
         }
+
         Files.copy(fileUrl.openStream(), localPath, StandardCopyOption.REPLACE_EXISTING);
     }
 
@@ -168,6 +190,7 @@ public class Downloader {//downloads translations and japanese char images to ex
     }
 
     public  void unzip(String zipFilePath, String destDir) {
+        FileActions.deleteFolder(destDir + File.separator + "char_" + langCode);
         log.info("unzipping " + zipFilePath + " to " + destDir);
         File dir = new File(destDir);
         // create output directory if it doesn't exist

@@ -1,5 +1,6 @@
 package com.RuneLingual;
 
+import com.RuneLingual.prepareResources.Downloader;
 import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +42,7 @@ public class RuneLingualPlugin extends Plugin
 	private RuneLingualConfig config;
 
 	@Getter
-	private LangCodeSelectableList targetLanguage; // old todo: remove this
+	private LangCodeSelectableList targetLanguage;
 	@Getter
 	private String selectedLanguageName;
 	private TranscriptsFileManager dialogTranscriptManager = new TranscriptsFileManager();
@@ -71,12 +72,12 @@ public class RuneLingualPlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		log.info("Starting...");
-
-		//selectedLanguageName = config.getSelectedLanguageName();
-		targetLanguage = config.presetLang(); // old
+		//get selected language
+		targetLanguage = config.getSelectedLanguage();
 		log.info(targetLanguage.getCode());
 
 		//download necessary files
+		downloader.setLangCode(targetLanguage.getCode());
 		downloader.initDownloader(targetLanguage.getCode());
 
 		// side panel

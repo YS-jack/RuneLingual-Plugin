@@ -6,37 +6,269 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
-import org.checkerframework.checker.units.qual.C;
 
 import java.io.*;
 
 @ConfigGroup(RuneLingualConfig.GROUP)
 public interface RuneLingualConfig extends Config
 {
+	final int offset_section1 = 0;
 	public String helpLink = "https://github.com/YS-jack/Runelingual-Transcripts/tree/original-main/draft/jp"; // todo: change this to the correct link
 	@ConfigSection(
-			name = "Basic settings",
+			name = "Language selection",
 			description = "Select language",
-			position = 0,
+			position = offset_section1,
 			closedByDefault = false
 	)
 	String SECTION_BASIC_SETTINGS = "basicSettings";
-    @ConfigItem(
-			name = "\uD83D\uDDE3\uD83D\uDCAC\uD83C\uDF10",
-			description = "Select language",
-			position = 0,
-			keyName = "languageSelection",
-			section = SECTION_BASIC_SETTINGS
-	) default LangCodeSelectableList getSelectedLanguage() {return LangCodeSelectableList.ENGLISH;}
 
 	@ConfigItem(
-			name = "info (right click to reset)",
+			name = "\uD83D\uDDE3\uD83D\uDCAC\uD83C\uDF10",
+			description = "Select the language to be translated to",
+			keyName = "targetLang",
+			position = offset_section1,
+			section = SECTION_BASIC_SETTINGS
+	)
+	default LangCodeSelectableList getSelectedLanguage() {return LangCodeSelectableList.ENGLISH;}
+
+	@ConfigItem(
+			name = "Help Link (right click to reset)",
 			description = "right click to reset",
-			position = 1,
+			position = 1 + offset_section1,
 			keyName = "enableRuneLingual",
 			section = SECTION_BASIC_SETTINGS
 	)
-	default String getHelpLink() {return helpLink;}
+	default String getHelpLink() {return helpLink;} // getHelpLink shouldnt be used anywhere, instead use helpLink
+
+
+
+
+
+
+
+	int offset_section2 = 20;
+	@ConfigSection(
+			name = "Game system text",
+			description = "Options for game system texts",
+			position = offset_section2,
+			closedByDefault = false
+	)
+	String SECTION_GAME_SYSTEM_TEXT = "gameSystemText";
+
+	enum ingameTranslationConfig
+	{
+		USE_LOCAL_DATA,
+		USE_API,
+		TRANSLITERATE,
+		DONT_TRANSLATE,
+	}
+
+	@ConfigItem(
+			name = "NPC Dialogue",
+			description = "Option for NPC Dialogues",
+			position = 1 + offset_section2,
+			keyName = "npcDialogue",
+			section = SECTION_GAME_SYSTEM_TEXT
+	)
+	default ingameTranslationConfig getNpcDialogue() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+
+	@ConfigItem(
+			name = "Game Messages",
+			description = "Option for game messages",
+			position = 2 + offset_section2,
+			keyName = "gameMessages",
+			section = SECTION_GAME_SYSTEM_TEXT
+	)
+	default ingameTranslationConfig getGameMessages() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+
+	@ConfigItem(
+			name = "Item Names",
+			description = "Option for item names",
+			position = 4 + offset_section2,
+			keyName = "itemNames",
+			section = SECTION_GAME_SYSTEM_TEXT
+	)
+	default ingameTranslationConfig getItemNames() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+
+	@ConfigItem(
+			name = "NPC Names",
+			description = "Option for NPC names",
+			position = 5 + offset_section2,
+			keyName = "NPCNames",
+			section = SECTION_GAME_SYSTEM_TEXT
+	)
+	default ingameTranslationConfig getNPCNames() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+
+	@ConfigItem(
+			name = "Object Names",
+			description = "Option for object names",
+			position = 6 + offset_section2,
+			keyName = "objectNames",
+			section = SECTION_GAME_SYSTEM_TEXT
+	)
+	default ingameTranslationConfig getObjectNames() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+
+	@ConfigItem(
+			name = "Interfaces",
+			description = "Option for interface texts",
+			position = 7 + offset_section2,
+			keyName = "interfaceText",
+			section = SECTION_GAME_SYSTEM_TEXT
+	)
+	default ingameTranslationConfig getInterfaceText() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+
+	@ConfigItem(
+			name = "Mouse Hover Text",
+			description = "Option for texts next to the mouse",
+			position = 8 + offset_section2,
+			keyName = "mouseText",
+			section = SECTION_GAME_SYSTEM_TEXT
+	)
+	default ingameTranslationConfig getMouseText() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+
+	@ConfigItem(
+			name = "Enable Mouse Hover Text",
+			description = "Option to toggle mouse hover texts",
+			position = 9 + offset_section2,
+			keyName = "overheadText",
+			section = SECTION_GAME_SYSTEM_TEXT
+	)
+	default boolean getMouseHover() {return true;}
+
+
+
+
+
+
+	enum chatConfig
+	{
+		TRANSFORM, //eg: watasi ha inu ga suki -> 私は犬が好き
+		USE_API, // eg: I like dogs -> 私は犬が好き
+		DONT_TRANSLATE, // eg: I like dogs -> I like dogs
+	}
+	enum chatSelfConfig
+	{
+		TRANSFORM,
+		DONT_TRANSLATE,
+	}
+
+	final int offset_section3 = 40;
+	@ConfigSection(
+			name = "Chat messages",
+			description = "Options for chat messages",
+			position = offset_section3,
+			closedByDefault = false
+	)
+	String SECTION_CHAT_MESSAGES = "chatMessages";
+
+	@ConfigItem(
+			name = "My Messages",
+			description = "Option for your own messages",
+			position = 1 + offset_section3,
+			keyName = "myChat",
+			section = SECTION_CHAT_MESSAGES
+	)
+	default chatSelfConfig getMyChat() {return chatSelfConfig.TRANSFORM;}
+
+	@ConfigItem(
+			name = "All Friends",
+			description = "Option that applies to all friends",
+			position = 2 + offset_section3,
+			keyName = "allFriends",
+			section = SECTION_CHAT_MESSAGES
+	)
+	default chatConfig getAllFriends() {return chatConfig.DONT_TRANSLATE;}
+
+	@ConfigItem(
+			name = "Public",
+			description = "Option for public chat messages",
+			position = 3 + offset_section3,
+			keyName = "publicChat",
+			section = SECTION_CHAT_MESSAGES
+	)
+	default chatConfig getPublicChat() {return chatConfig.DONT_TRANSLATE;}
+
+	@ConfigItem(
+			name = "Clan",
+			description = "Option for clan chat messages",
+			position = 4 + offset_section3,
+			keyName = "clanChat",
+			section = SECTION_CHAT_MESSAGES
+	)
+	default chatConfig getClanChat() {return chatConfig.DONT_TRANSLATE;}
+
+	@ConfigItem(
+			name = "Guest Clan",
+			description = "Option for guest clan chat messages",
+			position = 5 + offset_section3,
+			keyName = "guestClanChat",
+			section = SECTION_CHAT_MESSAGES
+	)
+	default chatConfig getGuestClanChat() {return chatConfig.DONT_TRANSLATE;}
+
+	@ConfigItem(
+			name = "Friends Chat",
+			description = "Option for friends chat messages",
+			position = 6 + offset_section3,
+			keyName = "friendsChat",
+			section = SECTION_CHAT_MESSAGES
+	)
+	default chatConfig getFriendsChat() {return chatConfig.DONT_TRANSLATE;}
+
+	@ConfigItem(
+			name = "GIM Group",
+			description = "Option for GIM group chat messages",
+			position = 7 + offset_section3,
+			keyName = "GIMChat",
+			section = SECTION_CHAT_MESSAGES
+	)
+	default chatConfig getGIMChat() {return chatConfig.DONT_TRANSLATE;}
+
+
+
+
+
+
+	final int offset_section4 = 60;
+	@ConfigSection(
+			name = "Specific Player Settings",
+			description = "Options for specific players",
+			position = offset_section4,
+			closedByDefault = false
+	)
+	String SECTION_SPECIFIC_PLAYER_SETTINGS = "specificPlayerSettings";
+
+	@ConfigItem(
+			name = "Don't translate",
+			description = "Specific players to not translate",
+			position = 1 + offset_section4,
+			keyName = "specificDontTranslate",
+			section = SECTION_SPECIFIC_PLAYER_SETTINGS
+	)
+	default String getSpecificDontTranslate() {return "enter player names here, separated by commas";}
+
+	@ConfigItem(
+			name = "Translate with APIs",
+			description = "Specific players to translate using online translators",
+			position = 2 + offset_section4,
+			keyName = "specificApiTranslate",
+			section = SECTION_SPECIFIC_PLAYER_SETTINGS
+	)
+	default String getSpecificApiTranslate() {return "enter player names here, separated by commas";}
+
+	@ConfigItem(
+			name = "Transform",
+			description = "Specific players to transform",
+			position = 3 + offset_section4,
+			keyName = "specificTransform",
+			section = SECTION_SPECIFIC_PLAYER_SETTINGS
+	)
+	default String getSpecificTransform() {return "enter player names here, separated by commas";}
+
+
+
+
+
 
 	final int offset = 100;
 	String GROUP = "lingualConfig";
@@ -84,14 +316,6 @@ public interface RuneLingualConfig extends Config
 	)
 	String SECTION_GENERAL_SETTINGS = "generalSettings";
 
-	@ConfigItem(
-		name = "Target language",
-		description = "Select the language to be translated to",
-		section = "generalSettings",
-		keyName = "targetLang",
-		position = 1 + offset
-	)
-	default LangCodeSelectableList presetLang() {return LangCodeSelectableList.PORTUGUÊS_BRASILEIRO;}
 
 	@ConfigItem(
 			name = "Public chat",
