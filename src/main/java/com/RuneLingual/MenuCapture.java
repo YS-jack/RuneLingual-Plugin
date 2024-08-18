@@ -1,26 +1,37 @@
 package com.RuneLingual;
 
+import com.RuneLingual.commonFunctions.Colors;
+import com.RuneLingual.commonFunctions.SqlActions;
+import com.RuneLingual.nonLatinChar.GeneralFunctions;
+import com.RuneLingual.commonFunctions.Transformer;
+import com.RuneLingual.commonFunctions.Transformer.TransformOption;
+import com.RuneLingual.commonFunctions.SqlVariables;
+
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.Client;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
-import net.runelite.api.NPC;
-import net.runelite.api.Player;
 
 import javax.inject.Inject;
 
-import lombok.Getter;
 import lombok.Setter;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+@Slf4j
 public class MenuCapture
 {
 	@Inject
 	private Client client;
 	@Inject
-	private RuneLingualConfig config;
+	private RuneLingualPlugin plugin;
 	
 	@Setter
 	private TranscriptManager actionTranslator;
@@ -34,22 +45,113 @@ public class MenuCapture
 	@Setter
 	private LogHandler logger;
 	private boolean debugMessages = true;
+	private final Colors colorObj = Colors.black;
+    @Inject
+	private Transformer transformer;
+	//private SqlVariables sqlVariables;
+
 	
 	// TODO: right click menu title 'Chose Options' - seems to not be directly editable
+
 	
-	public void handleMenuEvent(MenuEntryAdded event)
-	{
+	public void handleMenuEvent(MenuEntryAdded event) {
+        //GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
+
+		boolean needCharImage = plugin.getConfig().getSelectedLanguage().needCharImages();
+
 		// called whenever a right click menu is opened
 		MenuEntry currentMenu = event.getMenuEntry();
-		String menuAction = currentMenu.getOption();
-		String menuTarget = currentMenu.getTarget();
-		
+		String menuOption = currentMenu.getOption(); // doesnt seem to have color tags, always white? eg. Attack
+		String[] actionWordArray = colorObj.getWordArray(menuOption); // eg. ["Attack"]
+		Colors[] actionColorArray = new Colors[]{Colors.white}; // [Colors.white]
+
+		String menuTarget = currentMenu.getTarget(); // eg. <col=ffff00>Sand Crab<col=ff00>  (level-15)
+													 //eg2. <col=ff9040>Dramen staff</col>
+		String[] targetWordArray = colorObj.getWordArray(menuTarget); // eg. ["Sand Crab", " (level-15)"]
+		Colors[] targetColorArray = colorObj.getColorArray(menuTarget); // eg. [Colors.yellow, Colors.green]
+
 		// some possible targets
-		NPC targetNpc = currentMenu.getNpc();
-		Player targetPlayer = currentMenu.getPlayer();
-		int targetItem = currentMenu.getItemId();
+//		NPC targetNpc = currentMenu.getNpc();
+//		Player targetPlayer = currentMenu.getPlayer();
+//		int targetItem = currentMenu.getItemId();
+
 		MenuAction menuType = currentMenu.getType();
-		
+
+		// used to define what column should be what value when searching for translation of each wordArray
+		List<SqlVariables> targetSqlVar = null;
+		List<SqlVariables> optionSqlVar = null;
+		/*
+		eg. if targetWordArray = ["Sand Crab", " (level-15)"]
+		then sqlVariables = [SqlVariables.nameInCategory, SqlVariables.manualInCategory]
+		 */
+
+
+		// translate the target
+		String newTarget = "";
+		String newOption = "";
+		if (isPlayerMenu(menuType)){
+			//leave name as is (but replace to char image if needed), translate the level part
+			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.manualInCategory); // manualInCategory = the level part should be added manually
+			newTarget = transformer.transform(targetWordArray, targetColorArray, new TransformOption[] {TransformOption.AS_IS, TransformOption.AS_IS}, targetSqlVar);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, SqlVariables.inventActionsInCategory);
+		} else if(isNpcMenu(menuType)) {
+			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.npcInSubCategory);
+			optionSqlVar = List.of(SqlVariables.actionsInCategory, SqlVariables.npcInSubCategory);
+			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, targetSqlVar);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlVar);
+		} else if(isObjectMenu(menuType)){
+			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.objInSubCategory);
+			optionSqlVar = List.of(SqlVariables.actionsInCategory, SqlVariables.objInSubCategory);
+			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, targetSqlVar);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlVar);
+		} else if(isItemMenuOnGround(menuType)){ // needs checking
+			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.itemInSubCategory);
+			optionSqlVar = List.of(SqlVariables.actionsInCategory);
+			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, targetSqlVar);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlVar);
+		} else if(isItemMenuInInvent(menuType)){ // needs checking
+			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.itemInSubCategory);
+			optionSqlVar = List.of(SqlVariables.actionsInCategory);
+			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, targetSqlVar);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlVar);
+		} else if(isGeneralMenu(menuType)){ // needs checking
+			optionSqlVar = List.of(SqlVariables.actionsInCategory);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlVar);
+			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, targetSqlVar);
+		} else if(isWidgetOnSomething(menuType)){ // needs checking
+			// eg. "Use" -> "Brug"
+			optionSqlVar = List.of(SqlVariables.actionsInCategory);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlVar);
+			// eg. "Dramen staff -> Sand Crab"
+			Pair<String, String> result = convertWidgetOnSomething(currentMenu);
+			String itemName = result.getLeft();
+			String useOnX = result.getRight();
+			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.itemInSubCategory);
+			newTarget = transformer.transform(new String[]{itemName, useOnX}, new Colors[]{Colors.white, Colors.white}, TransformOption.AS_IS, targetSqlVar);
+
+		} else {
+			// report to discord via webhook?
+		}
+
+		// translate the menu action
+
+
+
+		// swap out the translated menu action and target.
+		// reorder them if it is grammatically correct to do so in that language
+		if(newOption != null) {
+			if (newTarget != null && !newTarget.isEmpty()) {
+				currentMenu.setTarget(currentMenu.getTarget().replace(currentMenu.getTarget(), newTarget));
+			} else {
+				// if target is empty, remove the target part of the menu entry
+				currentMenu.setTarget(currentMenu.getTarget().replace(currentMenu.getTarget(),""));
+			}
+			currentMenu.setOption(currentMenu.getOption().replace(currentMenu.getOption(), newOption));
+			//event.getMenuEntry().setOption(newOption);
+		}
+
+		//old codes
+		/*
 		try
 		{
 			if(isPlayerMenu(menuType))
@@ -59,7 +161,7 @@ public class MenuCapture
 			else if(isNpcMenu(menuType))
 			{
 				translateMenuAction("npcactions", event, menuAction);
-				
+
 				// translates npc name
 				try
 				{
@@ -72,7 +174,7 @@ public class MenuCapture
 						{  // npc has a combat level
 							String actualName = menuTarget.substring(0, levelIndicatorIndex);
 							String newName = npcTranslator.getName(actualName, true);
-							
+
 							String levelIndicator = actionTranslator.getText("npcactions", "level", true);
 							newName += " (" + levelIndicator + "-" + combatLevel + ")";
 							event.getMenuEntry().setTarget(newName);
@@ -88,7 +190,7 @@ public class MenuCapture
 						String newName = npcTranslator.getName(menuTarget, true);
 						event.getMenuEntry().setTarget(newName);
 					}
-					
+
 				}
 				catch(Exception f)
 				{
@@ -100,7 +202,7 @@ public class MenuCapture
 				            + f.getMessage());
 					}
 				}
-				
+
 			}
 			else if(isWidgetOnSomething(menuType))
 			{
@@ -210,7 +312,7 @@ public class MenuCapture
 			           + menuTarget
 			           + "type:"
 			           + event.getMenuEntry().getType());
-				
+
 				/*
 				// tries to translate general actions
 				try
@@ -220,12 +322,13 @@ public class MenuCapture
 				}
 				catch(Exception f)
 				{
-				
+
 					logger.logger("Could not translate action: " + f.getMessage());
-					
-				}*/
-				
+
+				} end comment here with * and /
+
 			}
+
 		}
 		catch (Exception e)
 		{
@@ -234,6 +337,7 @@ public class MenuCapture
 				logger.log("Critical error happened while processing right click menus: " + e.getMessage());
 			}
 		}
+		*/
 	}
 
 	static void mapWidgetText(Widget[] childComponents) {
@@ -361,6 +465,18 @@ public class MenuCapture
 		String useOnName = parts[1];
 		return Pair.of(itemName, useOnName);
 	}
+
+	private boolean hasLevel(String target)
+	{
+		// check if target contains <col=(numbers and alphabets)>(level-(*\d)). such as "<col=ffffff>Mama Layla<col=ffff00>(level-3000)"
+		Pattern re = Pattern.compile(".+<col=[a-zA-Z0-9]+>\\s*\\(level-\\d+\\)");
+		return re.matcher(target).find();
+	}
+
+
+
+
+
 	private boolean isGeneralMenu(MenuAction action)
 	{
 		// checks if current action target is a menu that introduces general actions
@@ -415,5 +531,39 @@ public class MenuCapture
 				|| (action.equals(MenuAction.WIDGET_TARGET_ON_NPC))
 				|| (action.equals(MenuAction.WIDGET_TARGET_ON_GROUND_ITEM))
 				|| (action.equals(MenuAction.WIDGET_TARGET_ON_PLAYER)));
+	}
+
+	private boolean isItemMenuOnGround(MenuAction action) // needs checking
+	{
+		return ((action.equals(MenuAction.ITEM_FIRST_OPTION))
+				|| (action.equals(MenuAction.ITEM_SECOND_OPTION))
+				|| (action.equals(MenuAction.ITEM_THIRD_OPTION))
+				|| (action.equals(MenuAction.ITEM_FOURTH_OPTION))
+				|| (action.equals(MenuAction.ITEM_FIFTH_OPTION))
+				|| (action.equals(MenuAction.ITEM_USE))
+				|| (action.equals(MenuAction.ITEM_USE_ON_ITEM))
+				|| (action.equals(MenuAction.WIDGET_USE_ON_ITEM))
+				|| (action.equals(MenuAction.WIDGET_FIRST_OPTION))
+				|| (action.equals(MenuAction.WIDGET_SECOND_OPTION))
+				|| (action.equals(MenuAction.WIDGET_THIRD_OPTION))
+				|| (action.equals(MenuAction.WIDGET_FOURTH_OPTION))
+				|| (action.equals(MenuAction.WIDGET_FIFTH_OPTION)));
+	}
+
+	private boolean isItemMenuInInvent(MenuAction action) // needs checking
+	{
+		return ((action.equals(MenuAction.ITEM_FIRST_OPTION))
+				|| (action.equals(MenuAction.ITEM_SECOND_OPTION))
+				|| (action.equals(MenuAction.ITEM_THIRD_OPTION))
+				|| (action.equals(MenuAction.ITEM_FOURTH_OPTION))
+				|| (action.equals(MenuAction.ITEM_FIFTH_OPTION))
+				|| (action.equals(MenuAction.ITEM_USE))
+				|| (action.equals(MenuAction.ITEM_USE_ON_ITEM))
+				|| (action.equals(MenuAction.WIDGET_USE_ON_ITEM))
+				|| (action.equals(MenuAction.WIDGET_FIRST_OPTION))
+				|| (action.equals(MenuAction.WIDGET_SECOND_OPTION))
+				|| (action.equals(MenuAction.WIDGET_THIRD_OPTION))
+				|| (action.equals(MenuAction.WIDGET_FOURTH_OPTION))
+				|| (action.equals(MenuAction.WIDGET_FIFTH_OPTION)));
 	}
 }

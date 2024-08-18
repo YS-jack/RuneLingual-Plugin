@@ -1,7 +1,10 @@
-package com.RuneLingual.nonLatinChar;
+package com.RuneLingual.commonFunctions;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Objects;
+import java.util.regex.Pattern;
 
 @Getter
 @Slf4j
@@ -122,5 +125,68 @@ public enum Colors {
 
     public static int hexToInt(String hex) {
         return Integer.parseInt(hex, 16);
+    }
+
+    public String colorsToColorTag() {
+        return "<col=" + this.getHex() + ">";
+    }
+
+
+
+
+
+
+
+    public int countColorTags(String wordAndColor) {//count number of color tags in a string
+        wordAndColor = wordAndColor.replace("</col>","<col=0>");
+        Pattern re = Pattern.compile("(?<=\\d)>|(?<=\\p{IsAlphabetic})>");
+        return re.split(wordAndColor).length - 1;
+    }
+
+    public Colors[] getColorArray(String strWithColor) {
+        /*
+        This function takes a string with color tags and returns a list of color names
+        eg: <col=ff0000>Nex<col=ffffff> (level-1) -> ["red", "white"]
+         */
+
+        // if there are no color tags, return white
+        if(countColorTags(strWithColor) == 0){
+            return new Colors[]{white};
+        }
+
+        // if there are color tags, return the color names
+        String[] parts = strWithColor.split("<col=");
+        Colors[] colorArray = new Colors[parts.length - 1];
+        Pattern re = Pattern.compile("(?<=\\d)>|(?<=\\p{IsAlphabetic})>");
+        for (int i = 0; i < parts.length - 1; i++) {
+            Colors c = Colors.fromHex(re.split(parts[i + 1])[0]);
+            colorArray[i] = c;
+            if (colorArray[i] == null || Objects.equals(colorArray[i], "")) {
+                colorArray[i] = Colors.red;
+            }
+        }
+        return colorArray;
+    }
+
+    public String[] getWordArray(String strWithColor) {
+        /*
+        This function takes a string with color tags and returns a list of words
+        eg: <col=ff0000>Nex<col=ffffff> (level-1) -> ["Nex", " (level-1)"]
+         */
+        if(countColorTags(strWithColor) == 0){
+            return new String[]{strWithColor};
+        }
+
+        Pattern re = Pattern.compile("(?<=\\d)>|(?<=\\p{IsAlphabetic})>");
+        String[] parts = re.split(strWithColor);
+        String[] wordArray = new String[parts.length - 1];
+
+        for (int i = 0; i < parts.length - 1; i++) {
+            wordArray[i] = parts[i+1].split("<")[0];
+            if (wordArray[i] == null || Objects.equals(wordArray[i], "")) {
+                wordArray[i] = "?";
+            }
+        }
+        return  wordArray;
     }
 }

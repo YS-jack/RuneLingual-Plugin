@@ -1,7 +1,6 @@
 package com.RuneLingual.nonLatinChar;
 
-import com.RuneLingual.nonLatinChar.CharImageInit;
-import com.RuneLingual.nonLatinChar.Colors;
+import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.RuneLingualPlugin;
 import net.runelite.client.game.ChatIconManager;
 

@@ -1,11 +1,11 @@
 package com.RuneLingual;
 
+import com.RuneLingual.commonFunctions.Colors;
 import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
-import net.runelite.api.MenuEntry;
 import net.runelite.api.events.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
@@ -17,6 +17,7 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.game.ChatIconManager;
+import net.runelite.api.MenuEntry;
 
 
 import lombok.Getter;
@@ -25,7 +26,6 @@ import com.RuneLingual.sidePanel.SidePanel;
 import com.RuneLingual.commonFunctions.FileActions;
 import com.RuneLingual.prepareResources.Downloader;
 import com.RuneLingual.nonLatinChar.CharImageInit;
-import com.RuneLingual.nonLatinChar.Colors;
 import com.RuneLingual.nonLatinChar.GeneralFunctions;
 
 
@@ -80,7 +80,7 @@ public class RuneLingualPlugin extends Plugin
 	@Inject
 	private SidePanel panel;
 	private NavigationButton navButton;
-	@Inject
+	@Inject @Getter
 	private GeneralFunctions generalFunctions;
 
 
@@ -125,6 +125,10 @@ public class RuneLingualPlugin extends Plugin
 	@Subscribe
 	private void onBeforeRender(BeforeRender event)
 	{
+		if (targetLanguage == LangCodeSelectableList.ENGLISH) {
+			return;
+		}
+
 		// this should be done on the onWidgetLoaded event
 		// but something seems to change the contents right back
 		// somewhere before the rendering process actually happens
@@ -168,14 +172,16 @@ public class RuneLingualPlugin extends Plugin
 	@Subscribe
 	public void onItemQuantityChanged(ItemQuantityChanged itemQuantityChanged)
 	{
+		if (targetLanguage == LangCodeSelectableList.ENGLISH) {
+			return;
+		}
 		groundItemsTranslator.handleGroundItems();
 	}
 	
 	@Subscribe
 	public void onMenuEntryAdded(MenuEntryAdded event)
 	{
-		if (targetLanguage == LangCodeSelectableList.ENGLISH)
-		{
+		if (targetLanguage == LangCodeSelectableList.ENGLISH) {
 			return;
 		}
 
@@ -183,19 +189,24 @@ public class RuneLingualPlugin extends Plugin
 //		for (MenuEntry e: ev ){
 //			e.setOption(generalFunctions.StringToTags("テスト", Colors.fromName("black")));
 //		}
-
 		menuTranslator.handleMenuEvent(event);
 	}
 	
 	@Subscribe
 	public void onChatMessage(ChatMessage event) throws Exception
 	{
+		if (targetLanguage == LangCodeSelectableList.ENGLISH) {
+			return;
+		}
 		chatTranslator.handleChatMessage(event);
 	}
 	
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged event)
 	{
+		if (targetLanguage == LangCodeSelectableList.ENGLISH) {
+			return;
+		}
 		//transcriptManager.saveTranscript();
 	}
 	
