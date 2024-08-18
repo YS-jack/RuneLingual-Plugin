@@ -3,6 +3,7 @@ package com.RuneLingual.prepareResources;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.RuneLingual.commonFunctions.FileActions;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,13 +24,14 @@ public class Downloader {//downloads translations and japanese char images to ex
     private RuneLingualPlugin plugin;
 
     private static File localBaseFolder = FileNameAndPath.getLocalBaseFolder();
+    @Getter
     private File localLangFolder;
     private String GITHUB_BASE_URL;
-    @Setter
+    @Setter @Getter
     private String langCode;
 
 
-    public void initDownloader(String langCodeGiven) {
+    public boolean initDownloader(String langCodeGiven) {
         final List<String> extensions_to_download = Arrays.asList("tsv", "zip"); // will download all files with these extensions
         final List<String> file_name_to_download = List.of("char_" + langCode + ".zip"); // will download all files with these names
         localLangFolder = new File(localBaseFolder.getPath() + File.separator + langCode);
@@ -57,6 +59,7 @@ public class Downloader {//downloads translations and japanese char images to ex
 
             boolean dataChanged = false;
             boolean transcriptChanged = false;
+            boolean charImageChanged = false;
             List<String> remoteHashFiles = new ArrayList<>(); // list of tsv files to include in the sql database
 
 
@@ -73,6 +76,7 @@ public class Downloader {//downloads translations and japanese char images to ex
                     downloadAndUpdateFile(remote_full_path);
                     if(fileExtensionIncludedIn(remote_full_path, List.of("zip"))){ // if its a zip file, unzip it
                         updateCharDir(Paths.get(localLangFolder.getPath(), "char_" + langCode + ".zip")); // currently only supports char images, which should suffice
+                        charImageChanged = true;
                     } else {
                         transcriptChanged = true; // if the file is not a zip file, then one of the transcripts has changed
                     }
@@ -100,12 +104,13 @@ public class Downloader {//downloads translations and japanese char images to ex
 //                if (!Files.exists(path))
 //                    Files.createFile(path);
 //            }
+            return charImageChanged;
 
         } catch (IOException e) {
             System.out.println("An error occurred: " + e.getMessage());
             e.printStackTrace();
+            return false;
         }
-
     }
     private  void createDir(String path){
         Path dirPath = Paths.get(path);

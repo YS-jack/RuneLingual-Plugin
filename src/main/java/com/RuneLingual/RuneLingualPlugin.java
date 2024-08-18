@@ -1,11 +1,11 @@
 package com.RuneLingual;
 
-import com.RuneLingual.prepareResources.Downloader;
 import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
+import net.runelite.api.MenuEntry;
 import net.runelite.api.events.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
@@ -16,13 +16,21 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
+import net.runelite.client.game.ChatIconManager;
+
 
 import lombok.Getter;
 
 import com.RuneLingual.sidePanel.SidePanel;
 import com.RuneLingual.commonFunctions.FileActions;
+import com.RuneLingual.prepareResources.Downloader;
+import com.RuneLingual.nonLatinChar.CharImageInit;
+import com.RuneLingual.nonLatinChar.Colors;
+import com.RuneLingual.nonLatinChar.GeneralFunctions;
+
 
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
 
 @Slf4j
 @PluginDescriptor(
@@ -37,9 +45,15 @@ public class RuneLingualPlugin extends Plugin
 	private Client client;
 	@Inject
 	private ClientToolbar clientToolBar;
+	@Inject @Getter
+	private ChatIconManager chatIconManager;
+	@Getter
+	private HashMap<String, Integer> charIds = new HashMap<>();    // colour-char(key) <-> CharIds(val)
 
 	@Inject @Getter
 	private RuneLingualConfig config;
+	@Inject
+	private CharImageInit charImageInit;
 
 	@Getter
 	private LangCodeSelectableList targetLanguage;
@@ -61,28 +75,29 @@ public class RuneLingualPlugin extends Plugin
 	private GroundItems groundItemsTranslator;
 	@Inject
 	private MenuBar menuBar;
-	@Inject
+	@Inject @Getter
 	private Downloader downloader;
 	@Inject
 	private SidePanel panel;
 	private NavigationButton navButton;
+	@Inject
+	private GeneralFunctions generalFunctions;
 
 
 	@Override
 	protected void startUp() throws Exception
 	{
 		log.info("Starting...");
-		//get selected language
-		targetLanguage = config.getSelectedLanguage();
-		log.info(targetLanguage.getCode());
+		initLangFiles();
 
-		//download necessary files
-		downloader.setLangCode(targetLanguage.getCode());
-		downloader.initDownloader(targetLanguage.getCode());
+		// load image files
+		charImageInit.loadCharImages();
 
 		// side panel
 		startPanel();
 
+
+		//from here its old code
 		// initializes transcript modules
 		initTranscripts();
 		loadTranscripts();
@@ -103,7 +118,7 @@ public class RuneLingualPlugin extends Plugin
 		menuTranslator.setNpcTranslator(dialogTranscriptManager.translatedTranscript);
 		menuTranslator.setObjectTranslator(objectTranscriptManager.translatedTranscript);
 		menuTranslator.setItemTranslator(itemTranscriptManager.translatedTranscript);
-		
+		// old code ends here (for this method)
 		log.info("RuneLingual started!");
 	}
 	
@@ -159,6 +174,16 @@ public class RuneLingualPlugin extends Plugin
 	@Subscribe
 	public void onMenuEntryAdded(MenuEntryAdded event)
 	{
+		if (targetLanguage == LangCodeSelectableList.ENGLISH)
+		{
+			return;
+		}
+
+//		MenuEntry[] ev = client.getMenuEntries();
+//		for (MenuEntry e: ev ){
+//			e.setOption(generalFunctions.StringToTags("テスト", Colors.fromName("black")));
+//		}
+
 		menuTranslator.handleMenuEvent(event);
 	}
 	
@@ -177,11 +202,18 @@ public class RuneLingualPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		//update Language named folder (which is used to determine what language is selected)
-		FileActions.deleteAllLangCodeNamedFile();
-		FileActions.createLangCodeNamedFile(config.getSelectedLanguage());
-		clientToolBar.removeNavigation(navButton);
-		startPanel();
+		if(targetLanguage != config.getSelectedLanguage()){ // if language is changed
+			// download language files and structure language data
+			clientToolBar.removeNavigation(navButton);
+			boolean charImageChanged = initLangFiles();
+			if(charImageChanged){
+				charImageInit.loadCharImages();
+			}
+			restartPanel();
+		}
+
+		// below are some old code
+
 
 		if(dialogTranscriptManager != null)
 		{
@@ -195,6 +227,7 @@ public class RuneLingualPlugin extends Plugin
 		{
 			chatTranslator.updateConfigs();
 		}
+
 	}
 	
 	@Override
@@ -235,6 +268,24 @@ public class RuneLingualPlugin extends Plugin
 	RuneLingualConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(RuneLingualConfig.class);
+	}
+
+	private boolean initLangFiles(){
+		//get selected language
+		targetLanguage = config.getSelectedLanguage();
+		log.info(targetLanguage.getCode());
+
+		//download necessary files
+		downloader.setLangCode(targetLanguage.getCode());
+        return downloader.initDownloader(targetLanguage.getCode());
+	}
+
+	public void restartPanel(){
+		//update Language named folder (which is used to determine what language is selected)
+		FileActions.deleteAllLangCodeNamedFile();
+		FileActions.createLangCodeNamedFile(config.getSelectedLanguage());
+		clientToolBar.removeNavigation(navButton);
+		startPanel();
 	}
 
 	private void startPanel(){

@@ -17,5 +17,12 @@ public enum LangCodeSelectableList
 
     public String getCode(){return this.langCode;}
 
+    public boolean needCharImages(){
+        if (this == 日本語){ // todo: when adding new languages, add them here if they need char images
+            return true;
+        }
+        return false;
+    }
+
 
 }
