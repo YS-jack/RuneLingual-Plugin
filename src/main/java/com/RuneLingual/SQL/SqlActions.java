@@ -19,13 +19,18 @@ public class SqlActions {
 
     static final String tableName = "transcript";
     static final String databaseFileName = FileNameAndPath.getLocalSQLFileName();
-    static final String localLangFolder = FileNameAndPath.getLocalLangFolder();
+    ;
     @Inject
     private RuneLingualPlugin plugin;
     @Inject
     private Downloader downloader;
     @Inject
     private FileNameAndPath fileNameAndPath;
+
+    @Inject
+    public SqlActions(RuneLingualPlugin plugin) {
+        this.plugin = plugin;
+    }
 
     // private String databaseUrl = "jdbc:h2:" + downloader.getLocalLangFolder() + File.separator + databaseFileName;
 
@@ -42,7 +47,7 @@ public class SqlActions {
             }
 
             // then create new table
-            String sql = "CREATE TABLE " + tableName + " (english TEXT)";
+            String sql = "CREATE TABLE " + tableName + " ()";
 
             try (Statement stmt = conn.createStatement()) {
                 stmt.execute(sql);
@@ -85,6 +90,16 @@ public class SqlActions {
 //        }
         for (String tsvFile : tsvFiles) {
             processTsvFile(databaseUrl, tsvFolderPath + File.separator + tsvFile);
+        }
+
+        // index the english column
+        try (Connection conn = DriverManager.getConnection(databaseUrl)) {
+            String sql = "CREATE INDEX english_index ON " + tableName + " ("+ SqlVariables.columnEnglish.getColumnName() +")";
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute(sql);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -135,7 +150,7 @@ public class SqlActions {
 
     private static void ensureColumnsExist(Connection conn, String[] columnNames) {
         for (String columnName : columnNames) {
-            String sql = "ALTER TABLE " + tableName + " ADD COLUMN IF NOT EXISTS " + columnName + " TEXT";
+            String sql = "ALTER TABLE " + tableName + " ADD COLUMN IF NOT EXISTS " + columnName + " VARCHAR(2000)";
             try (Statement stmt = conn.createStatement()) {
                 stmt.execute(sql);
             } catch (SQLException e) {
@@ -202,8 +217,9 @@ public class SqlActions {
     }
 
     private String getDatabseUrl(){
-
-        return "jdbc:h2:" + localLangFolder + File.separator + databaseFileName;
+        return "jdbc:h2:" + plugin.getFileNameAndPath().getLocalLangFolder() + File.separator + databaseFileName;
     }
+
+
 
 }

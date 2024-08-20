@@ -44,7 +44,8 @@ public class Transformer {
         if(option == TransformOption.AS_IS){
             translatedText = text;
         } else if(option == TransformOption.TRANSLATE_LOCAL){
-            return sqlQuery.getMatching(SqlVariables.columnTranslation)[0];
+            //translatedText = sqlQuery.getMatching(SqlVariables.columnTranslation)[0];
+            translatedText = this.plugin.getTranscriptActions().getTranslation(text);
         } else if(option == TransformOption.TRANSLATE_API){
             //return
         } else if(option == TransformOption.TRANSLITERATE){
@@ -52,9 +53,9 @@ public class Transformer {
         }
 
         if(needCharImage) {
-            return generalFunctions.StringToTags(text, colors);
+            return generalFunctions.StringToTags(translatedText, colors);
         } else {
-            return "<col=" + colors.getHex() + ">" + text + "</col>";
+            return "<col=" + colors.getHex() + ">" + translatedText + "</col>";
         }
     }
 

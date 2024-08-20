@@ -1,5 +1,6 @@
 package com.RuneLingual.SQL;
 
+import com.RuneLingual.RuneLingualPlugin;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,22 +16,20 @@ public class SqlQuery {
     private String source;
     private String english;
     private String translation;
-    @Inject
-    private SqlActions sqlActions = new SqlActions();
 
-    public SqlQuery(){
-//        this.category = category;
-//        this.subCategory = subCategory;
-//        this.source = source;
-//        this.english = english;
-//        this.translation = translation;
+    @Inject
+    RuneLingualPlugin plugin;
+
+    @Inject
+    public SqlQuery(RuneLingualPlugin plugin){
+        this.plugin = plugin;
     }
 
     public String[] getMatching(SqlVariables column) {
         // create query -> execute -> return result
         String query = getSearchQuery();
         query = query.replace("*", column.getColumnName());
-        String[][] result = sqlActions.executeSearchQuery(query);
+        String[][] result = plugin.getSqlActions().executeSearchQuery(query);
         String[] translations = new String[result.length];
         for (int i = 0; i < result.length; i++){
             translations[i] = result[i][0];
@@ -44,7 +43,7 @@ public class SqlQuery {
         String[] translations = new String[columns.length];
         for (int i = 0; i < columns.length; i++){
             query = query.replace("*", columns[i].getColumnName());
-            String[][] result = sqlActions.executeSearchQuery(query);
+            String[][] result = plugin.getSqlActions().executeSearchQuery(query);
             translations[i] = result[0][0];
         }
         return translations;

@@ -47,6 +47,10 @@ public class MenuCapture
 	private Transformer transformer;
 	//private SqlVariables sqlVariables;
 
+	@Inject
+	public MenuCapture(RuneLingualPlugin plugin) {
+		this.plugin = plugin;
+	}
 	
 	// TODO: right click menu title 'Chose Options' - seems to not be directly editable
 
@@ -90,22 +94,22 @@ public class MenuCapture
 		if (isPlayerMenu(menuType)){
 			//leave name as is (but replace to char image if needed), translate the level part
 			// targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.manualInCategory); // manualInCategory = the level part should be added manually
-			targetSqlQuery = new SqlQuery();
+			targetSqlQuery = new SqlQuery(this.plugin);
 			targetSqlQuery.setCategory(SqlVariables.manualInCategory.getValue()); // todo: target part(the level part) should be added to the data
 			newTarget = transformer.transform(targetWordArray, targetColorArray,
 					new TransformOption[] {TransformOption.AS_IS, TransformOption.AS_IS}, targetSqlQuery); // todo: change the second option to TranslateLocal
 
-			optionSqlQuery = new SqlQuery();
+			optionSqlQuery = new SqlQuery(this.plugin);
 			optionSqlQuery.setCategory(SqlVariables.manualInCategory.getValue()); // todo: options for players must be added to sql
 			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, optionSqlQuery);
 		} else if(isNpcMenu(menuType)) { // need to split into npcs with and without level
 			// todo: these values are a mess, need to adjust
-			targetSqlQuery = new SqlQuery();
+			targetSqlQuery = new SqlQuery(this.plugin);
 			targetSqlQuery.setEnglish(targetWordArray[0]);
 			targetSqlQuery.setCategory(SqlVariables.nameInCategory.getValue());
 			targetSqlQuery.setSubCategory(SqlVariables.npcInSubCategory.getValue()); // look at the database to see what the category and subcategory should be
 																					// can also set source
-			optionSqlQuery = new SqlQuery();
+			optionSqlQuery = new SqlQuery(this.plugin);
 			optionSqlQuery.setEnglish(menuOption);
 			optionSqlQuery.setCategory(SqlVariables.actionsInCategory.getValue());
 			optionSqlQuery.setSubCategory(SqlVariables.npcInSubCategory.getValue());
@@ -113,12 +117,12 @@ public class MenuCapture
 			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
 			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, optionSqlQuery);
 		} else if(isObjectMenu(menuType)){
-			targetSqlQuery = new SqlQuery();
+			targetSqlQuery = new SqlQuery(this.plugin);
 			targetSqlQuery.setEnglish(targetWordArray[0]);
 			targetSqlQuery.setCategory(SqlVariables.nameInCategory.getValue());
 			targetSqlQuery.setSubCategory(SqlVariables.objInSubCategory.getValue());
 
-			optionSqlQuery = new SqlQuery();
+			optionSqlQuery = new SqlQuery(this.plugin);
 			optionSqlQuery.setEnglish(menuOption);
 			optionSqlQuery.setCategory(SqlVariables.actionsInCategory.getValue());
 			optionSqlQuery.setSubCategory(SqlVariables.objInSubCategory.getValue());
@@ -127,10 +131,10 @@ public class MenuCapture
 			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
 			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, optionSqlQuery);
 		} else if(isItemMenuOnGround(menuType)){ // needs checking
-			targetSqlQuery = new SqlQuery();
+			targetSqlQuery = new SqlQuery(this.plugin);
 			targetSqlQuery.setEnCatSubcat(menuTarget, SqlVariables.actionsInCategory.getValue(), SqlVariables.itemInSubCategory.getValue());
 
-			optionSqlQuery = new SqlQuery();
+			optionSqlQuery = new SqlQuery(this.plugin);
 			optionSqlQuery.setEnCatSubcat(targetWordArray[0], SqlVariables.actionsInCategory.getValue(), SqlVariables.itemInSubCategory.getValue());
 
 
@@ -138,16 +142,16 @@ public class MenuCapture
 			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, optionSqlQuery);
 			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, targetSqlQuery);
 		} else if(isItemMenuInInvent(menuType)){ // needs checking
-			targetSqlQuery = new SqlQuery();
+			targetSqlQuery = new SqlQuery(this.plugin);
 			targetSqlQuery.setEnCatSubcat(menuOption, SqlVariables.nameInCategory.getValue(), SqlVariables.itemInSubCategory.getValue());
-			optionSqlQuery = new SqlQuery();
+			optionSqlQuery = new SqlQuery(this.plugin);
 			optionSqlQuery.setEnCatSubcat(targetWordArray[0], SqlVariables.inventActionsInCategory.getValue(), SqlVariables.itemInSubCategory.getValue());
 
 			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, targetSqlQuery);
 			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlQuery);
 		} else if(isGeneralMenu(menuType)){ // needs checking
 
-			optionSqlQuery = new SqlQuery();
+			optionSqlQuery = new SqlQuery(this.plugin);
 			optionSqlQuery.setEnglish(menuOption);
 			optionSqlQuery.setCategory(SqlVariables.actionsInCategory.getValue());
 			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlQuery);

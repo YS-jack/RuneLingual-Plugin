@@ -1,8 +1,11 @@
 package com.RuneLingual;
 
-import com.RuneLingual.commonFunctions.Colors;
+import com.RuneLingual.SQL.SqlActions;
+import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.google.inject.Provides;
 import javax.inject.Inject;
+
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
@@ -17,7 +20,6 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.game.ChatIconManager;
-import net.runelite.api.MenuEntry;
 
 
 import lombok.Getter;
@@ -27,7 +29,10 @@ import com.RuneLingual.commonFunctions.FileActions;
 import com.RuneLingual.prepareResources.Downloader;
 import com.RuneLingual.nonLatinChar.CharImageInit;
 import com.RuneLingual.nonLatinChar.GeneralFunctions;
+import com.RuneLingual.Transcript.TranscriptActions;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
@@ -82,13 +87,23 @@ public class RuneLingualPlugin extends Plugin
 	private NavigationButton navButton;
 	@Inject @Getter
 	private GeneralFunctions generalFunctions;
-
+	@Inject @Getter
+	private FileNameAndPath fileNameAndPath = new FileNameAndPath();
+	@Inject @Getter
+	private SqlActions sqlActions;
+	@Inject @Getter
+	private TranscriptActions transcriptActions;
+	@Getter
+	private HashMap<String, JSONObject> transcript;
+	@Getter @Setter
+	private String[] tsvFileNames;
 
 	@Override
 	protected void startUp() throws Exception
 	{
 		log.info("Starting...");
 		initLangFiles();
+		transcriptActions.getTranscript(fileNameAndPath.getLocalLangFolder(), tsvFileNames);
 
 		// load image files
 		charImageInit.loadCharImages();

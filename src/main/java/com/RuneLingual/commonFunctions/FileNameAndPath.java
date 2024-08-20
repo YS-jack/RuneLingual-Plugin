@@ -12,5 +12,5 @@ public class FileNameAndPath {
     @Getter
     private static final String localSQLFileName = "transcript";
     @Getter @Setter
-    private static String localLangFolder;
+    private String localLangFolder;
 }

@@ -24,6 +24,7 @@ public class Downloader {//downloads translations and japanese char images to ex
     private RuneLingualPlugin plugin;
 
     private static File localBaseFolder = FileNameAndPath.getLocalBaseFolder();
+
     @Getter
     private File localLangFolder;
     private String GITHUB_BASE_URL;
@@ -33,11 +34,16 @@ public class Downloader {//downloads translations and japanese char images to ex
     private DataFormater dataFormater;
 
 
+    @Inject
+    public Downloader(RuneLingualPlugin plugin){
+        this.plugin = plugin;
+    }
+
     public boolean initDownloader(String langCodeGiven) {
         final List<String> extensions_to_download = Arrays.asList("tsv", "zip"); // will download all files with these extensions
         final List<String> file_name_to_download = List.of("char_" + langCode + ".zip"); // will download all files with these names
         localLangFolder = new File(localBaseFolder.getPath() + File.separator + langCode);
-        FileNameAndPath.setLocalLangFolder(localLangFolder.getPath());
+        plugin.getFileNameAndPath().setLocalLangFolder(localLangFolder.getPath());
 
         createDir(localLangFolder.getPath());
         String LOCAL_HASH_NAME = "hashListLocal_" + langCode + ".txt";
@@ -64,7 +70,7 @@ public class Downloader {//downloads translations and japanese char images to ex
             boolean dataChanged = false;
             boolean transcriptChanged = false;
             boolean charImageChanged = false;
-            List<String> remoteHashFiles = new ArrayList<>(); // list of tsv files to include in the sql database
+            List<String> remoteTsvFileNames = new ArrayList<>(); // list of tsv files to include in the sql database
 
 
             for (Map.Entry<String, String> entry : remoteHashes.entrySet()) {
@@ -87,16 +93,17 @@ public class Downloader {//downloads translations and japanese char images to ex
                 }
 
                 if(fileExtensionIncludedIn(remote_full_path, List.of("tsv"))){
-                    remoteHashFiles.add(remote_full_path);
+                    remoteTsvFileNames.add(remote_full_path);
                 }
             }
+            String[] tsvFileNames = remoteTsvFileNames.toArray(new String[0]);
+            this.plugin.setTsvFileNames(tsvFileNames);
 
             if (dataChanged){
                 // Overwrite local hash file with the updated remote hash file
                 Files.copy(new URL(REMOTE_HASH_FILE).openStream(), Paths.get(localLangFolder.getPath(), LOCAL_HASH_NAME), StandardCopyOption.REPLACE_EXISTING);
                 if (transcriptChanged) {
-                    String[] tsvFiles = remoteHashFiles.toArray(new String[0]);
-                    dataFormater.updateSqlFromTsv(localLangFolder.getPath(), tsvFiles);
+                    //dataFormater.updateSqlFromTsv(localLangFolder.getPath(), tsvFileNames);
                 }
             }
 //            //create webhook dir if none
@@ -116,6 +123,7 @@ public class Downloader {//downloads translations and japanese char images to ex
             return false;
         }
     }
+
     private  void createDir(String path){
         Path dirPath = Paths.get(path);
         if (!Files.exists(dirPath)) {
