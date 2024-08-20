@@ -29,12 +29,16 @@ public class Downloader {//downloads translations and japanese char images to ex
     private String GITHUB_BASE_URL;
     @Setter @Getter
     private String langCode;
+    @Inject
+    private DataFormater dataFormater;
 
 
     public boolean initDownloader(String langCodeGiven) {
         final List<String> extensions_to_download = Arrays.asList("tsv", "zip"); // will download all files with these extensions
         final List<String> file_name_to_download = List.of("char_" + langCode + ".zip"); // will download all files with these names
         localLangFolder = new File(localBaseFolder.getPath() + File.separator + langCode);
+        FileNameAndPath.setLocalLangFolder(localLangFolder.getPath());
+
         createDir(localLangFolder.getPath());
         String LOCAL_HASH_NAME = "hashListLocal_" + langCode + ".txt";
         String remote_sub_folder = "draft"; //todo: this value is "draft" if reading from draft folder, "public" if reading from the public folder
@@ -92,7 +96,7 @@ public class Downloader {//downloads translations and japanese char images to ex
                 Files.copy(new URL(REMOTE_HASH_FILE).openStream(), Paths.get(localLangFolder.getPath(), LOCAL_HASH_NAME), StandardCopyOption.REPLACE_EXISTING);
                 if (transcriptChanged) {
                     String[] tsvFiles = remoteHashFiles.toArray(new String[0]);
-                    DataFormater.updateSqlFromTsv(localLangFolder.getPath(), tsvFiles);
+                    dataFormater.updateSqlFromTsv(localLangFolder.getPath(), tsvFiles);
                 }
             }
 //            //create webhook dir if none

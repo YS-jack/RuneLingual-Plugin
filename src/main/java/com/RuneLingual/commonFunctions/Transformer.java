@@ -2,10 +2,10 @@ package com.RuneLingual.commonFunctions;
 
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.nonLatinChar.GeneralFunctions;
-import com.RuneLingual.commonFunctions.SqlVariables;
+import com.RuneLingual.SQL.SqlVariables;
+import com.RuneLingual.SQL.SqlQuery;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -31,7 +31,7 @@ public class Transformer {
      * 3. recombine into string
      */
 
-    public String transform(String text, Colors colors, TransformOption option, SqlVariables sqlVariables){
+    public String transform(String text, Colors colors, TransformOption option, SqlQuery sqlQuery){
         boolean needCharImage = plugin.getConfig().getSelectedLanguage().needCharImages();
         GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
 
@@ -44,7 +44,7 @@ public class Transformer {
         if(option == TransformOption.AS_IS){
             translatedText = text;
         } else if(option == TransformOption.TRANSLATE_LOCAL){
-            //return
+            return sqlQuery.getMatching(SqlVariables.columnTranslation)[0];
         } else if(option == TransformOption.TRANSLATE_API){
             //return
         } else if(option == TransformOption.TRANSLITERATE){
@@ -58,50 +58,50 @@ public class Transformer {
         }
     }
 
-    public String transform(String[] texts, Colors[] colors, TransformOption option, SqlVariables sqlVariables){
+    public String transform(String[] texts, Colors[] colors, TransformOption option, SqlQuery sqlQuery){
         StringBuilder transformedTexts = new StringBuilder();
         for(int i = 0; i < texts.length; i++){
-            transformedTexts.append(transform(texts[i], colors[i], option, sqlVariables));
+            transformedTexts.append(transform(texts[i], colors[i], option, sqlQuery));
         }
         return transformedTexts.toString();
     }
 
-    public String transform(String[] texts, Colors[] colors, TransformOption option, List<SqlVariables> sqlVariables){
+    public String transform(String[] texts, Colors[] colors, TransformOption option, SqlQuery[] sqlQueries){
         StringBuilder transformedTexts = new StringBuilder();
         for(int i = 0; i < texts.length; i++){
-            transformedTexts.append(transform(texts[i], colors[i], option, sqlVariables.get(i)));
+            transformedTexts.append(transform(texts[i], colors[i], option, sqlQueries[i]));
         }
         return transformedTexts.toString();
     }
 
-    public String transform(String[] texts, Colors[] colors, TransformOption[] options, SqlVariables sqlVariables){
+    public String transform(String[] texts, Colors[] colors, TransformOption[] options, SqlQuery sqlQuery){
         StringBuilder transformedTexts = new StringBuilder();
         for(int i = 0; i < texts.length; i++){
-            transformedTexts.append(transform(texts[i], colors[i], options[i], sqlVariables));
+            transformedTexts.append(transform(texts[i], colors[i], options[i], sqlQuery));
         }
         return transformedTexts.toString();
     }
 
-    public String transform(String[] texts, Colors[] colors, TransformOption[] options, List<SqlVariables> sqlVariables){
+    public String transform(String[] texts, Colors[] colors, TransformOption[] options, SqlQuery[] sqlQueries){
         StringBuilder transformedTexts = new StringBuilder();
         for(int i = 0; i < texts.length; i++){
-            transformedTexts.append(transform(texts[i], colors[i], options[i], sqlVariables.get(i)));
+            transformedTexts.append(transform(texts[i], colors[i], options[i], sqlQueries[i]));
         }
         return transformedTexts.toString();
     }
 
-    public String transform(String stringWithColors, TransformOption option, SqlVariables sqlVariables){
+    public String transform(String stringWithColors, TransformOption option, SqlQuery sqlQuery){
         String[] targetWordArray = colorObj.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
         Colors[] targetColorArray = colorObj.getColorArray(stringWithColors); // eg. [Colors.white, Colors.red]
 
-        return transform(targetWordArray, targetColorArray, option, sqlVariables);
+        return transform(targetWordArray, targetColorArray, option, sqlQuery);
     }
 
-    public String transform(String stringWithColors, TransformOption option, List<SqlVariables> sqlVariables){
+    public String transform(String stringWithColors, TransformOption option, SqlQuery[] sqlQueries){
         String[] targetWordArray = colorObj.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
         Colors[] targetColorArray = colorObj.getColorArray(stringWithColors); // eg. [Colors.white, Colors.red]
 
-        return transform(targetWordArray, targetColorArray, option, sqlVariables);
+        return transform(targetWordArray, targetColorArray, option, sqlQueries);
     }
 
 

@@ -1,4 +1,4 @@
-package com.RuneLingual.commonFunctions;
+package com.RuneLingual.SQL;
 
 import java.sql.*;
 import java.nio.file.Files;
@@ -7,15 +7,29 @@ import java.io.File;
 import java.util.*;
 
 import com.RuneLingual.commonFunctions.FileNameAndPath;
+import com.RuneLingual.prepareResources.Downloader;
+import com.RuneLingual.RuneLingualPlugin;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+
+import javax.inject.Inject;
 
 @Slf4j
 public class SqlActions {
 
     static final String tableName = "transcript";
     static final String databaseFileName = FileNameAndPath.getLocalSQLFileName();
+    static final String localLangFolder = FileNameAndPath.getLocalLangFolder();
+    @Inject
+    private RuneLingualPlugin plugin;
+    @Inject
+    private Downloader downloader;
+    @Inject
+    private FileNameAndPath fileNameAndPath;
 
-    public static void createTable(String databaseFolder) {
+    // private String databaseUrl = "jdbc:h2:" + downloader.getLocalLangFolder() + File.separator + databaseFileName;
+
+    public void createTable(String databaseFolder) {
         String databaseUrl = "jdbc:h2:" + databaseFolder + File.separator + databaseFileName;
 
         try (Connection conn = DriverManager.getConnection(databaseUrl)) {
@@ -129,6 +143,67 @@ public class SqlActions {
                 e.printStackTrace();
             }
         }
+    }
+
+    public String[][] executeSearchQuery(String query) {
+        /*
+        * Execute a search query and return the results as a 2D array
+        * eg. SELECT * FROM transcript WHERE english = 'hello'
+        * returns [["hello", "hola"], ["hello", "こんにちは"]]
+         */
+
+        List<List<String>> results = new ArrayList<>();
+        try (Connection conn = DriverManager.getConnection(getDatabseUrl())) {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnsNumber = rsmd.getColumnCount();
+
+            while (rs.next()) {
+                List<String> row = new ArrayList<>();
+                for (int i = 1; i <= columnsNumber; i++) {
+                    row.add(rs.getString(i));
+                }
+                results.add(row);
+            }
+            String[][] array = new String[results.size()][];
+            for (int i = 0; i < results.size(); i++) {
+                List<String> row = results.get(i);
+                array[i] = row.toArray(new String[0]);
+            }
+            return array;
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return new String[0][0];
+    }
+
+    public String[] executeQuery(String query) {
+        /*
+            * Execute a query and return the results as a 1D array
+            * eg. SELECT translation FROM transcript WHERE english = 'hello'
+            * returns ["hola", "こんにちは"]
+         */
+        List<String> results = new ArrayList<>();
+        try (Connection conn = DriverManager.getConnection(getDatabseUrl());
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                String columnValue = rs.getString(1);
+                results.add(columnValue);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return results.toArray(new String[0]);
+    }
+
+    private String getDatabseUrl(){
+
+        return "jdbc:h2:" + localLangFolder + File.separator + databaseFileName;
     }
 
 }

@@ -1,11 +1,10 @@
 package com.RuneLingual;
 
 import com.RuneLingual.commonFunctions.Colors;
-import com.RuneLingual.commonFunctions.SqlActions;
-import com.RuneLingual.nonLatinChar.GeneralFunctions;
 import com.RuneLingual.commonFunctions.Transformer;
 import com.RuneLingual.commonFunctions.Transformer.TransformOption;
-import com.RuneLingual.commonFunctions.SqlVariables;
+import com.RuneLingual.SQL.SqlVariables;
+import com.RuneLingual.SQL.SqlQuery;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.events.MenuEntryAdded;
@@ -20,9 +19,7 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -77,9 +74,10 @@ public class MenuCapture
 
 		MenuAction menuType = currentMenu.getType();
 
-		// used to define what column should be what value when searching for translation of each wordArray
-		List<SqlVariables> targetSqlVar = null;
-		List<SqlVariables> optionSqlVar = null;
+		SqlQuery targetSqlQuery;
+		SqlQuery optionSqlQuery;
+
+
 		/*
 		eg. if targetWordArray = ["Sand Crab", " (level-15)"]
 		then sqlVariables = [SqlVariables.nameInCategory, SqlVariables.manualInCategory]
@@ -91,43 +89,81 @@ public class MenuCapture
 		String newOption = "";
 		if (isPlayerMenu(menuType)){
 			//leave name as is (but replace to char image if needed), translate the level part
-			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.manualInCategory); // manualInCategory = the level part should be added manually
-			newTarget = transformer.transform(targetWordArray, targetColorArray, new TransformOption[] {TransformOption.AS_IS, TransformOption.AS_IS}, targetSqlVar);
-			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, SqlVariables.inventActionsInCategory);
-		} else if(isNpcMenu(menuType)) {
-			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.npcInSubCategory);
-			optionSqlVar = List.of(SqlVariables.actionsInCategory, SqlVariables.npcInSubCategory);
-			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, targetSqlVar);
-			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlVar);
+			// targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.manualInCategory); // manualInCategory = the level part should be added manually
+			targetSqlQuery = new SqlQuery();
+			targetSqlQuery.setCategory(SqlVariables.manualInCategory.getValue()); // todo: target part(the level part) should be added to the data
+			newTarget = transformer.transform(targetWordArray, targetColorArray,
+					new TransformOption[] {TransformOption.AS_IS, TransformOption.AS_IS}, targetSqlQuery); // todo: change the second option to TranslateLocal
+
+			optionSqlQuery = new SqlQuery();
+			optionSqlQuery.setCategory(SqlVariables.manualInCategory.getValue()); // todo: options for players must be added to sql
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, optionSqlQuery);
+		} else if(isNpcMenu(menuType)) { // need to split into npcs with and without level
+			// todo: these values are a mess, need to adjust
+			targetSqlQuery = new SqlQuery();
+			targetSqlQuery.setEnglish(targetWordArray[0]);
+			targetSqlQuery.setCategory(SqlVariables.nameInCategory.getValue());
+			targetSqlQuery.setSubCategory(SqlVariables.npcInSubCategory.getValue()); // look at the database to see what the category and subcategory should be
+																					// can also set source
+			optionSqlQuery = new SqlQuery();
+			optionSqlQuery.setEnglish(menuOption);
+			optionSqlQuery.setCategory(SqlVariables.actionsInCategory.getValue());
+			optionSqlQuery.setSubCategory(SqlVariables.npcInSubCategory.getValue());
+
+			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, optionSqlQuery);
 		} else if(isObjectMenu(menuType)){
-			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.objInSubCategory);
-			optionSqlVar = List.of(SqlVariables.actionsInCategory, SqlVariables.objInSubCategory);
-			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, targetSqlVar);
-			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlVar);
+			targetSqlQuery = new SqlQuery();
+			targetSqlQuery.setEnglish(targetWordArray[0]);
+			targetSqlQuery.setCategory(SqlVariables.nameInCategory.getValue());
+			targetSqlQuery.setSubCategory(SqlVariables.objInSubCategory.getValue());
+
+			optionSqlQuery = new SqlQuery();
+			optionSqlQuery.setEnglish(menuOption);
+			optionSqlQuery.setCategory(SqlVariables.actionsInCategory.getValue());
+			optionSqlQuery.setSubCategory(SqlVariables.objInSubCategory.getValue());
+
+
+			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, optionSqlQuery);
 		} else if(isItemMenuOnGround(menuType)){ // needs checking
-			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.itemInSubCategory);
-			optionSqlVar = List.of(SqlVariables.actionsInCategory);
-			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, targetSqlVar);
-			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlVar);
+			targetSqlQuery = new SqlQuery();
+			targetSqlQuery.setEnCatSubcat(menuTarget, SqlVariables.actionsInCategory.getValue(), SqlVariables.itemInSubCategory.getValue());
+
+			optionSqlQuery = new SqlQuery();
+			optionSqlQuery.setEnCatSubcat(targetWordArray[0], SqlVariables.actionsInCategory.getValue(), SqlVariables.itemInSubCategory.getValue());
+
+
+
+			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, optionSqlQuery);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, targetSqlQuery);
 		} else if(isItemMenuInInvent(menuType)){ // needs checking
-			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.itemInSubCategory);
-			optionSqlVar = List.of(SqlVariables.actionsInCategory);
-			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, targetSqlVar);
-			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlVar);
+			targetSqlQuery = new SqlQuery();
+			targetSqlQuery.setEnCatSubcat(menuOption, SqlVariables.nameInCategory.getValue(), SqlVariables.itemInSubCategory.getValue());
+			optionSqlQuery = new SqlQuery();
+			optionSqlQuery.setEnCatSubcat(targetWordArray[0], SqlVariables.inventActionsInCategory.getValue(), SqlVariables.itemInSubCategory.getValue());
+
+			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, targetSqlQuery);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlQuery);
 		} else if(isGeneralMenu(menuType)){ // needs checking
-			optionSqlVar = List.of(SqlVariables.actionsInCategory);
-			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlVar);
-			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.AS_IS, targetSqlVar);
+
+			optionSqlQuery = new SqlQuery();
+			optionSqlQuery.setEnglish(menuOption);
+			optionSqlQuery.setCategory(SqlVariables.actionsInCategory.getValue());
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlQuery);
+			newTarget = "";
 		} else if(isWidgetOnSomething(menuType)){ // needs checking
-			// eg. "Use" -> "Brug"
-			optionSqlVar = List.of(SqlVariables.actionsInCategory);
-			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.AS_IS, optionSqlVar);
-			// eg. "Dramen staff -> Sand Crab"
-			Pair<String, String> result = convertWidgetOnSomething(currentMenu);
-			String itemName = result.getLeft();
-			String useOnX = result.getRight();
-			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.itemInSubCategory);
-			newTarget = transformer.transform(new String[]{itemName, useOnX}, new Colors[]{Colors.white, Colors.white}, TransformOption.AS_IS, targetSqlVar);
+//			// eg. "Use" -> "Brug"
+//			optionSqlQuery = new SqlQuery();
+//			optionSqlQuery.setEnglish(menuOption);
+//			optionSqlQuery.setCategory(SqlVariables.actionsInCategory.getValue());
+//
+//			// eg. "Dramen staff -> Sand Crab"
+//			Pair<String, String> result = convertWidgetOnSomething(currentMenu);
+//			String itemName = result.getLeft();
+//			String useOnX = result.getRight();
+//			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.itemInSubCategory);
+//			newTarget = transformer.transform(new String[]{itemName, useOnX}, new Colors[]{Colors.white, Colors.white}, TransformOption.AS_IS, targetSqlVar);
 
 		} else {
 			// report to discord via webhook?

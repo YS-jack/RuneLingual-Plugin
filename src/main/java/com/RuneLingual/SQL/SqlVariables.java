@@ -1,4 +1,4 @@
-package com.RuneLingual.commonFunctions;
+package com.RuneLingual.SQL;
 
 import lombok.Getter;
 
