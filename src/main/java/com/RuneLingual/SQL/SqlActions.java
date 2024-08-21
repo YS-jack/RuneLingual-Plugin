@@ -34,26 +34,25 @@ public class SqlActions {
 
     // private String databaseUrl = "jdbc:h2:" + downloader.getLocalLangFolder() + File.separator + databaseFileName;
 
-    public void createTable(String databaseFolder) {
-        String databaseUrl = "jdbc:h2:" + databaseFolder + File.separator + databaseFileName;
+    public void createTable(String databaseFolder) throws SQLException {
+        Connection conn = DriverManager.getConnection(this.plugin.getDatabaseUrl());
+        this.plugin.setConn(conn);
 
-        try (Connection conn = DriverManager.getConnection(databaseUrl)) {
-            //remove table if exists
-            String dropTable = "DROP TABLE IF EXISTS " + tableName;
-            try (Statement stmt = conn.createStatement()) {
-                stmt.execute(dropTable);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        //remove table if exists
+//        String dropTable = "DROP TABLE IF EXISTS " + tableName;
+//        try (Statement stmt = this.plugin.getConn().createStatement()) {
+//            stmt.execute(dropTable);
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
 
-            // then create new table
-            String sql = "CREATE TABLE " + tableName + " ()";
+        // then create new table
+        String sql = "CREATE TABLE " + tableName + " ()";
 
-            try (Statement stmt = conn.createStatement()) {
-                stmt.execute(sql);
-            }
+        try (Statement stmt = plugin.getConn().createStatement()) {
+            stmt.execute(sql);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -73,10 +72,9 @@ public class SqlActions {
 //    }
 
 
-    public static void TsvToSqlDatabase(String[] tsvFiles, String tsvFolderPath){
+    public void tsvToSqlDatabase(String[] tsvFiles, String tsvFolderPath){
         // note: table must exist before calling this function
 
-        String databaseUrl = "jdbc:h2:" + tsvFolderPath + File.separator + databaseFileName;
 //        File folder = new File(tsvFolderPath);
 //        File[] listOfFiles = folder.listFiles();
 //
@@ -89,28 +87,26 @@ public class SqlActions {
 //            }
 //        }
         for (String tsvFile : tsvFiles) {
-            processTsvFile(databaseUrl, tsvFolderPath + File.separator + tsvFile);
+            processTsvFile(tsvFolderPath + File.separator + tsvFile);
         }
 
         // index the english column
-        try (Connection conn = DriverManager.getConnection(databaseUrl)) {
             String sql = "CREATE INDEX english_index ON " + tableName + " ("+ SqlVariables.columnEnglish.getColumnName() +")";
-            try (Statement stmt = conn.createStatement()) {
+            try (Statement stmt = this.plugin.getConn().createStatement()) {
                 stmt.execute(sql);
-            }
-        } catch (SQLException e) {
+            }catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private static void processTsvFile(String databaseUrl, String tsvFilePath) {
+    private void processTsvFile(String tsvFilePath) {
         log.info("Processing TSV file: " + tsvFilePath);
-        try (Connection conn = DriverManager.getConnection(databaseUrl)) {
+        try {
             List<String> lines = Files.readAllLines(Paths.get(tsvFilePath));
             String[] columnNames = lines.get(0).split("\t");
 
             // Ensure all columns exist
-            ensureColumnsExist(conn, columnNames);
+            ensureColumnsExist(columnNames);
 
             // Insert data
             for (int i = 1; i < lines.size(); i++) {
@@ -132,7 +128,7 @@ public class SqlActions {
                 sql.deleteCharAt(sql.length() - 1); // remove last comma
                 sql.append(")");
 
-                try (PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+                try (PreparedStatement pstmt = this.plugin.getConn().prepareStatement(sql.toString())) {
                     for (int j = 0; j < fields.length; j++) {
                         pstmt.setString(j + 1, fields[j]);
                     }
@@ -148,10 +144,10 @@ public class SqlActions {
         }
     }
 
-    private static void ensureColumnsExist(Connection conn, String[] columnNames) {
+    private void ensureColumnsExist(String[] columnNames) {
         for (String columnName : columnNames) {
             String sql = "ALTER TABLE " + tableName + " ADD COLUMN IF NOT EXISTS " + columnName + " VARCHAR(2000)";
-            try (Statement stmt = conn.createStatement()) {
+            try (Statement stmt = this.plugin.getConn().createStatement()) {
                 stmt.execute(sql);
             } catch (SQLException e) {
                 log.info("Error adding column " + columnName + " to " + tableName);
@@ -168,8 +164,7 @@ public class SqlActions {
          */
 
         List<List<String>> results = new ArrayList<>();
-        try (Connection conn = DriverManager.getConnection(getDatabseUrl())) {
-            Statement stmt = conn.createStatement();
+        try (Statement stmt = this.plugin.getConn().createStatement();){
             ResultSet rs = stmt.executeQuery(query);
 
             ResultSetMetaData rsmd = rs.getMetaData();
@@ -202,8 +197,7 @@ public class SqlActions {
             * returns ["hola", "こんにちは"]
          */
         List<String> results = new ArrayList<>();
-        try (Connection conn = DriverManager.getConnection(getDatabseUrl());
-             Statement stmt = conn.createStatement();
+        try (Statement stmt = this.plugin.getConn().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
@@ -215,11 +209,5 @@ public class SqlActions {
         }
         return results.toArray(new String[0]);
     }
-
-    private String getDatabseUrl(){
-        return "jdbc:h2:" + plugin.getFileNameAndPath().getLocalLangFolder() + File.separator + databaseFileName;
-    }
-
-
 
 }

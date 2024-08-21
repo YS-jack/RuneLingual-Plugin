@@ -103,7 +103,7 @@ public class Downloader {//downloads translations and japanese char images to ex
                 // Overwrite local hash file with the updated remote hash file
                 Files.copy(new URL(REMOTE_HASH_FILE).openStream(), Paths.get(localLangFolder.getPath(), LOCAL_HASH_NAME), StandardCopyOption.REPLACE_EXISTING);
                 if (transcriptChanged) {
-                    //dataFormater.updateSqlFromTsv(localLangFolder.getPath(), tsvFileNames);
+                    dataFormater.updateSqlFromTsv(localLangFolder.getPath(), tsvFileNames);
                 }
             }
 //            //create webhook dir if none

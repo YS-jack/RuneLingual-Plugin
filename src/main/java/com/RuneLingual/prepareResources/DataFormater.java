@@ -3,6 +3,7 @@ package com.RuneLingual.prepareResources;
 import com.RuneLingual.commonFunctions.FileActions;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.RuneLingual.SQL.SqlActions;
+import com.RuneLingual.RuneLingualPlugin;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
@@ -14,8 +15,16 @@ import java.util.List;
 
 @Slf4j
 public class DataFormater {
+
+    @Inject
+    private RuneLingualPlugin plugin;
+    @Inject
+    public DataFormater(RuneLingualPlugin plugin){
+        this.plugin = plugin;
+    }
     @Inject
     private SqlActions sqlActions;
+
     public void updateSqlFromTsv(String localLangFolder, String[] tsvFileNames){
         log.info("Updating SQL database from TSV files.");
         String SQLFilePath = localLangFolder + File.separator + FileNameAndPath.getLocalSQLFileName() + ".mv.db";
@@ -27,8 +36,15 @@ public class DataFormater {
         if (FileActions.fileExists(SQLFilePath2)){
             FileActions.deleteFile(SQLFilePath2);
         }
-        sqlActions.createTable(localLangFolder);
-        SqlActions.TsvToSqlDatabase(tsvFileNames, localLangFolder);
+        try {
+            sqlActions.createTable(localLangFolder);
+            log.info("Table created.");
+            sqlActions.tsvToSqlDatabase(tsvFileNames, localLangFolder);
+        } catch (Exception e) {
+            log.error("Error creating table.");
+            e.printStackTrace();
+
+        }
     }
 
 }

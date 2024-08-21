@@ -1,6 +1,7 @@
 package com.RuneLingual;
 
 import com.RuneLingual.SQL.SqlActions;
+import com.RuneLingual.SQL.SqlQuery;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.google.inject.Provides;
 import javax.inject.Inject;
@@ -35,6 +36,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.HashMap;
 
 @Slf4j
@@ -80,6 +84,7 @@ public class RuneLingualPlugin extends Plugin
 	private GroundItems groundItemsTranslator;
 	@Inject
 	private MenuBar menuBar;
+
 	@Inject @Getter
 	private Downloader downloader;
 	@Inject
@@ -91,19 +96,37 @@ public class RuneLingualPlugin extends Plugin
 	private FileNameAndPath fileNameAndPath = new FileNameAndPath();
 	@Inject @Getter
 	private SqlActions sqlActions;
-	@Inject @Getter
-	private TranscriptActions transcriptActions;
-	@Getter
-	private HashMap<String, JSONObject> transcript;
+	@Inject
+	private SqlQuery sqlQuery;
 	@Getter @Setter
 	private String[] tsvFileNames;
+	@Getter
+	private String databaseUrl;
+	@Getter @Setter
+	private Connection conn;
 
 	@Override
 	protected void startUp() throws Exception
 	{
 		log.info("Starting...");
+		//get selected language
+		targetLanguage = config.getSelectedLanguage();
+		// set database URL
+		databaseUrl = "jdbc:h2:" + FileNameAndPath.getLocalBaseFolder() + File.separator + targetLanguage.getCode() + File.separator + FileNameAndPath.getLocalSQLFileName();
+
+		//if online files changed, download and update local files
 		initLangFiles();
-		transcriptActions.getTranscript(fileNameAndPath.getLocalLangFolder(), tsvFileNames);
+		//connect to database
+		conn = DriverManager.getConnection(databaseUrl);
+		//transcriptActions.getTranscript(fileNameAndPath.getLocalLangFolder(), tsvFileNames);
+
+
+//		try{
+//
+//		} catch (Exception e){
+//			log.error("Error connecting to database: " + databaseUrl);
+//			e.printStackTrace();
+//		}
 
 		// load image files
 		charImageInit.loadCharImages();
@@ -297,10 +320,6 @@ public class RuneLingualPlugin extends Plugin
 	}
 
 	private boolean initLangFiles(){
-		//get selected language
-		targetLanguage = config.getSelectedLanguage();
-		log.info(targetLanguage.getCode());
-
 		//download necessary files
 		downloader.setLangCode(targetLanguage.getCode());
         return downloader.initDownloader(targetLanguage.getCode());

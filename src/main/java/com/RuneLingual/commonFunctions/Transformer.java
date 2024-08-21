@@ -4,11 +4,12 @@ import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.nonLatinChar.GeneralFunctions;
 import com.RuneLingual.SQL.SqlVariables;
 import com.RuneLingual.SQL.SqlQuery;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 import java.util.List;
 
-
+@Slf4j
 public class Transformer {
     @Inject
     private RuneLingualPlugin plugin;
@@ -20,6 +21,11 @@ public class Transformer {
         TRANSLATE_LOCAL,
         TRANSLATE_API,
         TRANSLITERATE,
+    }
+
+    @Inject
+    public Transformer(RuneLingualPlugin plugin){
+        this.plugin = plugin;
     }
 
     /*
@@ -44,8 +50,15 @@ public class Transformer {
         if(option == TransformOption.AS_IS){
             translatedText = text;
         } else if(option == TransformOption.TRANSLATE_LOCAL){
-            //translatedText = sqlQuery.getMatching(SqlVariables.columnTranslation)[0];
-            translatedText = this.plugin.getTranscriptActions().getTranslation(text);
+            String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation);
+            if(result.length == 0){
+                log.info("No translation found for " + text);
+                log.info("query = " + sqlQuery.getSearchQuery());
+                translatedText = text;
+            } else {
+                translatedText = result[0];
+            }
+            //translatedText = this.plugin.getTranscriptActions().getTranslation(text);
         } else if(option == TransformOption.TRANSLATE_API){
             //return
         } else if(option == TransformOption.TRANSLITERATE){

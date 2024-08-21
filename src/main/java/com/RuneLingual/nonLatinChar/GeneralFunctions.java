@@ -31,6 +31,11 @@ public class GeneralFunctions {
         for (int j = 0; j < string.length(); ) {
 
             int codePoint = string.codePointAt(j);
+            if(codePoint == 160) {
+                imgTagStrings.append(" ");
+                j += 1;
+                continue;
+            }
             String imgName = colors.getName() + "--" + codePoint + ".png";
             int hash = map.getOrDefault(imgName, -99);
             if (hash == -99) {

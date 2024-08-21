@@ -24,5 +24,12 @@ public enum LangCodeSelectableList
         return false;
     }
 
+    public boolean swapMenuOptionAndTarget(){
+        if (this == 日本語){ // todo: when adding new languages, add them here if they should swap menu entries (if noun comes before verb)
+            return true;
+        }
+        return false;
+    }
+
 
 }
