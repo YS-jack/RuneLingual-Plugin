@@ -50,13 +50,19 @@ public class Transformer {
         if(option == TransformOption.AS_IS){
             translatedText = text;
         } else if(option == TransformOption.TRANSLATE_LOCAL){
+            sqlQuery.setEnglish(text);
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation);
             if(result.length == 0){
-                log.info("No translation found for " + text);
-                log.info("query = " + sqlQuery.getSearchQuery());
+//                log.info("No translation found for " + text);
+//                log.info("query = " + sqlQuery.getSearchQuery());
                 translatedText = text;
             } else {
-                translatedText = result[0];
+                if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
+                    translatedText = text;
+                    //log.info("{} has not been translated yet", text);
+                } else {
+                    translatedText = convertFullWidthToHalfWidth(result[0]);
+                }
             }
             //translatedText = this.plugin.getTranscriptActions().getTranslation(text);
         } else if(option == TransformOption.TRANSLATE_API){
@@ -104,21 +110,38 @@ public class Transformer {
         return transformedTexts.toString();
     }
 
-    public String transform(String stringWithColors, TransformOption option, SqlQuery sqlQuery){
+    public String transform(String stringWithColors, TransformOption option, SqlQuery sqlQuery, Colors defaultColor){
         String[] targetWordArray = colorObj.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
-        Colors[] targetColorArray = colorObj.getColorArray(stringWithColors); // eg. [Colors.white, Colors.red]
+        Colors[] targetColorArray = colorObj.getColorArray(stringWithColors, defaultColor); // eg. [Colors.white, Colors.red]
 
         return transform(targetWordArray, targetColorArray, option, sqlQuery);
     }
 
-    public String transform(String stringWithColors, TransformOption option, SqlQuery[] sqlQueries){
+    public String transform(String stringWithColors, TransformOption option, SqlQuery[] sqlQueries, Colors defaultColor){
         String[] targetWordArray = colorObj.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
-        Colors[] targetColorArray = colorObj.getColorArray(stringWithColors); // eg. [Colors.white, Colors.red]
+        Colors[] targetColorArray = colorObj.getColorArray(stringWithColors, defaultColor); // eg. [Colors.white, Colors.red]
 
         return transform(targetWordArray, targetColorArray, option, sqlQueries);
     }
 
-
-    //private String
+    public String convertFullWidthToHalfWidth(String fullWidthStr) {
+        String[][] fullWidthToHalfWidth = {
+                {"０", "0"}, {"１", "1"}, {"２", "2"}, {"３", "3"}, {"４", "4"}, {"５", "5"}, {"６", "6"}, {"７", "7"}, {"８", "8"}, {"９", "9"},
+                {"Ａ", "A"}, {"Ｂ", "B"}, {"Ｃ", "C"}, {"Ｄ", "D"}, {"Ｅ", "E"}, {"Ｆ", "F"}, {"Ｇ", "G"}, {"Ｈ", "H"}, {"Ｉ", "I"}, {"Ｊ", "J"},
+                {"Ｋ", "K"}, {"Ｌ", "L"}, {"Ｍ", "M"}, {"Ｎ", "N"}, {"Ｏ", "O"}, {"Ｐ", "P"}, {"Ｑ", "Q"}, {"Ｒ", "R"}, {"Ｓ", "S"}, {"Ｔ", "T"},
+                {"Ｕ", "U"}, {"Ｖ", "V"}, {"Ｗ", "W"}, {"Ｘ", "X"}, {"Ｙ", "Y"}, {"Ｚ", "Z"},
+                {"ａ", "a"}, {"ｂ", "b"}, {"ｃ", "c"}, {"ｄ", "d"}, {"ｅ", "e"}, {"ｆ", "f"}, {"ｇ", "g"}, {"ｈ", "h"}, {"ｉ", "i"}, {"ｊ", "j"},
+                {"ｋ", "k"}, {"ｌ", "l"}, {"ｍ", "m"}, {"ｎ", "n"}, {"ｏ", "o"}, {"ｐ", "p"}, {"ｑ", "q"}, {"ｒ", "r"}, {"ｓ", "s"}, {"ｔ", "t"},
+                {"ｕ", "u"}, {"ｖ", "v"}, {"ｗ", "w"}, {"ｘ", "x"}, {"ｙ", "y"}, {"ｚ", "z"},
+                {"！", "!"}, {"”", "\""}, {"＃", "#"}, {"＄", "$"}, {"％", "%"}, {"＆", "&"}, {"＇", "'"}, {"（", "("}, {"）", ")"}, {"＊", "*"},
+                {"＋", "+"}, {"，", ","}, {"－", "-"}, {"．", "."}, {"／", "/"}, {"：", ":"}, {"；", ";"}, {"＜", "<"}, {"＝", "="}, {"＞", ">"},
+                {"？", "?"}, {"＠", "@"}, {"［", "["}, {"＼", "\\"}, {"］", "]"}, {"＾", "^"}, {"＿", "_"}, {"｀", "`"}, {"｛", "{"}, {"｜", "|"},
+                {"｝", "}"}, {"～", "~"}, {"　", " "}
+        };
+        for (String[] pair : fullWidthToHalfWidth) {
+            fullWidthStr = fullWidthStr.replace(pair[0], pair[1]);
+        }
+        return fullWidthStr;
+    }
 
 }

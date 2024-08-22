@@ -53,7 +53,9 @@ public class SqlQuery {
         // creates query that matches all non-empty fields
         // returns null if no fields are filled
         String query = "SELECT * FROM " + SqlActions.tableName + " WHERE ";
-
+        if (english != null && !english.isEmpty()){
+            query += SqlVariables.columnEnglish.getColumnName() + " = '" + english + "' AND ";
+        }
         if (category != null && !category.isEmpty()){
             query += SqlVariables.columnCategory.getColumnName() + " = '" + category + "' AND ";
         }
@@ -63,9 +65,7 @@ public class SqlQuery {
         if (source != null && !source.isEmpty()){
             query += SqlVariables.columnSource.getColumnName() + " = '" + source + "' AND ";
         }
-        if (english != null && !english.isEmpty()){
-            query += SqlVariables.columnEnglish.getColumnName() + " = '" + english + "' AND ";
-        }
+
         if (translation != null && !translation.isEmpty()){
             query += SqlVariables.columnTranslation.getColumnName() + " = '" + translation + "' AND ";
         }
@@ -83,4 +83,61 @@ public class SqlQuery {
         this.subCategory = subCategory;
     }
 
+    public void setItemName(String en){
+        this.english = en;
+        this.category = SqlVariables.nameInCategory.getValue();
+        this.subCategory = SqlVariables.itemInSubCategory.getValue();
+        this.source = null;
+        this.translation = null;
+    }
+
+    public void setNpcName(String en){
+        this.english = en;
+        this.category = SqlVariables.nameInCategory.getValue();
+        this.subCategory = SqlVariables.npcInSubCategory.getValue();
+        this.source = null;
+        this.translation = null;
+    }
+
+    public void setObjectName(String en){
+        this.english = en;
+        this.category = SqlVariables.nameInCategory.getValue();
+        this.subCategory = SqlVariables.objInSubCategory.getValue();
+        this.source = null;
+        this.translation = null;
+    }
+
+
+
+    public void setInventoryItemActions(String en){
+        this.english = en;
+        this.category = SqlVariables.inventActionsInCategory.getValue();
+        this.subCategory = SqlVariables.itemInSubCategory.getValue();
+        this.source = null;
+        this.translation = null;
+    }
+
+    public void setGroundItemActions(String en){
+        this.english = en;
+        this.category = SqlVariables.actionsInCategory.getValue();
+        this.subCategory = SqlVariables.itemInSubCategory.getValue();
+        this.source = null;
+        this.translation = null;
+    }
+
+    public void setNpcActions(String en){
+        this.english = en;
+        this.category = SqlVariables.actionsInCategory.getValue();
+        this.subCategory = SqlVariables.npcInSubCategory.getValue();
+        this.source = null;
+        this.translation = null;
+    }
+
+    public void setObjectActions(String en){
+        this.english = en;
+        this.category = SqlVariables.actionsInCategory.getValue();
+        this.subCategory = SqlVariables.objInSubCategory.getValue();
+        this.source = null;
+        this.translation = null;
+    }
 }

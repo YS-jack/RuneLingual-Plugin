@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Getter
@@ -24,7 +25,7 @@ public enum Colors {
     red2("800000","red"),
     white("ffffff","white"),
     white2("9f9f9f","white"),
-    yellow("ffff00", "yellow");
+    yellow("ffff00", "yellow"),;
 
     private String name;
     private String hex;
@@ -143,7 +144,7 @@ public enum Colors {
         return re.split(wordAndColor).length - 1;
     }
 
-    public Colors[] getColorArray(String strWithColor) {
+    public Colors[] getColorArray(String strWithColor, Colors defaultColor) {
         /*
         This function takes a string with color tags and returns a list of color names
         eg: <col=ff0000>Nex<col=ffffff> (level-1) -> ["red", "white"]
@@ -151,8 +152,10 @@ public enum Colors {
 
         // if there are no color tags, return white
         if(countColorTags(strWithColor) == 0){
-            return new Colors[]{white};
+            return new Colors[]{defaultColor};
         }
+
+        strWithColor = reformatColorWord(strWithColor, defaultColor);
 
         // if there are color tags, return the color names
         String[] parts = strWithColor.split("<col=");
@@ -162,7 +165,7 @@ public enum Colors {
             Colors c = Colors.fromHex(re.split(parts[i + 1])[0]);
             colorArray[i] = c;
             if (colorArray[i] == null || Objects.equals(colorArray[i], "")) {
-                colorArray[i] = Colors.red;
+                colorArray[i] = defaultColor;
             }
         }
         return colorArray;
@@ -173,9 +176,7 @@ public enum Colors {
         This function takes a string with color tags and returns a list of words
         eg: <col=ff0000>Nex<col=ffffff> (level-1) -> ["Nex", " (level-1)"]
          */
-        if(countColorTags(strWithColor) == 0){
-            return new String[]{strWithColor};
-        }
+        strWithColor = reformatColorWord(strWithColor, Colors.white);
 
         Pattern re = Pattern.compile("(?<=\\d)>|(?<=\\p{IsAlphabetic})>");
         String[] parts = re.split(strWithColor);
@@ -188,5 +189,23 @@ public enum Colors {
             }
         }
         return  wordArray;
+    }
+
+    private String reformatColorWord(String colWord, Colors defaultColor) {
+        // give words after </col> the default color
+        // <col=ff0000>Nex</col> (level-1) -> <col=ff0000>Nex<col=ffffff> (level-1)
+        colWord = colWord.replace("</col>",defaultColor.colorsToColorTag());
+
+        // give the beginning words without a color tag the default color
+        // Nex <col=ffffff> (level-1) -> <col=ff0000>Nex <col=ffffff>(level-1)
+        if (!colWord.startsWith("<col=")) {
+            colWord = defaultColor.colorsToColorTag() + colWord;
+        }
+
+        // remove the color tag at the end of the word
+        // <col=ff0000>Nex<col=ffffff> (level-1) <col=f0f0f0> -> <col=ff0000>Nex<col=ffffff> (level-1)
+       colWord = colWord.replaceAll("<col=[a-zA-Z0-9]*>$","");
+
+        return colWord;
     }
 }
