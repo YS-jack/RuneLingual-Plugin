@@ -1,6 +1,7 @@
 package com.RuneLingual.SQL;
 
 import com.RuneLingual.RuneLingualPlugin;
+import com.RuneLingual.commonFunctions.Colors;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,11 +12,14 @@ import javax.inject.Inject;
 
 @Getter @Setter
 public class SqlQuery {
+    private String english; // the whole text, not a part of Colors.wordArray
+    private String translation;
     private String category;
     private String subCategory;
     private String source;
-    private String english;
-    private String translation;
+
+    private Colors color;
+
 
     @Inject
     RuneLingualPlugin plugin;
@@ -23,6 +27,12 @@ public class SqlQuery {
     @Inject
     public SqlQuery(RuneLingualPlugin plugin){
         this.plugin = plugin;
+        this.english = null;
+        this.translation = null;
+        this.category = null;
+        this.subCategory = null;
+        this.source = null;
+        this.color = null;
     }
 
     public String[] getMatching(SqlVariables column) {
@@ -54,7 +64,7 @@ public class SqlQuery {
         // returns null if no fields are filled
         String query = "SELECT * FROM " + SqlActions.tableName + " WHERE ";
         if (english != null && !english.isEmpty()){
-            query += SqlVariables.columnEnglish.getColumnName() + " = '" + english + "' AND ";
+            query += SqlVariables.columnEnglish.getColumnName() + " = '" + english.replace("'","''") + "' AND ";
         }
         if (category != null && !category.isEmpty()){
             query += SqlVariables.columnCategory.getColumnName() + " = '" + category + "' AND ";
@@ -67,8 +77,8 @@ public class SqlQuery {
         }
 
         if (translation != null && !translation.isEmpty()){
-            query += SqlVariables.columnTranslation.getColumnName() + " = '" + translation + "' AND ";
-        }
+            query += SqlVariables.columnTranslation.getColumnName() + " = '" + translation.replace("'","''") + "' AND ";
+        } //todo: add more here if columns to be filtered are added
 
         if (query.endsWith("AND ")){
             query = query.substring(0, query.length() - 5);
@@ -77,66 +87,93 @@ public class SqlQuery {
         return null;
     }
 
-    public void setEnCatSubcat(String english, String category, String subCategory){
+    public void setEnCatSubcat(String english, String category, String subCategory, Colors defaultColor){
         this.english = english;
         this.category = category;
         this.subCategory = subCategory;
+        this.color = defaultColor;
     }
 
-    public void setItemName(String en){
+    public void setItemName(String en, Colors defaultColor){
         this.english = en;
         this.category = SqlVariables.nameInCategory.getValue();
         this.subCategory = SqlVariables.itemInSubCategory.getValue();
+        this.color = defaultColor;
         this.source = null;
         this.translation = null;
     }
 
-    public void setNpcName(String en){
+    public void setNpcName(String en, Colors defaultColor){
         this.english = en;
         this.category = SqlVariables.nameInCategory.getValue();
         this.subCategory = SqlVariables.npcInSubCategory.getValue();
+        this.color = defaultColor;
         this.source = null;
         this.translation = null;
     }
 
-    public void setObjectName(String en){
+    public void setObjectName(String en, Colors defaultColor){
         this.english = en;
         this.category = SqlVariables.nameInCategory.getValue();
         this.subCategory = SqlVariables.objInSubCategory.getValue();
+        this.color = defaultColor;
+        this.source = null;
+        this.translation = null;
+    }
+
+    public void setMenuName(String en, Colors defaultColor){
+        this.english = en;
+        this.category = SqlVariables.nameInCategory.getValue();
+        this.subCategory = SqlVariables.menuInSubCategory.getValue();
+        this.color = defaultColor;
         this.source = null;
         this.translation = null;
     }
 
 
 
-    public void setInventoryItemActions(String en){
+
+    public void setInventoryItemActions(String en, Colors defaultColor){
         this.english = en;
         this.category = SqlVariables.inventActionsInCategory.getValue();
         this.subCategory = SqlVariables.itemInSubCategory.getValue();
+        this.color = defaultColor;
         this.source = null;
         this.translation = null;
     }
 
-    public void setGroundItemActions(String en){
+    public void setGroundItemActions(String en, Colors defaultColor){
         this.english = en;
         this.category = SqlVariables.actionsInCategory.getValue();
         this.subCategory = SqlVariables.itemInSubCategory.getValue();
+        this.color = defaultColor;
         this.source = null;
         this.translation = null;
     }
 
-    public void setNpcActions(String en){
+    public void setNpcActions(String en, Colors defaultColor){
         this.english = en;
         this.category = SqlVariables.actionsInCategory.getValue();
         this.subCategory = SqlVariables.npcInSubCategory.getValue();
+        this.color = defaultColor;
         this.source = null;
         this.translation = null;
     }
 
-    public void setObjectActions(String en){
+    public void setObjectActions(String en, Colors defaultColor){
         this.english = en;
         this.category = SqlVariables.actionsInCategory.getValue();
         this.subCategory = SqlVariables.objInSubCategory.getValue();
+        this.color = defaultColor;
+        this.source = null;
+        this.translation = null;
+    }
+
+    public void setMenuAcitons(String en, Colors defaultColor){
+        this.english = en;
+        this.category = SqlVariables.actionsInCategory.getValue();
+        this.subCategory = SqlVariables.menuInSubCategory.getValue();
+        this.color = defaultColor;
         this.source = null;
         this.translation = null;
     }

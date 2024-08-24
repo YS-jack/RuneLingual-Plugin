@@ -105,7 +105,8 @@ public class Downloader {//downloads translations and japanese char images to ex
                 if (transcriptChanged) {
                     dataFormater.updateSqlFromTsv(localLangFolder.getPath(), tsvFileNames);
                 }
-            }
+            } else {
+                log.info("All files are up to date.");            }
 //            //create webhook dir if none
 //            createDir(localBaseFolder.getPath() + "/webhookSent");
 //            String[] webhookType = {"sentAPITranslationMsg.txt","sentGameMsgAndDialog.txt",

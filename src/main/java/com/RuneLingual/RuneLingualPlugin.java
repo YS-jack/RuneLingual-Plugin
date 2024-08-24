@@ -215,6 +215,12 @@ public class RuneLingualPlugin extends Plugin
 		}
 		groundItemsTranslator.handleGroundItems();
 	}
+
+	@Subscribe
+	public void onMenuOpened(MenuOpened event)
+	{
+		menuTranslator.handleOpenedMenu(event);
+	}
 	
 	@Subscribe
 	public void onMenuEntryAdded(MenuEntryAdded event)
@@ -227,7 +233,7 @@ public class RuneLingualPlugin extends Plugin
 //		for (MenuEntry e: ev ){
 //			e.setOption(generalFunctions.StringToTags("テスト", Colors.fromName("black")));
 //		}
-		menuTranslator.handleMenuEvent(event);
+//		menuTranslator.handleMenuEvent(event);
 	}
 	
 	@Subscribe

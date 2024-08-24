@@ -15,11 +15,13 @@ import net.runelite.api.MenuEntry;
 import javax.inject.Inject;
 
 import lombok.Setter;
+import net.runelite.api.events.MenuOpened;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.regex.Pattern;
+import com.RuneLingual.debug.OutputToFile;
 
 @Slf4j
 public class MenuCapture
@@ -44,6 +46,8 @@ public class MenuCapture
 	private final Colors colorObj = Colors.black;
     @Inject
 	private Transformer transformer;
+	@Inject
+	private OutputToFile outputToFile;
 	//private SqlVariables sqlVariables;
 
 	@Inject
@@ -53,109 +57,20 @@ public class MenuCapture
 	
 	// TODO: right click menu title 'Chose Options' - seems to not be directly editable
 
+	public void handleOpenedMenu(MenuOpened event){
+		MenuEntry[] menus = event.getMenuEntries();
+		for(MenuEntry menu : menus){
+			handleMenuEvent(new MenuEntryAdded(menu));
+		}
+	}
 	
 	public void handleMenuEvent(MenuEntryAdded event) {
-        //GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
-		Colors defaultColor = Colors.white;
-		boolean needCharImage = plugin.getConfig().getSelectedLanguage().needCharImages();
-
 		// called whenever a right click menu is opened
 		MenuEntry currentMenu = event.getMenuEntry();
-		MenuAction menuType = currentMenu.getType();
-		 											// eg. <col=ffff00>Sand Crab<col=ff00>  (level-15)
-		String menuTarget = currentMenu.getTarget();  //eg2. <col=ff9040>Dramen staff</col>
-		String[] targetWordArray = colorObj.getWordArray(menuTarget); // eg. ["Sand Crab", " (level-15)"]
-		Colors[] targetColorArray = colorObj.getColorArray(menuTarget, defaultColor); // eg. [Colors.yellow, Colors.green]
+		String[] newMenus = translateMenuAction(currentMenu);
+		String newTarget = newMenus[0];
+		String newOption = newMenus[1];
 
-		String menuOption = currentMenu.getOption(); // doesnt seem to have color tags, always white? eg. Attack
-		if(!isWalkOrCancel(menuType)){
-			printMenuEntry(event);
-		}
-		String[] actionWordArray = colorObj.getWordArray(menuOption); // eg. ["Attack"]
-		Colors[] actionColorArray = colorObj.getColorArray(menuOption, defaultColor);
-
-
-		SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
-		SqlQuery actionSqlQuery = new SqlQuery(this.plugin);
-
-
-		String newTarget = "";
-		String newOption = "";
-
-		// translate the target
-		if(!isWalkOrCancel(menuType)){
-			// do nothing
-			//printMenuEntry(event);
-		}
-		if (isPlayerMenu(menuType)){
-			//leave name as is (but replace to char image if needed), translate the level part
-			// targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.manualInCategory); // manualInCategory = the level part should be added manually
-			targetSqlQuery.setCategory(SqlVariables.manualInCategory.getValue()); // todo: target part(the level part) should be added to the data
-			actionSqlQuery.setCategory(SqlVariables.manualInCategory.getValue()); // todo: options for players must be added to sql
-
-			newTarget = transformer.transform(targetWordArray, targetColorArray,
-					new TransformOption[] {TransformOption.AS_IS, TransformOption.AS_IS}, targetSqlQuery); // todo: after the above todo, change the second option to TranslateLocal
-			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, actionSqlQuery);
-		} else if(isNpcMenu(menuType)) { // need to split into npcs with and without level
-			// todo: get translation option from settings
-			targetSqlQuery.setNpcName(targetWordArray[0]);
-			actionSqlQuery.setNpcActions(actionWordArray[0]);
-
-			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
-			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, actionSqlQuery);
-		} else if(isObjectMenu(menuType)){
-			targetSqlQuery.setObjectName(targetWordArray[0]);
-			actionSqlQuery.setObjectActions(actionWordArray[0]);
-
-			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
-			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, actionSqlQuery);
-		} else if(isItemOnGround(menuType)){ // needs checking
-			//printMenuEntry(event);
-			targetSqlQuery.setItemName(targetWordArray[0]);
-			actionSqlQuery.setGroundItemActions(actionWordArray[0]);
-
-			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
-			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, actionSqlQuery);
-		} else if(isItemInWidget(currentMenu)){ // either in inventory or in equipment
-			printMenuEntry(event);
-			targetSqlQuery.setItemName(targetWordArray[0]);
-			actionSqlQuery.setInventoryItemActions(actionWordArray[0]);
-
-			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
-			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, actionSqlQuery);
-		} else if(isGeneralMenu(currentMenu)){ // needs checking
-//			if(!isWalkOrCancel(menuType)) {
-//				printMenuEntry(event);
-//			}
-			actionSqlQuery = new SqlQuery(this.plugin);
-			actionSqlQuery.setEnglish(menuOption);
-			actionSqlQuery.setCategory(SqlVariables.actionsInCategory.getValue());
-			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, actionSqlQuery);
-			newTarget = "";
-		} else if(isWidgetOnSomething(menuType)){ // needs checking
-//			// eg. "Use" -> "Brug"
-//			optionSqlQuery = new SqlQuery();
-//			optionSqlQuery.setEnglish(menuOption);
-//			optionSqlQuery.setCategory(SqlVariables.actionsInCategory.getValue());
-//
-//			// eg. "Dramen staff -> Sand Crab"
-//			Pair<String, String> result = convertWidgetOnSomething(currentMenu);
-//			String itemName = result.getLeft();
-//			String useOnX = result.getRight();
-//			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.itemInSubCategory);
-//			newTarget = transformer.transform(new String[]{itemName, useOnX}, new Colors[]{Colors.white, Colors.white}, TransformOption.AS_IS, targetSqlVar);
-
-		} else {
-			// report to discord via webhook?
-		}
-
-		// swap out the translated menu action and target.
-		// reorder them if it is grammatically correct to do so in that language
-		if(this.plugin.getTargetLanguage().swapMenuOptionAndTarget()) {
-			String temp = newOption;
-			newOption = newTarget;
-			newTarget = temp;
-		}
 		if(newOption != null) {
 			if (newTarget != null && !newTarget.isEmpty()) {
 				currentMenu.setTarget(newTarget);
@@ -165,7 +80,6 @@ public class MenuCapture
 			}
 			currentMenu.setOption(newOption);
 		}
-
 		//old codes
 		/*
 		try
@@ -356,9 +270,162 @@ public class MenuCapture
 		*/
 	}
 
-	private void printMenuEntry(MenuEntryAdded event)
+	private String[] translateMenuAction(MenuEntry currentMenu) {
+		/*
+		returns: String[] {newTarget, newOption}
+		 */
+
+		/*
+		target and option examples
+		option: Enable prayer reordering	target: <col=ff9040></col>
+		option: Add-10<col=ff9040>		target: <col=ff9040>Pollnivneach teleport</col>
+		 */
+		MenuAction menuType = currentMenu.getType();
+		Colors optionColor = Colors.white;
+		// eg. <col=ffff00>Sand Crab<col=ff00>  (level-15)
+		String menuTarget = currentMenu.getTarget();  //eg2. <col=ff9040>Dramen staff</col>
+		String[] targetWordArray = colorObj.getWordArray(menuTarget); // eg. ["Sand Crab", " (level-15)"]
+
+
+		String menuOption = currentMenu.getOption(); // doesnt seem to have color tags, always white? eg. Attack
+		if(!isWalkOrCancel(menuType)){
+			//printMenuEntry(currentMenu);
+		}
+		String[] actionWordArray = colorObj.getWordArray(menuOption); // eg. ["Attack"]
+		Colors[] actionColorArray = colorObj.getColorArray(menuOption, optionColor);
+
+
+		SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
+		SqlQuery actionSqlQuery = new SqlQuery(this.plugin);
+
+
+		String newTarget = "";
+		String newOption = "";
+
+		// translate the target
+		if(!isWalkOrCancel(menuType)){
+			// do nothing
+			printMenuEntry(currentMenu);
+			if(!isNpcMenu(menuType) && !isObjectMenu(menuType)
+					&& !isItemOnGround(menuType) && !isItemInWidget(currentMenu) && !isPlayerMenu(menuType)){
+				//outputToFile.menuTarget(menuTarget,SqlVariables.menuInSubCategory.getValue(), "");
+				//outputToFile.menuOption(menuOption,SqlVariables.menuInSubCategory.getValue(), "");
+			}
+		}
+		if(isWalkOrCancel(menuType)) {// needs to be checked
+			actionSqlQuery.setEnglish(menuOption);
+			actionSqlQuery.setCategory(SqlVariables.actionsInCategory.getValue());
+
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, actionSqlQuery);
+
+			if(Colors.removeColorTag(menuTarget).isEmpty()) {
+				newTarget = "";
+			} else {
+				targetSqlQuery.setEnglish(targetWordArray[0]);
+				targetSqlQuery.setCategory(SqlVariables.nameInCategory.getValue());
+				targetSqlQuery.setSubCategory(SqlVariables.menuInSubCategory.getValue());
+
+				Colors[] targetColorArray = colorObj.getColorArray(menuTarget, Colors.white); // eg. [Colors.yellow, Colors.green]
+				newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
+			}
+		}else if (isPlayerMenu(menuType)){
+			//leave name as is (but replace to char image if needed), translate the level part
+			// targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.manualInCategory); // manualInCategory = the level part should be added manually
+			SqlQuery targetQueryPlayer = new SqlQuery(this.plugin);
+			targetQueryPlayer.setSource(SqlVariables.playerInSource.getValue());
+			SqlQuery targetQueryLevel = new SqlQuery(this.plugin);
+			targetQueryLevel.setSource(SqlVariables.playerInSource.getValue());
+			// todo: target part(the level part) should be added to the data
+			actionSqlQuery.setSource(SqlVariables.playerInSource.getValue()); // todo: options for players must be added to sql
+
+			Colors[] targetColorArray = colorObj.getColorArray(menuTarget, Colors.white); // eg. [Colors.yellow, Colors.green]
+
+			newTarget = transformer.transform(targetWordArray, targetColorArray,
+					new TransformOption[] {TransformOption.AS_IS, TransformOption.AS_IS},// todo: after the above todo, change the second option to TranslateLocal
+					new SqlQuery[] {targetQueryPlayer,targetQueryLevel});
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, actionSqlQuery);
+		} else if(isNpcMenu(menuType)) { // need to split into npcs with and without level
+			// todo: get translation option from settings
+			targetSqlQuery.setNpcName(menuTarget, Colors.yellow);
+			actionSqlQuery.setNpcActions(menuOption, optionColor);
+
+			Colors[] targetColorArray = colorObj.getColorArray(menuTarget, Colors.yellow); // eg. [Colors.yellow, Colors.green]
+
+			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, actionSqlQuery);
+		} else if(isObjectMenu(menuType)){
+			targetSqlQuery.setObjectName(menuTarget, Colors.lightblue);
+			actionSqlQuery.setObjectActions(menuOption, optionColor);
+
+			Colors[] targetColorArray = colorObj.getColorArray(menuTarget, Colors.lightblue); // eg. [Colors.yellow, Colors.green]
+
+			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, actionSqlQuery);
+		} else if(isItemOnGround(menuType)){ // needs checking
+			//printMenuEntry(event);
+			targetSqlQuery.setItemName(menuTarget, Colors.orange);
+			actionSqlQuery.setGroundItemActions(menuOption, optionColor);
+
+			Colors[] targetColorArray = colorObj.getColorArray(menuTarget, Colors.orange); // eg. [Colors.yellow, Colors.green]
+
+			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, actionSqlQuery);
+		} else if(isItemInWidget(currentMenu)){ // either in inventory or in equipment
+			//printMenuEntry(currentMenu);
+			targetSqlQuery.setItemName(menuTarget, Colors.orange);
+			actionSqlQuery.setInventoryItemActions(menuOption, optionColor);
+
+			Colors[] targetColorArray = colorObj.getColorArray(menuTarget, Colors.orange); // eg. [Colors.yellow, Colors.green]
+
+			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, actionSqlQuery);
+		} else if(isWidgetOnSomething(menuType)){ // needs checking
+//			// eg. "Use" -> "Brug"
+//			optionSqlQuery = new SqlQuery();
+//			optionSqlQuery.setEnglish(menuOption);
+//			optionSqlQuery.setCategory(SqlVariables.actionsInCategory.getValue());
+//
+//			// eg. "Dramen staff -> Sand Crab"
+//			Pair<String, String> result = convertWidgetOnSomething(currentMenu);
+//			String itemName = result.getLeft();
+//			String useOnX = result.getRight();
+//			targetSqlVar = List.of(SqlVariables.nameInCategory, SqlVariables.itemInSubCategory);
+//			newTarget = transformer.transform(new String[]{itemName, useOnX}, new Colors[]{Colors.white, Colors.white}, TransformOption.AS_IS, targetSqlVar);
+
+		} else { // is a general menu
+//			if(!isWalkOrCancel(menuType)) {
+//				printMenuEntry(event);
+//			}
+			targetSqlQuery.setMenuName(menuTarget, Colors.orange);
+			actionSqlQuery.setMenuAcitons(menuOption, optionColor);
+
+			newOption = transformer.transform(actionWordArray, actionColorArray, TransformOption.TRANSLATE_LOCAL, actionSqlQuery);
+
+			if(Colors.removeColorTag(menuTarget).isEmpty()) {
+				newTarget = "";
+			} else {
+				targetSqlQuery.setEnglish(targetWordArray[0]);
+				targetSqlQuery.setCategory(SqlVariables.nameInCategory.getValue());
+				targetSqlQuery.setSubCategory(SqlVariables.menuInSubCategory.getValue());
+
+				Colors[] targetColorArray = colorObj.getColorArray(menuTarget, Colors.orange); // eg. [Colors.yellow, Colors.green]
+				newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery);
+			}
+
+		}
+
+		// swap out the translated menu action and target.
+		// reorder them if it is grammatically correct to do so in that language
+		if(this.plugin.getTargetLanguage().swapMenuOptionAndTarget()) {
+			String temp = newOption;
+			newOption = newTarget;
+			newTarget = temp;
+		}
+		return new String[]{newTarget, newOption};
+	}
+
+	private void printMenuEntry(MenuEntry menuEntry)
 	{
-		MenuEntry menuEntry = event.getMenuEntry();
 		String target = menuEntry.getTarget();
 		String option = menuEntry.getOption();
 		MenuAction type = menuEntry.getType();
@@ -513,7 +580,9 @@ public class MenuCapture
 		return  (!isItemInWidget(menuEntry) &&
 				(action.equals(MenuAction.CC_OP)
 				|| action.equals(MenuAction.CC_OP_LOW_PRIORITY)))
-				|| isWalkOrCancel(action);
+				|| isWalkOrCancel(action)
+				|| action.equals(MenuAction.RUNELITE_OVERLAY)
+				|| action.equals(MenuAction.RUNELITE);
 	}
 	private boolean isObjectMenu(MenuAction action)
 	{
@@ -563,16 +632,25 @@ public class MenuCapture
 				|| (action.equals(MenuAction.WIDGET_TARGET_ON_PLAYER)));
 	}
 
-	private boolean isItemInWidget(MenuEntry menuEntry) // needs checking
-	{
+	private boolean isItemInWidget(MenuEntry menuEntry){ // todo: needs checking
 		MenuAction action = menuEntry.getType();
 		String target = menuEntry.getTarget();
+		target = Colors.removeColorTag(target);
+		if(target.isEmpty()){
+			return false;
+		}
 
-		return !target.isEmpty() &&
+		SqlQuery sqlQuery = new SqlQuery(this.plugin);
+		sqlQuery.setItemName(target, Colors.orange);
+
+
+		return sqlQuery.getMatching(SqlVariables.columnEnglish).length > 0 &&
 				(action.equals(MenuAction.CC_OP)
 				|| action.equals(MenuAction.CC_OP_LOW_PRIORITY)
 				|| action.equals(MenuAction.WIDGET_TARGET)
 				);
 
 	}
+
+
 }

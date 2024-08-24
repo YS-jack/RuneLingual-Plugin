@@ -3,6 +3,9 @@ package com.RuneLingual.commonFunctions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -138,20 +141,27 @@ public enum Colors {
 
 
 
-    public int countColorTags(String wordAndColor) {//count number of color tags in a string
-        wordAndColor = wordAndColor.replace("</col>","<col=0>");
+    public static int countColorTagsAfterReformat(String wordAndColor) {//count number of color tags in a string
+        wordAndColor = reformatColorWord(wordAndColor, Colors.white);
         Pattern re = Pattern.compile("(?<=\\d)>|(?<=\\p{IsAlphabetic})>");
+        String[] splitResult = re.split(wordAndColor);
+        if (splitResult.length == 0) {
+            return 0;
+        }
+        if (splitResult.length == 1 && splitResult[0].isEmpty()) {
+            return 0;
+        }
         return re.split(wordAndColor).length - 1;
     }
 
-    public Colors[] getColorArray(String strWithColor, Colors defaultColor) {
+    public static Colors[] getColorArray(String strWithColor, Colors defaultColor) {
         /*
         This function takes a string with color tags and returns a list of color names
         eg: <col=ff0000>Nex<col=ffffff> (level-1) -> ["red", "white"]
          */
 
         // if there are no color tags, return white
-        if(countColorTags(strWithColor) == 0){
+        if(countColorTagsAfterReformat(strWithColor) == 0){
             return new Colors[]{defaultColor};
         }
 
@@ -171,41 +181,75 @@ public enum Colors {
         return colorArray;
     }
 
-    public String[] getWordArray(String strWithColor) {
+    public static String[] getWordArray(String strWithColor) {
         /*
         This function takes a string with color tags and returns a list of words
-        eg: <col=ff0000>Nex<col=ffffff> (level-1) -> ["Nex", " (level-1)"]
+        eg: <img=3><colHIGHLIGHT>Nex<col=ffffff> (level-1) -> ["<img=3>", "Nex", " (level-1)"]
          */
         strWithColor = reformatColorWord(strWithColor, Colors.white);
-
-        Pattern re = Pattern.compile("(?<=\\d)>|(?<=\\p{IsAlphabetic})>");
-        String[] parts = re.split(strWithColor);
-        String[] wordArray = new String[parts.length - 1];
-
-        for (int i = 0; i < parts.length - 1; i++) {
-            wordArray[i] = parts[i+1].split("<")[0];
-            if (wordArray[i] == null || Objects.equals(wordArray[i], "")) {
-                wordArray[i] = "?";
+        Pattern re = Pattern.compile("<col=[a-zA-Z0-9]*?>");
+        String[] strArray = re.split(strWithColor);
+        if (strArray.length == 0) {
+            return new String[0];
+        }
+        if (strArray[0].equals("")) {
+            if (strArray.length == 1) {
+                return new String[0];
+            } else {
+                return Arrays.copyOfRange(strArray, 1, strArray.length);
             }
         }
-        return  wordArray;
+        return re.split(strWithColor);
     }
 
-    private String reformatColorWord(String colWord, Colors defaultColor) {
+    private static String reformatColorWord(String colWord, Colors defaultColor) {
+        // replace <colNORMAL> with <col=0>, <colHIGHLIGHT> with <col=ff0000>, etc.
+        colWord = colWord.replace("<colNORMAL>", "<col=0>");
+        colWord = colWord.replace("<colHIGHLIGHT>", "<col=ff0000>");
+        //todo: if there are any color tags that are not in the enum, add and replace them with <col=??> here like above
+
         // give words after </col> the default color
         // <col=ff0000>Nex</col> (level-1) -> <col=ff0000>Nex<col=ffffff> (level-1)
         colWord = colWord.replace("</col>",defaultColor.colorsToColorTag());
 
         // give the beginning words without a color tag the default color
         // Nex <col=ffffff> (level-1) -> <col=ff0000>Nex <col=ffffff>(level-1)
-        if (!colWord.startsWith("<col=")) {
+        if (!colWord.startsWith("<col")) {
             colWord = defaultColor.colorsToColorTag() + colWord;
         }
 
         // remove the color tag at the end of the word
         // <col=ff0000>Nex<col=ffffff> (level-1) <col=f0f0f0> -> <col=ff0000>Nex<col=ffffff> (level-1)
-       colWord = colWord.replaceAll("<col=[a-zA-Z0-9]*>$","");
+        colWord = colWord.replaceAll("<col=[a-zA-Z0-9]*?>$","");
 
         return colWord;
+    }
+
+    public static String removeColorTag(String str) {
+        return str.replaceAll("<(?!img|>).*?>", "");
+    }
+
+    public static String enumerateColorsInColWord(String colWord) {
+        Pattern re = Pattern.compile("<col[=a-zA-Z0-9]*?>");
+        String[] parts = re.split(colWord);
+        StringBuilder colorString = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            colorString.append(parts[i]);
+            if (i < parts.length - 1) {
+                colorString.append("<colNum").append(i).append(">");
+            }
+        }
+        return colorString.toString();
+    }
+
+    public static List<String> getColorTagsAsIs(String strWithColor) {
+        List<String> matches = new ArrayList<>();
+        Pattern pattern = Pattern.compile("<col[=a-zA-Z0-9]*?>");
+        Matcher matcher = pattern.matcher(strWithColor);
+
+        while (matcher.find()) {
+            matches.add(matcher.group());
+        }
+        return matches;
     }
 }

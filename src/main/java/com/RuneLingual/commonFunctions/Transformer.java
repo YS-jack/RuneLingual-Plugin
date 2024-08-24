@@ -28,14 +28,76 @@ public class Transformer {
         this.plugin = plugin;
     }
 
-    /*
-     * general idea:
-     * 1. split into string array [name, level] and color array [color of name, color of level]
-     * 2. translate name and level
-     *    - if target language needs char image, after translating the string, use color and string to get char image
-     *    - else translate the string, then combine each string with its color
-     * 3. recombine into string
-     */
+
+    public String transformEngWithColor(TransformOption option, SqlQuery sqlQuery){
+        boolean needCharImage = plugin.getConfig().getSelectedLanguage().needCharImages();
+        GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
+        String text = sqlQuery.getEnglish();
+        if(text == null || text.isEmpty()){
+            return text;
+        }
+
+        String translatedText = "";
+
+        if(option == TransformOption.AS_IS){
+            translatedText = text;
+        } else if(option == TransformOption.TRANSLATE_LOCAL){
+        /*
+        if there are 2 or more color tags in the sqlQuery.english, english and translation in the database will have color tag placeholders.
+        must replace the color tags in sqlQuery.english with the color tag placeholders,
+        and do the reverse for the obtained translation
+
+        e.g.
+        sqlQuery.english: <col=ff>text1<col=0>text2
+        english in database: <colNum1>text1<colNum2>text2
+        translation in database: <colNum2>translatedText2<colNum1>translatedText1
+        final translation: <col=0>translatedText2<col=ff>translatedText1
+         */
+            List<String> colorTagsAsIs = Colors.getColorTagsAsIs(sqlQuery.getEnglish());
+            int trueColorTagCount = Colors.countColorTagsAfterReformat(sqlQuery.getEnglish());
+            for(int i = 0; i < colorTagsAsIs.size(); i++){
+                sqlQuery.setEnglish(sqlQuery.getEnglish().replace(colorTagsAsIs.get(i), "<colNum" + i + ">")); // replace color tags with placeholders
+            }
+
+            String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation);
+            if(result.length == 0){
+                log.info("No translation found for " + text);
+                log.info("query = " + sqlQuery.getSearchQuery());
+                translatedText = text;
+            } else {
+                if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
+                    translatedText = text;
+                    log.info("{} has not been translated yet", text);
+                } else { // text has been translated
+                    translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
+                    for(int i = 0; i < colorTagsAsIs.size(); i++){
+                        translatedText = translatedText.replace("<colNum" + i + ">", colorTagsAsIs.get(i)); // replace placeholders with original color tags
+                    }
+                }
+            }
+            //translatedText = this.plugin.getTranscriptActions().getTranslation(text);
+        } else if(option == TransformOption.TRANSLATE_API){
+            //return
+        } else if(option == TransformOption.TRANSLITERATE){
+            //return
+        }
+
+        int colorTagCount = Colors.countColorTagsAfterReformat(translatedText);
+        if(needCharImage) {
+            // needs char image and has multiple colors
+            String[] words = Colors.getWordArray(translatedText);
+            Colors[] colorsArray = Colors.getColorArray(translatedText, sqlQuery.getColor());
+            StringBuilder charImage = new StringBuilder();
+            //log.info("words length = " + words.length + ", colorsArray length =" + colorsArray.length);
+            for(int i = 0; i < words.length; i++){
+                //log.info("words[" + i + "] = " + words[i] + ", colorsArray[" + i + "] = " + colorsArray[i]);
+                charImage.append(generalFunctions.StringToTags(words[i], colorsArray[i]));
+            }
+            return charImage.toString();
+        } else {// doesnt need char image and already has color tags
+            return translatedText;
+        }
+    }
 
     public String transform(String text, Colors colors, TransformOption option, SqlQuery sqlQuery){
         boolean needCharImage = plugin.getConfig().getSelectedLanguage().needCharImages();
@@ -50,18 +112,21 @@ public class Transformer {
         if(option == TransformOption.AS_IS){
             translatedText = text;
         } else if(option == TransformOption.TRANSLATE_LOCAL){
+            List<String> colorTagsAsIs = Colors.getColorTagsAsIs(sqlQuery.getEnglish());
+            int trueColorTagCount = Colors.countColorTagsAfterReformat(sqlQuery.getEnglish());
             sqlQuery.setEnglish(text);
+
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation);
             if(result.length == 0){
-//                log.info("No translation found for " + text);
-//                log.info("query = " + sqlQuery.getSearchQuery());
+                log.info("No translation found for " + text);
+                log.info("query = " + sqlQuery.getSearchQuery());
                 translatedText = text;
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     translatedText = text;
-                    //log.info("{} has not been translated yet", text);
-                } else {
-                    translatedText = convertFullWidthToHalfWidth(result[0]);
+                    log.info("{} has not been translated yet", text);
+                } else { // text has been translated
+                    translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
                 }
             }
             //translatedText = this.plugin.getTranscriptActions().getTranslation(text);
@@ -71,14 +136,26 @@ public class Transformer {
             //return
         }
 
-        if(needCharImage) {
-            return generalFunctions.StringToTags(translatedText, colors);
-        } else {
+        int colorTagCount = Colors.countColorTagsAfterReformat(translatedText);
+        if(needCharImage) {// needs char image but just 1 color
+            return generalFunctions.StringToTags(Colors.removeColorTag(translatedText), colors);
+        } else { // doesnt need char image and just 1 color
             return "<col=" + colors.getHex() + ">" + translatedText + "</col>";
         }
     }
 
+    /*
+     * general idea:
+     * 1. split into string array [name, level] and color array [color of name, color of level]
+     * 2. translate name and level
+     *    - if target language needs char image, after translating the string, use color and string to get char image
+     *    - else translate the string, then combine each string with its color
+     * 3. recombine into string
+     */
     public String transform(String[] texts, Colors[] colors, TransformOption option, SqlQuery sqlQuery){
+        if(Colors.countColorTagsAfterReformat(sqlQuery.getEnglish()) > 1){
+            return transformEngWithColor(option, sqlQuery);
+        }
         StringBuilder transformedTexts = new StringBuilder();
         for(int i = 0; i < texts.length; i++){
             transformedTexts.append(transform(texts[i], colors[i], option, sqlQuery));
@@ -89,37 +166,48 @@ public class Transformer {
     public String transform(String[] texts, Colors[] colors, TransformOption option, SqlQuery[] sqlQueries){
         StringBuilder transformedTexts = new StringBuilder();
         for(int i = 0; i < texts.length; i++){
-            transformedTexts.append(transform(texts[i], colors[i], option, sqlQueries[i]));
+            if(Colors.countColorTagsAfterReformat(sqlQueries[i].getEnglish()) > 1){
+                transformedTexts.append(transformEngWithColor(option, sqlQueries[i]));
+            } else {
+                transformedTexts.append(transform(texts[i], colors[i], option, sqlQueries[i]));
+            }
         }
         return transformedTexts.toString();
     }
 
-    public String transform(String[] texts, Colors[] colors, TransformOption[] options, SqlQuery sqlQuery){
-        StringBuilder transformedTexts = new StringBuilder();
-        for(int i = 0; i < texts.length; i++){
-            transformedTexts.append(transform(texts[i], colors[i], options[i], sqlQuery));
-        }
-        return transformedTexts.toString();
-    }
+//    public String transform(String[] texts, Colors[] colors, TransformOption[] options, SqlQuery sqlQuery){
+//        if(Colors.countColorTagsAfterReformat(sqlQuery.getEnglish()) > 1){
+//            log.info("may not work as expected");
+//        }
+//        StringBuilder transformedTexts = new StringBuilder();
+//        for(int i = 0; i < texts.length; i++){
+//            transformedTexts.append(transform(texts[i], colors[i], options[i], sqlQuery));
+//        }
+//        return transformedTexts.toString();
+//    }
 
     public String transform(String[] texts, Colors[] colors, TransformOption[] options, SqlQuery[] sqlQueries){
         StringBuilder transformedTexts = new StringBuilder();
         for(int i = 0; i < texts.length; i++){
-            transformedTexts.append(transform(texts[i], colors[i], options[i], sqlQueries[i]));
+            if(Colors.countColorTagsAfterReformat(sqlQueries[i].getEnglish()) > 1){
+                transformedTexts.append(transformEngWithColor(options[i], sqlQueries[i]));
+            } else {
+                transformedTexts.append(transform(texts[i], colors[i], options[i], sqlQueries[i]));
+            }
         }
         return transformedTexts.toString();
     }
 
     public String transform(String stringWithColors, TransformOption option, SqlQuery sqlQuery, Colors defaultColor){
-        String[] targetWordArray = colorObj.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
-        Colors[] targetColorArray = colorObj.getColorArray(stringWithColors, defaultColor); // eg. [Colors.white, Colors.red]
+        String[] targetWordArray = Colors.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
+        Colors[] targetColorArray = Colors.getColorArray(stringWithColors, defaultColor); // eg. [Colors.white, Colors.red]
 
         return transform(targetWordArray, targetColorArray, option, sqlQuery);
     }
 
     public String transform(String stringWithColors, TransformOption option, SqlQuery[] sqlQueries, Colors defaultColor){
-        String[] targetWordArray = colorObj.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
-        Colors[] targetColorArray = colorObj.getColorArray(stringWithColors, defaultColor); // eg. [Colors.white, Colors.red]
+        String[] targetWordArray = Colors.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
+        Colors[] targetColorArray = Colors.getColorArray(stringWithColors, defaultColor); // eg. [Colors.white, Colors.red]
 
         return transform(targetWordArray, targetColorArray, option, sqlQueries);
     }

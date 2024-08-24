@@ -75,17 +75,6 @@ public class SqlActions {
     public void tsvToSqlDatabase(String[] tsvFiles, String tsvFolderPath){
         // note: table must exist before calling this function
 
-//        File folder = new File(tsvFolderPath);
-//        File[] listOfFiles = folder.listFiles();
-//
-//        if (listOfFiles != null) {
-//            for (File file : listOfFiles) {
-//                if (file.isFile() && file.getName().endsWith(".tsv")) {
-//                    processTsvFile(databaseUrl, file.getPath());
-//                    //tsvToSqlQuery(databaseUrl, file.getPath());
-//                }
-//            }
-//        }
         for (String tsvFile : tsvFiles) {
             processTsvFile(tsvFolderPath + File.separator + tsvFile);
         }
