@@ -9,6 +9,10 @@ import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlVariables;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Getter @Setter
 public class SqlQuery {
@@ -40,6 +44,9 @@ public class SqlQuery {
         String query = getSearchQuery();
         query = query.replace("*", column.getColumnName());
         String[][] result = plugin.getSqlActions().executeSearchQuery(query);
+        if(result.length == 0){
+            return new String[]{getPlaceholderMatches()};
+        }
         String[] translations = new String[result.length];
         for (int i = 0; i < result.length; i++){
             translations[i] = result[i][0];
@@ -59,6 +66,78 @@ public class SqlQuery {
         return translations;
     }
 
+    private String getPlaceholderMatches(){
+        /*
+        returns translation which includes placeholders at first that matches the english text,
+        with the placeholders replaced with the corresponding english word/number.
+        placeholders =  %s0, %s1,... for strings atleast 1 alphabet and 0 or more numbers/spaces
+                        %d0, %d1,... for numbers (and only numbers)
+        1. gets all records that contains placeholder values in English, and matches the query except for english
+        if no matches with placeholders are found, returns the original english text
+        2. returns the translation of the first match
+        3. if no match is found, returns the original english text
+        not tested for %s, nor tested throughly for %d
+         */
+        String[] placeholders = {"%s", "%d"};
+        String query = getPlaceholderSearchQuery(placeholders);
+        String[][] result = plugin.getSqlActions().executeSearchQuery(query);
+        // returns a placeholder if no matches are found
+        if (result == null || result.length == 0){
+            return english;
+        }
+        for (String[] row : result){
+            String englishWithPlaceholders = row[0];
+            String translationWithPlaceholders = row[1];
+            String replacedMatch = englishWithPlaceholders;
+            // Replace placeholders
+            // Replace placeholders for strings
+            for (int i = 0; i < 100; i++) {
+                String beforeReplace = replacedMatch;
+                replacedMatch = replacedMatch.replace("%s" + i, "[ \\w]+");
+                if (beforeReplace.equals(replacedMatch)){
+                    break;
+                }
+            }
+
+            // Replace placeholders for numbers
+            for (int i = 0; i < 100; i++) {
+                String beforeReplace = replacedMatch;
+                replacedMatch = replacedMatch.replace("%d" + i, "\\d+");
+                if (beforeReplace.equals(replacedMatch)){
+                    break;
+                }
+            }
+
+            Pattern pattern = Pattern.compile(replacedMatch);
+            Matcher matcher = pattern.matcher(this.english);
+            if (!matcher.matches()){
+                continue;
+            }
+            List<String> matchedStrings = new ArrayList<>();
+            List<String> matchedNumbers = new ArrayList<>();
+            for (int i = 1; i <= matcher.groupCount(); i++) {
+                String group = matcher.group(i);
+                if (group.matches("\\d+")) {
+                    matchedStrings.add(group);
+                } else if (group.matches("[ \\w]+")) {
+                    matchedNumbers.add(group);
+                }
+            }
+
+            // Replace placeholders in the translated text
+            String translation = translationWithPlaceholders;
+            for (int i = 0; i < matchedStrings.size(); i++) {
+                translation = translation.replace("%s" + i, matchedStrings.get(i));
+            }
+            for (int i = 0; i < matchedNumbers.size(); i++) {
+                translation = translation.replace("%d" + i, matchedNumbers.get(i));
+            }
+            return translation;
+        }
+
+        return english;
+    }
+
     public String getSearchQuery() {
         // creates query that matches all non-empty fields
         // returns null if no fields are filled
@@ -75,7 +154,6 @@ public class SqlQuery {
         if (source != null && !source.isEmpty()){
             query += SqlVariables.columnSource.getColumnName() + " = '" + source + "' AND ";
         }
-
         if (translation != null && !translation.isEmpty()){
             query += SqlVariables.columnTranslation.getColumnName() + " = '" + translation.replace("'","''") + "' AND ";
         } //todo: add more here if columns to be filtered are added
@@ -85,6 +163,28 @@ public class SqlQuery {
             return query;
         }
         return null;
+    }
+
+    public String getPlaceholderSearchQuery(String[] placeholders) {
+        // creates query that matches all non-empty fields
+        // returns null if no fields are filled
+        // return only english
+        String query = "SELECT english, translation FROM " + SqlActions.tableName + " WHERE (english LIKE '%\\%s%' OR english LIKE '%\\%d%') AND ";
+        if (category != null && !category.isEmpty()){
+            query += SqlVariables.columnCategory.getColumnName() + " = '" + category + "' AND ";
+        }
+        if (subCategory != null && !subCategory.isEmpty()){
+            query += SqlVariables.columnSubCategory.getColumnName() + " = '" + subCategory + "' AND ";
+        }
+        if (source != null && !source.isEmpty()){
+            query += SqlVariables.columnSource.getColumnName() + " = '" + source + "' AND ";
+        }
+        if (query.endsWith("AND ")){
+            query = query.substring(0, query.length() - 5);
+            return query;
+        }
+        //todo: add more here if columns to be filtered are added
+        return query;
     }
 
     public void setEnCatSubcat(String english, String category, String subCategory, Colors defaultColor){
@@ -185,5 +285,13 @@ public class SqlQuery {
         this.color = defualtColor;
         this.source = null;
         this.translation = null;
+    }
+    public void setPlayerLevel(String en, Colors defualtColor){
+        this.english = en;
+        this.category = SqlVariables.nameInCategory.getValue();
+        this.subCategory = SqlVariables.levelInSubCategory.getValue();
+        this.source = null;
+        this.translation = null;
+        this.color = defualtColor;
     }
 }

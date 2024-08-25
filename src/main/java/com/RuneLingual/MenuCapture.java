@@ -328,8 +328,9 @@ public class MenuCapture
 			String playerName = targetWordArray[0];
 			String translatedName = transformer.transform(playerName, Colors.white, TransformOption.AS_IS, null);
 
-			// translate the level part. in database, "(level-%number%)" is stored as "(level-%number%)	name	player	" as tsv, in order of english, category, subcategory
+			// translate the level part. in database, "(level-%d%)" is stored as "(level-%d%)	name	level	" as tsv, in order of english, category, subcategory
 			SqlQuery targetQueryLevel = new SqlQuery(this.plugin);
+			targetQueryLevel.setPlayerLevel(targetWordArray[1], Colors.green);
 			String translatedLevel = transformer.transform(targetWordArray[1], targetColorArray[1],
 					TransformOption.AS_IS,// todo: after the above todo, change the second option to TranslateLocal
 					targetQueryLevel);
