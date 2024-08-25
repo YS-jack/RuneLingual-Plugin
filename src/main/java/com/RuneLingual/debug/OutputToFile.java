@@ -17,7 +17,7 @@ public class OutputToFile {
             target = Colors.removeColorTag(target);
         }
         target = Colors.enumerateColorsInColWord(target);
-        writeToFile(target + "\t" + SqlVariables.nameInCategory.getValue() + "\t" + subCategory + "\t" + source, "menuTarget.txt");
+        writeToFile(target + "\t" + SqlVariables.nameInCategory.getValue() + "\t" + subCategory + "\t" + source, "menuTarget_debug.txt");
     }
 
     public void menuOption(String option, String subCategory, String source){
@@ -25,14 +25,14 @@ public class OutputToFile {
             option = Colors.removeColorTag(option);
         }
         option = Colors.enumerateColorsInColWord(option);
-        writeToFile(option + "\t" + SqlVariables.actionsInCategory.getValue() + "\t" + subCategory + "\t" + source, "menuOption.txt");
+        writeToFile(option + "\t" + SqlVariables.actionsInCategory.getValue() + "\t" + subCategory + "\t" + source, "menuOption_debug.txt");
     }
 
     private void writeToFile(String str, String fileName){
         try {
             createDirectoryIfNotExists("output");
-            createFileIfNotExists(fileName);
             Path filePath = Paths.get("output" + File.separator + fileName);
+            createFileIfNotExists(filePath.toString());
             Files.write(filePath, (str + System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         } catch (IOException e) {
             e.printStackTrace();

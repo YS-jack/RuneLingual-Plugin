@@ -25,8 +25,28 @@ public enum SqlVariables {
     objInSubCategory("object","sub_category"),
     levelInSubCategory("level","sub_category"), // for "(level-%d)" of player or npcs with levels, category should be "name"
     menuInSubCategory("menu","sub_category"), // for widgets that are not buttons nor interface, such as one of the skills in skill list tab, name of tabs ("Combat Options", "Quest List")
+    playerInSubCategory("player","sub_category"), // for player options, such as report, trade, follow, etc.
 
     playerInSource("player","source"), // for player options, such as report, trade, follow, etc.
+    //for tabs
+    combatOptionsTabInSource("combatOptionsTab","source"), // for combat options, attack styles etc. query eg: Block	actions	menu	combatOption
+    skillsTabInSource("skillsTab","source"), // for skills tab
+    characterSummaryTabInSource("characterSummaryTab","source"), // for character summary tab
+    questListTabInSource("questListTab","source"), // for quest list tab
+    achievementDiaryTabInSource("achievementDiaryTab","source"), // for achievement Diary Tab
+    inventTabInSource("inventTab","source"), // for inventory tab
+    wornEquipmentTabInSource("wornEquipmentTab","source"), // for worn equipment tab
+    prayerTabInSource("prayerTab","source"), // for prayer tab
+    spellBookTabInSource("spellBookTab","source"), // for spell book tab
+    groupTabInSource("groupTab","source"), // for group tab
+    friendsTabInSource("friendsTab","source"), // for friends tab
+    ignoreTabInSource("ignoreTab","source"), // for ignore tab
+    accountManagementTabInSource("accountManagementTab","source"), // for account management tab
+    settingsTabInSource("settingsTab","source"), // for settings tab
+    logoutTabInSource("logoutTab","source"), // for logout tab
+    worldSwitcherTabInSource("worldSwitcherTab","source"), // for world switcher
+    emotesTabInSource("emotesTab","source"), // for emotes tab
+    musicTabInSource("musicTab","source"), // for music tab
     ;
 
 

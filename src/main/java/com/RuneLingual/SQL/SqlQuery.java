@@ -177,4 +177,13 @@ public class SqlQuery {
         this.source = null;
         this.translation = null;
     }
+
+    public void setPlayerActions(String en, Colors defualtColor){
+        this.english = en;
+        this.category = SqlVariables.actionsInCategory.getValue();
+        this.subCategory = SqlVariables.playerInSubCategory.getValue();
+        this.color = defualtColor;
+        this.source = null;
+        this.translation = null;
+    }
 }

@@ -136,7 +136,6 @@ public class Transformer {
             //return
         }
 
-        int colorTagCount = Colors.countColorTagsAfterReformat(translatedText);
         if(needCharImage) {// needs char image but just 1 color
             return generalFunctions.StringToTags(Colors.removeColorTag(translatedText), colors);
         } else { // doesnt need char image and just 1 color

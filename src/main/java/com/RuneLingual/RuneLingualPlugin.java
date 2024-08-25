@@ -31,6 +31,7 @@ import com.RuneLingual.prepareResources.Downloader;
 import com.RuneLingual.nonLatinChar.CharImageInit;
 import com.RuneLingual.nonLatinChar.GeneralFunctions;
 import com.RuneLingual.Transcript.TranscriptActions;
+import com.RuneLingual.commonFunctions.Ids;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -50,7 +51,7 @@ import java.util.HashMap;
 
 public class RuneLingualPlugin extends Plugin
 {
-	@Inject
+	@Inject @Getter
 	private Client client;
 	@Inject
 	private ClientToolbar clientToolBar;
@@ -104,6 +105,8 @@ public class RuneLingualPlugin extends Plugin
 	private String databaseUrl;
 	@Getter @Setter
 	private Connection conn;
+	@Inject @Getter
+	private Ids ids;
 
 	@Override
 	protected void startUp() throws Exception
