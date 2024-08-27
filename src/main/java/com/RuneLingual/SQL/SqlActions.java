@@ -80,7 +80,11 @@ public class SqlActions {
         }
 
         // index the english column
-            String sql = "CREATE INDEX english_index ON " + tableName + " ("+ SqlVariables.columnEnglish.getColumnName() +")";
+            String sql = "CREATE INDEX english_index ON " + tableName + " ("+ SqlVariables.columnEnglish.getColumnName()
+                    + ", " + SqlVariables.columnTranslation.getColumnName()
+                    + ", " + SqlVariables.columnCategory.getColumnName()
+                    + "," + SqlVariables.columnSubCategory.getColumnName()
+                    + "," + SqlVariables.columnSource.getColumnName() + ")";
             try (Statement stmt = this.plugin.getConn().createStatement()) {
                 stmt.execute(sql);
             }catch (SQLException e) {

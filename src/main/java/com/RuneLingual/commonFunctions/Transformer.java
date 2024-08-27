@@ -29,7 +29,7 @@ public class Transformer {
     }
 
 
-    public String transformEngWithColor(TransformOption option, SqlQuery sqlQuery){
+    public String transformEngWithColor(TransformOption option, SqlQuery sqlQuery, boolean searchAlike){
         boolean needCharImage = plugin.getConfig().getSelectedLanguage().needCharImages();
         GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
         String text = sqlQuery.getEnglish();
@@ -59,7 +59,7 @@ public class Transformer {
                 sqlQuery.setEnglish(sqlQuery.getEnglish().replace(colorTagsAsIs.get(i), "<colNum" + i + ">")); // replace color tags with placeholders
             }
 
-            String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation);
+            String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
                 log.info("No translation found for " + text);
                 log.info("query = " + sqlQuery.getSearchQuery());
@@ -99,7 +99,7 @@ public class Transformer {
         }
     }
 
-    public String transform(String text, Colors colors, TransformOption option, SqlQuery sqlQuery){
+    public String transform(String text, Colors colors, TransformOption option, SqlQuery sqlQuery, boolean searchAlike){
         boolean needCharImage = plugin.getConfig().getSelectedLanguage().needCharImages();
         GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
 
@@ -116,7 +116,7 @@ public class Transformer {
             int trueColorTagCount = Colors.countColorTagsAfterReformat(sqlQuery.getEnglish());
             sqlQuery.setEnglish(text);
 
-            String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation);
+            String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
                 log.info("No translation found for " + text);
                 log.info("query = " + sqlQuery.getSearchQuery());
@@ -151,24 +151,24 @@ public class Transformer {
      *    - else translate the string, then combine each string with its color
      * 3. recombine into string
      */
-    public String transform(String[] texts, Colors[] colors, TransformOption option, SqlQuery sqlQuery){
+    public String transform(String[] texts, Colors[] colors, TransformOption option, SqlQuery sqlQuery, boolean searchAlike){
         if(Colors.countColorTagsAfterReformat(sqlQuery.getEnglish()) > 1){
-            return transformEngWithColor(option, sqlQuery);
+            return transformEngWithColor(option, sqlQuery, searchAlike);
         }
         StringBuilder transformedTexts = new StringBuilder();
         for(int i = 0; i < texts.length; i++){
-            transformedTexts.append(transform(texts[i], colors[i], option, sqlQuery));
+            transformedTexts.append(transform(texts[i], colors[i], option, sqlQuery, searchAlike));
         }
         return transformedTexts.toString();
     }
 
-    public String transform(String[] texts, Colors[] colors, TransformOption option, SqlQuery[] sqlQueries){
+    public String transform(String[] texts, Colors[] colors, TransformOption option, SqlQuery[] sqlQueries, boolean searchAlike){
         StringBuilder transformedTexts = new StringBuilder();
         for(int i = 0; i < texts.length; i++){
             if(Colors.countColorTagsAfterReformat(sqlQueries[i].getEnglish()) > 1){
-                transformedTexts.append(transformEngWithColor(option, sqlQueries[i]));
+                transformedTexts.append(transformEngWithColor(option, sqlQueries[i], searchAlike));
             } else {
-                transformedTexts.append(transform(texts[i], colors[i], option, sqlQueries[i]));
+                transformedTexts.append(transform(texts[i], colors[i], option, sqlQueries[i], searchAlike));
             }
         }
         return transformedTexts.toString();
@@ -185,30 +185,30 @@ public class Transformer {
 //        return transformedTexts.toString();
 //    }
 
-    public String transform(String[] texts, Colors[] colors, TransformOption[] options, SqlQuery[] sqlQueries){
+    public String transform(String[] texts, Colors[] colors, TransformOption[] options, SqlQuery[] sqlQueries, boolean searchAlike){
         StringBuilder transformedTexts = new StringBuilder();
         for(int i = 0; i < texts.length; i++){
             if(Colors.countColorTagsAfterReformat(sqlQueries[i].getEnglish()) > 1){
-                transformedTexts.append(transformEngWithColor(options[i], sqlQueries[i]));
+                transformedTexts.append(transformEngWithColor(options[i], sqlQueries[i], searchAlike));
             } else {
-                transformedTexts.append(transform(texts[i], colors[i], options[i], sqlQueries[i]));
+                transformedTexts.append(transform(texts[i], colors[i], options[i], sqlQueries[i], searchAlike));
             }
         }
         return transformedTexts.toString();
     }
 
-    public String transform(String stringWithColors, TransformOption option, SqlQuery sqlQuery, Colors defaultColor){
+    public String transform(String stringWithColors, TransformOption option, SqlQuery sqlQuery, Colors defaultColor, boolean searchAlike){
         String[] targetWordArray = Colors.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
         Colors[] targetColorArray = Colors.getColorArray(stringWithColors, defaultColor); // eg. [Colors.white, Colors.red]
 
-        return transform(targetWordArray, targetColorArray, option, sqlQuery);
+        return transform(targetWordArray, targetColorArray, option, sqlQuery, searchAlike);
     }
 
-    public String transform(String stringWithColors, TransformOption option, SqlQuery[] sqlQueries, Colors defaultColor){
+    public String transform(String stringWithColors, TransformOption option, SqlQuery[] sqlQueries, Colors defaultColor, boolean searchAlike){
         String[] targetWordArray = Colors.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
         Colors[] targetColorArray = Colors.getColorArray(stringWithColors, defaultColor); // eg. [Colors.white, Colors.red]
 
-        return transform(targetWordArray, targetColorArray, option, sqlQueries);
+        return transform(targetWordArray, targetColorArray, option, sqlQueries, searchAlike);
     }
 
     public String convertFullWidthToHalfWidth(String fullWidthStr) {

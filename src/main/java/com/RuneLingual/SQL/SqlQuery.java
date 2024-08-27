@@ -39,12 +39,12 @@ public class SqlQuery {
         this.color = null;
     }
 
-    public String[] getMatching(SqlVariables column) {
+    public String[] getMatching(SqlVariables column, boolean searchAlike) {
         // create query -> execute -> return result
         String query = getSearchQuery();
         query = query.replace("*", column.getColumnName());
         String[][] result = plugin.getSqlActions().executeSearchQuery(query);
-        if(result.length == 0){
+        if(result.length == 0 && searchAlike){
             return new String[]{getPlaceholderMatches()};
         }
         String[] translations = new String[result.length];
@@ -108,6 +108,8 @@ public class SqlQuery {
                 }
             }
 
+            replacedMatch = stringToRegex(replacedMatch);
+
             Pattern pattern = Pattern.compile(replacedMatch);
             Matcher matcher = pattern.matcher(this.english);
             if (!matcher.matches()){
@@ -136,6 +138,10 @@ public class SqlQuery {
         }
 
         return english;
+    }
+
+    private String stringToRegex(String str){
+        return str.replaceAll("([\\[\\](){}*+?^$.|])", "\\\\$1");
     }
 
     public String getSearchQuery() {
@@ -286,12 +292,11 @@ public class SqlQuery {
         this.source = null;
         this.translation = null;
     }
-    public void setPlayerLevel(String en, Colors defualtColor){
-        this.english = en;
+    public void setPlayerLevel() {
+        this.english = "level";
         this.category = SqlVariables.nameInCategory.getValue();
         this.subCategory = SqlVariables.levelInSubCategory.getValue();
         this.source = null;
         this.translation = null;
-        this.color = defualtColor;
     }
 }

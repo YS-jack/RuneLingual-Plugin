@@ -2,6 +2,7 @@ package com.RuneLingual;
 
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
+import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.google.inject.Provides;
 import javax.inject.Inject;
@@ -10,6 +11,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
+import net.runelite.api.MenuEntry;
 import net.runelite.api.events.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
@@ -232,10 +234,10 @@ public class RuneLingualPlugin extends Plugin
 			return;
 		}
 
-//		MenuEntry[] ev = client.getMenuEntries();
-//		for (MenuEntry e: ev ){
-//			e.setOption(generalFunctions.StringToTags("テスト", Colors.fromName("black")));
-//		}
+		MenuEntry[] ev = client.getMenuEntries();
+		for (MenuEntry e: ev ){
+			e.setOption(generalFunctions.StringToTags("蘇生　贖罪", Colors.fromName("black")));
+		}
 //		menuTranslator.handleMenuEvent(event);
 	}
 	

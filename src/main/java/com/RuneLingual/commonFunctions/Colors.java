@@ -19,6 +19,7 @@ public enum Colors {
     blue2("ff","blue"),
     green("00ff00","green"),
     green2("ff00","green"),
+    green3("c0ff00", "green"),
     lightblue("00ffff","lightblue"),
     lightblue2("ffff", "lightblue"),
     orange("ff7000","orange"),
@@ -28,7 +29,9 @@ public enum Colors {
     red2("800000","red"),
     white("ffffff","white"),
     white2("9f9f9f","white"),
-    yellow("ffff00", "yellow"),;
+    yellow("ffff00", "yellow"),
+
+    ;
 
     private String name;
     private String hex;
@@ -44,6 +47,10 @@ public enum Colors {
 
     public String getHex() {
         return hex;
+    }
+
+    public String getColorTag() {
+        return "<col=" + this.getHex() + ">";
     }
 
 //    public static Colors fromName(String name) {
