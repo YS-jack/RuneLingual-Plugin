@@ -349,8 +349,8 @@ public class MenuCapture
 			String source = getSourceNameFromMenu(currentMenu);
 			Ids ids = this.plugin.getIds();
 
-			outputToFile.menuTarget(menuTarget,SqlVariables.menuInSubCategory.getValue(), source);
-			outputToFile.menuOption(menuOption,SqlVariables.menuInSubCategory.getValue(), source);
+			//outputToFile.menuTarget(menuTarget,SqlVariables.menuInSubCategory.getValue(), source);
+			//outputToFile.menuOption(menuOption,SqlVariables.menuInSubCategory.getValue(), source);
 
 			result = translateGeneralMenu(menuTarget, menuOption, actionWordArray, actionColorArray, targetWordArray, currentMenu);
 		}

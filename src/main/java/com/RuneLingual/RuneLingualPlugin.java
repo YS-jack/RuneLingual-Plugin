@@ -234,10 +234,10 @@ public class RuneLingualPlugin extends Plugin
 			return;
 		}
 
-		MenuEntry[] ev = client.getMenuEntries();
-		for (MenuEntry e: ev ){
-			e.setOption(generalFunctions.StringToTags("蘇生　贖罪", Colors.fromName("black")));
-		}
+//		MenuEntry[] ev = client.getMenuEntries();
+//		for (MenuEntry e: ev ){
+//			e.setOption(generalFunctions.StringToTags("蘇生　贖罪", Colors.fromName("black")));
+//		}
 //		menuTranslator.handleMenuEvent(event);
 	}
 	
