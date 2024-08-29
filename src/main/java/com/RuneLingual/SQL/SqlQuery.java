@@ -299,4 +299,6 @@ public class SqlQuery {
         this.source = null;
         this.translation = null;
     }
+
+
 }

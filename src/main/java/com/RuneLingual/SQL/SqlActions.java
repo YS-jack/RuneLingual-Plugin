@@ -103,7 +103,13 @@ public class SqlActions {
 
             // Insert data
             for (int i = 1; i < lines.size(); i++) {
-                String[] fields = lines.get(i).split("\t", -1);
+                if(lines.get(i).split("\t").length > columnNames.length){
+                    log.info("Warning processing TSV file " + tsvFilePath + " at line " + i + " : " + lines.get(i));
+                    log.info("found more values than number of columns.");
+                    log.info("Column names: " + Arrays.toString(columnNames));
+                    log.info("Column values: " + Arrays.toString(lines.get(i).split("\t")));
+                }
+                String[] fields = lines.get(i).split("\t", columnNames.length);
 
                 StringBuilder sql = new StringBuilder("INSERT INTO " + tableName + " (");
 
