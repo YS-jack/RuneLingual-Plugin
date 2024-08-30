@@ -74,6 +74,15 @@ public class MenuCapture
 		String newTarget = newMenus[0];
 		String newOption = newMenus[1];
 
+
+		// reorder them if it is grammatically correct to do so in that language
+		if(this.plugin.getTargetLanguage().swapMenuOptionAndTarget()) {
+			String temp = newOption;
+			newOption = newTarget;
+			newTarget = temp;
+		}
+
+		// swap out the translated menu action and target.
 		if(newOption != null) {
 			if (newTarget != null && !newTarget.isEmpty()) {
 				currentMenu.setTarget(newTarget);
@@ -273,7 +282,7 @@ public class MenuCapture
 		*/
 	}
 
-	private String[] translateMenuAction(MenuEntry currentMenu) {
+	public String[] translateMenuAction(MenuEntry currentMenu) {
 		/*
 		returns: String[] {newTarget, newOption}
 
@@ -293,7 +302,7 @@ public class MenuCapture
 
 		// for debug purposes
 		if(!isWalkOrCancel(menuType)){
-			printMenuEntry(currentMenu);
+			//printMenuEntry(currentMenu);
 			if(!isNpcMenu(menuType) && !isObjectMenu(menuType)
 					&& !isItemOnGround(menuType) && !isItemInWidget(currentMenu) && !isPlayerMenu(menuType)){
 				//outputToFile.menuTarget(menuTarget,SqlVariables.menuInSubCategory.getValue(), "");
@@ -363,13 +372,7 @@ public class MenuCapture
 		String newTarget = result[0];
 		String newOption = result[1];
 
-		// swap out the translated menu action and target.
-		// reorder them if it is grammatically correct to do so in that language
-		if(this.plugin.getTargetLanguage().swapMenuOptionAndTarget()) {
-			String temp = newOption;
-			newOption = newTarget;
-			newTarget = temp;
-		}
+
 		return new String[]{newTarget, newOption};
 	}
 
@@ -479,6 +482,7 @@ public class MenuCapture
 		String newTarget, newOption;
 		// check what widget it is in, then set the source column value accordingly
 		String source = getSourceNameFromMenu(currentMenu);
+
 		SqlQuery actionSqlQuery = new SqlQuery(this.plugin);
 		actionSqlQuery.setMenuAcitons(menuOption, optionColor);
 		actionSqlQuery.setSource(source);
@@ -488,6 +492,11 @@ public class MenuCapture
 		if(Colors.removeColorTag(menuTarget).isEmpty()) { // if it doesnt have a target
 			newTarget = "";
 		} else {
+			// if it is in the quest tab, the values are in a different category/sub_category
+			if(source.equals(SqlVariables.questListTabInSource.getValue())) {
+				menuTarget = translateQuestName(targetWordArray[0]);
+				return new String[]{menuTarget, newOption};
+			}
 			SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
 			targetSqlQuery.setEnglish(targetWordArray[0]);
 			targetSqlQuery.setCategory(SqlVariables.nameInCategory.getValue());
@@ -498,6 +507,15 @@ public class MenuCapture
 			newTarget = transformer.transform(targetWordArray, targetColorArray, TransformOption.TRANSLATE_LOCAL, targetSqlQuery, false);
 		}
 		return new String[]{newTarget, newOption};
+	}
+
+	private String translateQuestName(String questName) {
+		SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
+		targetSqlQuery.setEnglish(questName);
+		targetSqlQuery.setCategory(SqlVariables.manualInCategory.getValue());
+		targetSqlQuery.setSubCategory(SqlVariables.questInSubCategory.getValue());
+		// color is not possible to obtain by simple means, so its just orange for now
+		return transformer.transform(questName, Colors.orange, TransformOption.TRANSLATE_LOCAL, targetSqlQuery, false);
 	}
 
 	private String translatePlayerTargetPart(String[] targetWordArray, Colors[] targetColorArray) {

@@ -14,7 +14,7 @@ public enum SqlVariables {
     dialogueInCategory("dialogue","category"), // string value for "dialogue" in category column
     examineInCategory("examine","category"),
     nameInCategory("name","category"),
-    //manualInCategory("manual","category"),//probably wont use
+    manualInCategory("manual","category"),//probably wont use
     actionsInCategory("actions","category"),
     lvlUpMessageInCategory("lvl_up_Message","category"),
     inventActionsInCategory("inventoryActions","category"), // this is for every menu entries in the main panel(Inventory, Worn Equipment, friends list, etc.
@@ -26,6 +26,7 @@ public enum SqlVariables {
     levelInSubCategory("level","sub_category"), // for "(level-%d)" of player or npcs with levels, category should be "name"
     menuInSubCategory("menu","sub_category"), // for widgets that are not buttons nor interface, such as one of the skills in skill list tab, name of tabs ("Combat Options", "Quest List")
     playerInSubCategory("player","sub_category"), // for player options, such as report, trade, follow, etc.
+    questInSubCategory("quest","sub_category"),
 
     playerInSource("player","source"), // for player options, such as report, trade, follow, etc.
     //for tabs

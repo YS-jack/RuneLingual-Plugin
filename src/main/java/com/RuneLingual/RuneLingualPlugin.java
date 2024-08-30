@@ -1,5 +1,6 @@
 package com.RuneLingual;
 
+import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
 import com.RuneLingual.commonFunctions.Colors;
@@ -21,6 +22,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.game.ChatIconManager;
 
@@ -32,7 +34,6 @@ import com.RuneLingual.commonFunctions.FileActions;
 import com.RuneLingual.prepareResources.Downloader;
 import com.RuneLingual.nonLatinChar.CharImageInit;
 import com.RuneLingual.nonLatinChar.GeneralFunctions;
-import com.RuneLingual.Transcript.TranscriptActions;
 import com.RuneLingual.commonFunctions.Ids;
 
 import org.json.JSONArray;
@@ -55,6 +56,8 @@ public class RuneLingualPlugin extends Plugin
 {
 	@Inject @Getter
 	private Client client;
+	@Inject
+	private OverlayManager overlayManager;
 	@Inject
 	private ClientToolbar clientToolBar;
 	@Inject @Getter
@@ -81,7 +84,7 @@ public class RuneLingualPlugin extends Plugin
 	private ChatCapture chatTranslator;
 	@Inject
 	private DialogCapture dialogTranslator;
-	@Inject
+	@Inject @Getter
 	private MenuCapture menuTranslator;
 	@Inject
 	private GroundItems groundItemsTranslator;
@@ -109,6 +112,8 @@ public class RuneLingualPlugin extends Plugin
 	private Connection conn;
 	@Inject @Getter
 	private Ids ids;
+	@Inject
+	private MouseTooltipOverlay mouseTooltipOverlay;
 
 	@Override
 	protected void startUp() throws Exception
@@ -119,11 +124,14 @@ public class RuneLingualPlugin extends Plugin
 		// set database URL
 		databaseUrl = "jdbc:h2:" + FileNameAndPath.getLocalBaseFolder() + File.separator + targetLanguage.getCode() + File.separator + FileNameAndPath.getLocalSQLFileName();
 
-		//if online files changed, download and update local files
+		// check if online files have changed, if so download and update local files
 		initLangFiles();
+
 		//connect to database
 		conn = DriverManager.getConnection(databaseUrl);
-		//transcriptActions.getTranscript(fileNameAndPath.getLocalLangFolder(), tsvFileNames);
+
+		// initiate overlays
+		overlayManager.add(mouseTooltipOverlay);
 
 
 //		try{

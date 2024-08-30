@@ -20,6 +20,7 @@ public enum Colors {
     green("00ff00","green"),
     green2("ff00","green"),
     green3("c0ff00", "green"),
+    green4("dc10d", "green"),
     lightblue("00ffff","lightblue"),
     lightblue2("ffff", "lightblue"),
     orange("ff7000","orange"),
@@ -90,6 +91,7 @@ public enum Colors {
         log.info("couldnt find color with the name : " + colorName);
         return fromHex(white.getHex());
     }
+
     public static Colors fromHex(String hex) {
         int[] colorInts = new int[Colors.values().length];//number of colors
 
@@ -103,6 +105,12 @@ public enum Colors {
         //log.info("color = " + Colors.values()[j]);
         return Colors.values()[j]; // or throw an exception
     }
+
+    public static Colors fromInt(int intColor) {
+        String hexString = IntToHex(intColor);
+        return fromHex(hexString);
+    }
+
     private static int findClosest(int target, int[] numbers) {
         if (target == hexToInt("f9f9f9")) {//int for hex 9f9f9f, grey text in settings
             int i;
@@ -131,7 +139,7 @@ public enum Colors {
                 return Colors.getHex();
             }
         }
-        return black.getHex(); // or throw an exception
+        return hexString; // or throw an exception
     }
 
     public static int hexToInt(String hex) {
@@ -199,7 +207,7 @@ public enum Colors {
         if (strArray.length == 0) {
             return new String[0];
         }
-        if (strArray[0].equals("")) {
+        if (strArray[0].isEmpty()) {
             if (strArray.length == 1) {
                 return new String[0];
             } else {
