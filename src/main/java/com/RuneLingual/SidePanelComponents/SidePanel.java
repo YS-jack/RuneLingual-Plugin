@@ -1,13 +1,9 @@
-package com.RuneLingual.sidePanel;
+package com.RuneLingual.SidePanelComponents;
 
 import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
-import net.runelite.client.ui.components.FlatTextField;
 
 import javax.inject.Inject;
 import javax.swing.*;
@@ -15,15 +11,12 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
-import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.util.Map;
 
 import com.RuneLingual.RuneLingualConfig;
-import com.RuneLingual.sidePanel.*;
 import com.RuneLingual.commonFunctions.FileActions;
-
-import javax.inject.Inject;
+import com.RuneLingual.SidePanelComponents.SearchSection;
 
 @Slf4j
 
@@ -37,14 +30,15 @@ public class SidePanel extends PluginPanel{
     String discordText = "Ask for help on Discord";
 
     @Inject
-    private SidePanel(){
+    private SidePanel(RuneLingualPlugin plugin){
         LangCodeSelectableList targetLanguage = FileActions.getLangCodeFromFile();
         translatePanelTexts(targetLanguage);
 
-        this.setPreferredSize(new Dimension(200, 100));
+        this.setPreferredSize(new Dimension(200, 800));
         this.add(createTitleLabel(titleText));
         this.add(createClickableLabel(helpText, helpLink));
         this.add(createClickableLabel(discordText, "https://discord.gg/8vJ2T8Q"));
+        SearchSection searchSection = new SearchSection(this, targetLanguage, plugin);
     }
 
     private void translatePanelTexts(LangCodeSelectableList targetLanguage) {

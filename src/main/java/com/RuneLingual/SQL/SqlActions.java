@@ -17,7 +17,7 @@ import javax.inject.Inject;
 @Slf4j
 public class SqlActions {
 
-    static final String tableName = "transcript";
+    public static final String tableName = "transcript";
     static final String databaseFileName = FileNameAndPath.getLocalSQLFileName();
     ;
     @Inject

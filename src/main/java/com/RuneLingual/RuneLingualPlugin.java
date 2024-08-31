@@ -3,7 +3,6 @@ package com.RuneLingual;
 import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
-import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.google.inject.Provides;
 import javax.inject.Inject;
@@ -12,7 +11,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
-import net.runelite.api.MenuEntry;
 import net.runelite.api.events.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
@@ -29,15 +27,12 @@ import net.runelite.client.game.ChatIconManager;
 
 import lombok.Getter;
 
-import com.RuneLingual.sidePanel.SidePanel;
+import com.RuneLingual.SidePanelComponents.SidePanel;
 import com.RuneLingual.commonFunctions.FileActions;
 import com.RuneLingual.prepareResources.Downloader;
 import com.RuneLingual.nonLatinChar.CharImageInit;
 import com.RuneLingual.nonLatinChar.GeneralFunctions;
 import com.RuneLingual.commonFunctions.Ids;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -121,25 +116,16 @@ public class RuneLingualPlugin extends Plugin
 		log.info("Starting...");
 		//get selected language
 		targetLanguage = config.getSelectedLanguage();
-		// set database URL
-		databaseUrl = "jdbc:h2:" + FileNameAndPath.getLocalBaseFolder() + File.separator + targetLanguage.getCode() + File.separator + FileNameAndPath.getLocalSQLFileName();
-
 		// check if online files have changed, if so download and update local files
 		initLangFiles();
-
+		// set database URL
+		databaseUrl = "jdbc:h2:" + FileNameAndPath.getLocalBaseFolder() + File.separator + targetLanguage.getCode() + File.separator + FileNameAndPath.getLocalSQLFileName();
 		//connect to database
 		conn = DriverManager.getConnection(databaseUrl);
 
 		// initiate overlays
 		overlayManager.add(mouseTooltipOverlay);
 
-
-//		try{
-//
-//		} catch (Exception e){
-//			log.error("Error connecting to database: " + databaseUrl);
-//			e.printStackTrace();
-//		}
 
 		// load image files
 		charImageInit.loadCharImages();
@@ -271,12 +257,25 @@ public class RuneLingualPlugin extends Plugin
 	public void onConfigChanged(ConfigChanged event)
 	{
 		if(targetLanguage != config.getSelectedLanguage()){ // if language is changed
+			targetLanguage = config.getSelectedLanguage();
+			initLangFiles();
+			// todo: change the database URL and the connection to it
+			databaseUrl = "jdbc:h2:" + FileNameAndPath.getLocalBaseFolder() + File.separator + targetLanguage.getCode() + File.separator + FileNameAndPath.getLocalSQLFileName();
+			try {
+				conn = DriverManager.getConnection(databaseUrl);
+			} catch (Exception e){
+				log.error("Error connecting to database: " + databaseUrl);
+				targetLanguage = LangCodeSelectableList.ENGLISH;
+				e.printStackTrace();
+			}
 			// download language files and structure language data
 			clientToolBar.removeNavigation(navButton);
 			boolean charImageChanged = initLangFiles();
 			if(charImageChanged){
 				charImageInit.loadCharImages();
 			}
+
+
 			restartPanel();
 		}
 
