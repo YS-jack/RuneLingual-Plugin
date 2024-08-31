@@ -1,8 +1,10 @@
 package com.RuneLingual;
 
+import com.RuneLingual.ApiTranslate.Deepl;
 import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
+import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.google.inject.Provides;
 import javax.inject.Inject;
@@ -11,6 +13,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
+import net.runelite.api.MenuEntry;
 import net.runelite.api.events.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
@@ -109,6 +112,8 @@ public class RuneLingualPlugin extends Plugin
 	private Ids ids;
 	@Inject
 	private MouseTooltipOverlay mouseTooltipOverlay;
+	@Inject @Getter
+	private Deepl deepl;
 
 	@Override
 	protected void startUp() throws Exception
@@ -218,6 +223,13 @@ public class RuneLingualPlugin extends Plugin
 	@Subscribe
 	public void onMenuOpened(MenuOpened event)
 	{
+		String testString = deepl.translate("hi", LangCodeSelectableList.ENGLISH, targetLanguage);
+		log.info("testString: " + testString);
+//		MenuEntry[] ev = client.getMenuEntries();
+//		for (MenuEntry e: ev ){
+//			e.setOption(generalFunctions.StringToTags(testString, Colors.fromName("black")));
+//		}
+
 		menuTranslator.handleOpenedMenu(event);
 	}
 	
@@ -227,12 +239,7 @@ public class RuneLingualPlugin extends Plugin
 		if (targetLanguage == LangCodeSelectableList.ENGLISH) {
 			return;
 		}
-
-//		MenuEntry[] ev = client.getMenuEntries();
-//		for (MenuEntry e: ev ){
-//			e.setOption(generalFunctions.StringToTags("蘇生　贖罪", Colors.fromName("black")));
-//		}
-//		menuTranslator.handleMenuEvent(event);
+		//menuTranslator.handleMenuEvent(event);
 	}
 	
 	@Subscribe

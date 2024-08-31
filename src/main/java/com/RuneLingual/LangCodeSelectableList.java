@@ -2,18 +2,29 @@ package com.RuneLingual;
 
 import lombok.Getter;
 
+import javax.inject.Inject;
+
 public enum LangCodeSelectableList
 {
-    ENGLISH ("en"),
-    PORTUGUÊS_BRASILEIRO ("pt_br"),
-    NORSK("no"),
-    日本語("ja");
+    ENGLISH ("en", "EN","EN"),
+    PORTUGUÊS_BRASILEIRO ("pt_br", "PT","PT-BR"),
+    NORSK("no", "NB", "NB"),
+    日本語("ja", "JA", "JA");
     // todo: add languages here
 
     @Getter
     private final String langCode;
+    @Getter
+    private final String deeplLangCodeSource;
+    @Getter
+    private final String deeplLangCodeTarget;
 
-    LangCodeSelectableList(String langCode){this.langCode = langCode;}
+    @Inject
+    LangCodeSelectableList(String langCode, String deeplCodeSrc, String deeplCodeTgt){
+        this.langCode = langCode;
+        this.deeplLangCodeSource = deeplCodeSrc;
+        this.deeplLangCodeTarget = deeplCodeTgt;
+    }
 
     public String getCode(){return this.langCode;}
 

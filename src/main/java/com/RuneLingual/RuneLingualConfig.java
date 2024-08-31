@@ -280,38 +280,53 @@ public interface RuneLingualConfig extends Config
 	)
 	String SECTION_CHAT_SETTINGS = "chatSettings";
 
-	@ConfigItem(
-		name = "Service API Key",
-		description = "Your API key for the chosen translating service",
-		section = "chatSettings",
-		keyName = "APIKey",
-		position = 1 + offset
-	)
-	String APIKey();
 
 	@ConfigItem(
-			name = "Translating service",
-			description = "Select your preferred translation service",
-			section = "chatSettings",
-			keyName = "translatingService",
-			position = 2 + offset
-	)
-	default TranslatingServiceSelectableList getService() {return TranslatingServiceSelectableList.GOOGLE_TRANSLATE;}
-
-	default String getAPIKey() {return APIKey();}
-	@ConfigItem(
-			name = "Enable dynamic translating",
-			description = "Mostly for player messages",
-			section = "chatSettings",
+			name = "Enable Online Translation",
+			description = "whether to translate using online services",
+			section = SECTION_CHAT_SETTINGS,
 			keyName = "enableAPI",
 			position = 2 + offset
 	)
 	default boolean allowAPI() {return false;}
 
+	@ConfigItem(
+			name = "Translating service",
+			description = "Select your preferred translation service",
+			section = SECTION_CHAT_SETTINGS,
+			keyName = "translatingService",
+			position = 3 + offset
+	)
+	default TranslatingServiceSelectableList getService() {return TranslatingServiceSelectableList.DeepL;}
+
+	@ConfigItem(
+			name = "Service API Key",
+			description = "Your API key for the chosen translating service",
+			section = SECTION_CHAT_SETTINGS,
+			keyName = "APIKey",
+			position = 4 + offset,
+			secret = true
+			//hidden = true
+	)
+	default String getAPIKey() {return "";}
+
+
+
+
+
+
+
+
+
+
+
+
+
+	int offset_old_2 = 120;
 	@ConfigSection(
 		name = "General translation settings",
 		description = "General translation settings",
-		position = 2 + offset,
+		position = 2 + offset_old_2,
 		closedByDefault = false
 	)
 	String SECTION_GENERAL_SETTINGS = "generalSettings";
