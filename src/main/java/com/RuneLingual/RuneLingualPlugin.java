@@ -1,6 +1,6 @@
 package com.RuneLingual;
 
-import com.RuneLingual.ApiTranslate.Deepl;
+import com.RuneLingual.ApiTranslate.*;
 import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
@@ -114,6 +114,8 @@ public class RuneLingualPlugin extends Plugin
 	private MouseTooltipOverlay mouseTooltipOverlay;
 	@Inject @Getter
 	private Deepl deepl;
+	@Inject
+	private DeeplUsageOverlay deeplUsageOverlay;
 
 	@Override
 	protected void startUp() throws Exception
@@ -121,15 +123,19 @@ public class RuneLingualPlugin extends Plugin
 		log.info("Starting...");
 		//get selected language
 		targetLanguage = config.getSelectedLanguage();
+		// set database URL
+		databaseUrl = "jdbc:h2:" + FileNameAndPath.getLocalBaseFolder() + File.separator + targetLanguage.getLangCode()
+				+ File.separator + FileNameAndPath.getLocalSQLFileName();
+
 		// check if online files have changed, if so download and update local files
 		initLangFiles();
-		// set database URL
-		databaseUrl = "jdbc:h2:" + FileNameAndPath.getLocalBaseFolder() + File.separator + targetLanguage.getCode() + File.separator + FileNameAndPath.getLocalSQLFileName();
+
 		//connect to database
 		conn = DriverManager.getConnection(databaseUrl);
 
 		// initiate overlays
 		overlayManager.add(mouseTooltipOverlay);
+		overlayManager.add(deeplUsageOverlay);
 
 
 		// load image files
@@ -223,8 +229,7 @@ public class RuneLingualPlugin extends Plugin
 	@Subscribe
 	public void onMenuOpened(MenuOpened event)
 	{
-		String testString = deepl.translate("hi", LangCodeSelectableList.ENGLISH, targetLanguage);
-		log.info("testString: " + testString);
+
 //		MenuEntry[] ev = client.getMenuEntries();
 //		for (MenuEntry e: ev ){
 //			e.setOption(generalFunctions.StringToTags(testString, Colors.fromName("black")));
@@ -267,7 +272,8 @@ public class RuneLingualPlugin extends Plugin
 			targetLanguage = config.getSelectedLanguage();
 			initLangFiles();
 			// todo: change the database URL and the connection to it
-			databaseUrl = "jdbc:h2:" + FileNameAndPath.getLocalBaseFolder() + File.separator + targetLanguage.getCode() + File.separator + FileNameAndPath.getLocalSQLFileName();
+			databaseUrl = "jdbc:h2:" + FileNameAndPath.getLocalBaseFolder() + File.separator +
+					targetLanguage.getLangCode() + File.separator + FileNameAndPath.getLocalSQLFileName();
 			try {
 				conn = DriverManager.getConnection(databaseUrl);
 			} catch (Exception e){
@@ -331,10 +337,10 @@ public class RuneLingualPlugin extends Plugin
 	
 	private void loadTranscripts()
 	{
-		dialogTranscriptManager.loadTranscripts(targetLanguage.getCode());
-		actionTranscriptManager.loadTranscripts(targetLanguage.getCode());
-		objectTranscriptManager.loadTranscripts(targetLanguage.getCode());
-		itemTranscriptManager.loadTranscripts(targetLanguage.getCode());
+		dialogTranscriptManager.loadTranscripts(targetLanguage.getLangCode());
+		actionTranscriptManager.loadTranscripts(targetLanguage.getLangCode());
+		objectTranscriptManager.loadTranscripts(targetLanguage.getLangCode());
+		itemTranscriptManager.loadTranscripts(targetLanguage.getLangCode());
 	}
 
 
@@ -346,8 +352,8 @@ public class RuneLingualPlugin extends Plugin
 
 	private boolean initLangFiles(){
 		//download necessary files
-		downloader.setLangCode(targetLanguage.getCode());
-        return downloader.initDownloader(targetLanguage.getCode());
+		downloader.setLangCode(targetLanguage.getLangCode());
+        return downloader.initDownloader(targetLanguage.getLangCode());
 	}
 
 	public void restartPanel(){

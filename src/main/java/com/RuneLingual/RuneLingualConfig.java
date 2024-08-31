@@ -59,7 +59,7 @@ public interface RuneLingualConfig extends Config
 	{
 		USE_LOCAL_DATA,
 		USE_API,
-		TRANSLITERATE,
+		//TRANSLITERATE, // not for now, need to prepare transliteration data for all languages
 		DONT_TRANSLATE,
 	}
 
@@ -118,13 +118,13 @@ public interface RuneLingualConfig extends Config
 	default ingameTranslationConfig getInterfaceText() {return ingameTranslationConfig.USE_LOCAL_DATA;}
 
 	@ConfigItem(
-			name = "Mouse Hover Text",
-			description = "Option for texts next to the mouse",
+			name = "Mouse Menu Options",
+			description = "Option for items, NPCs, objects, such as 'Use', 'Talk-to', etc.",
 			position = 8 + offset_section2,
-			keyName = "mouseText",
+			keyName = "menuOption",
 			section = SECTION_GAME_SYSTEM_TEXT
 	)
-	default ingameTranslationConfig getMouseText() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+	default ingameTranslationConfig getMenuOption() {return ingameTranslationConfig.USE_LOCAL_DATA;}
 
 	@ConfigItem(
 			name = "Enable Mouse Hover Text",
@@ -144,12 +144,12 @@ public interface RuneLingualConfig extends Config
 	{
 		TRANSFORM, //eg: watasi ha inu ga suki -> 私は犬が好き
 		USE_API, // eg: I like dogs -> 私は犬が好き
-		DONT_TRANSLATE, // eg: I like dogs -> I like dogs
+		LEAVE_AS_IS, // eg: I like dogs -> I like dogs
 	}
 	enum chatSelfConfig
 	{
 		TRANSFORM,
-		DONT_TRANSLATE,
+		LEAVE_AS_IS,
 	}
 
 	final int offset_section3 = 40;
@@ -177,7 +177,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "allFriends",
 			section = SECTION_CHAT_MESSAGES
 	)
-	default chatConfig getAllFriends() {return chatConfig.DONT_TRANSLATE;}
+	default chatConfig getAllFriends() {return chatConfig.LEAVE_AS_IS;}
 
 	@ConfigItem(
 			name = "Public",
@@ -186,7 +186,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "publicChat",
 			section = SECTION_CHAT_MESSAGES
 	)
-	default chatConfig getPublicChat() {return chatConfig.DONT_TRANSLATE;}
+	default chatConfig getPublicChat() {return chatConfig.LEAVE_AS_IS;}
 
 	@ConfigItem(
 			name = "Clan",
@@ -195,7 +195,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "clanChat",
 			section = SECTION_CHAT_MESSAGES
 	)
-	default chatConfig getClanChat() {return chatConfig.DONT_TRANSLATE;}
+	default chatConfig getClanChat() {return chatConfig.LEAVE_AS_IS;}
 
 	@ConfigItem(
 			name = "Guest Clan",
@@ -204,7 +204,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "guestClanChat",
 			section = SECTION_CHAT_MESSAGES
 	)
-	default chatConfig getGuestClanChat() {return chatConfig.DONT_TRANSLATE;}
+	default chatConfig getGuestClanChat() {return chatConfig.LEAVE_AS_IS;}
 
 	@ConfigItem(
 			name = "Friends Chat",
@@ -213,7 +213,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "friendsChat",
 			section = SECTION_CHAT_MESSAGES
 	)
-	default chatConfig getFriendsChat() {return chatConfig.DONT_TRANSLATE;}
+	default chatConfig getFriendsChat() {return chatConfig.LEAVE_AS_IS;}
 
 	@ConfigItem(
 			name = "GIM Group",
@@ -222,7 +222,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "GIMChat",
 			section = SECTION_CHAT_MESSAGES
 	)
-	default chatConfig getGIMChat() {return chatConfig.DONT_TRANSLATE;}
+	default chatConfig getGIMChat() {return chatConfig.LEAVE_AS_IS;}
 
 
 
@@ -309,6 +309,15 @@ public interface RuneLingualConfig extends Config
 			//hidden = true
 	)
 	default String getAPIKey() {return "";}
+
+	@ConfigItem(
+			name = "Enable Word Count Overlay",
+			description = "whether to show how many characters you have used",
+			section = SECTION_CHAT_SETTINGS,
+			keyName = "enableUsageOverlay",
+			position = 2 + offset
+	)
+	default boolean showUsageOverlay() {return true;}
 
 
 

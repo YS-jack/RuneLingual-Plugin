@@ -25,7 +25,7 @@ public class FileActions {
         if (existingFileName != null){
             String langCode = existingFileName.substring(existingFileName.indexOf("_") + 1, existingFileName.indexOf("."));
             for (LangCodeSelectableList lang : LangCodeSelectableList.values()) {
-                if (lang.getCode().equals(langCode)) {
+                if (lang.getLangCode().equals(langCode)) {
                     return lang;
                 }
             }
@@ -34,13 +34,13 @@ public class FileActions {
     }
 
     public static void createLangCodeNamedFile(LangCodeSelectableList lang) {
-        String fileName = langNameFolder + File.separator + fileNameStart + lang.getCode() + ".txt";
+        String fileName = langNameFolder + File.separator + fileNameStart + lang.getLangCode() + ".txt";
         createFile(fileName);
     }
 
     public static void deleteAllLangCodeNamedFile() {
         for (LangCodeSelectableList lang : LangCodeSelectableList.values()) {
-            String fileName = langNameFolder + File.separator + fileNameStart + lang.getCode() + ".txt";
+            String fileName = langNameFolder + File.separator + fileNameStart + lang.getLangCode() + ".txt";
             deleteFile(fileName);
         }
     }

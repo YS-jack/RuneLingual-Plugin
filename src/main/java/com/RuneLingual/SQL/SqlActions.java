@@ -38,14 +38,6 @@ public class SqlActions {
         Connection conn = DriverManager.getConnection(this.plugin.getDatabaseUrl());
         this.plugin.setConn(conn);
 
-        //remove table if exists
-//        String dropTable = "DROP TABLE IF EXISTS " + tableName;
-//        try (Statement stmt = this.plugin.getConn().createStatement()) {
-//            stmt.execute(dropTable);
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-
         // then create new table
         String sql = "CREATE TABLE " + tableName + " ()";
 

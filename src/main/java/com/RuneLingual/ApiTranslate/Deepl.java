@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import javax.inject.Inject;
 
@@ -29,12 +30,18 @@ public class Deepl {
     private int deeplLimit = 500000;
     @Getter @Setter
     private int deeplCount = deeplLimit;
+    @Getter @Setter
+    private boolean keyValid = true;
+
+    @Getter
+    private PastTranslationManager deeplPastTranslationManager;
 
     @Inject
     public Deepl(RuneLingualPlugin plugin) {
         this.plugin = plugin;
         this.config = plugin.getConfig();
-        setUsageAndLimit();
+        setUsageAndLimitInThread();
+        deeplPastTranslationManager = new PastTranslationManager(this, plugin);
     }
 
     // function to translate from and to specified language
@@ -46,6 +53,13 @@ public class Deepl {
 
         sets: deeplCount = the number of characters translated using the API
          */
+
+        // if the text is already translated, return the past translation
+        String pastTranslation = deeplPastTranslationManager.getPastTranslation(text);
+        if (pastTranslation != null) {
+            return pastTranslation;
+        }
+
         deeplKey = plugin.getConfig().getAPIKey();
 
         String url = getTranslatorUrl();
@@ -54,15 +68,20 @@ public class Deepl {
         }
 
         String urlParameters = getUrlParameters(sourceLang, targetLang, text);
-        String response = getResponce(url, urlParameters);
+        String response = getResponse(url, urlParameters);
         if (response.isEmpty()) { // if response is empty, return as is
+            setKeyValid(false);
             return text;
         }
 
+        String translation = getTranslationInResponse(response);
+
+        setKeyValid(true);
         setUsageAndLimit();
+        // add the new translation to the past translations and its file
+        deeplPastTranslationManager.addToPastTranslations(text, translation);
 
-        return getTranslationInResponse(response);
-
+        return translation;
     }
 
     private String getUrlParameters(LangCodeSelectableList sourceLang, LangCodeSelectableList targetLang, String text) {
@@ -91,7 +110,7 @@ public class Deepl {
         }
     }
 
-    private String getResponce(String url, String urlParameters){
+    private String getResponse(String url, String urlParameters) {
         try {
             URL deeplUrl = new URL(url);
             HttpURLConnection connection = (HttpURLConnection) deeplUrl.openConnection();
@@ -101,34 +120,39 @@ public class Deepl {
             // Enable input and output streams
             connection.setDoOutput(true);
 
+            // Set the content type to indicate UTF-8 encoding
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+
             // Write the parameters to the request
-            OutputStream os = connection.getOutputStream();
-            os.write(urlParameters.getBytes());
-            os.flush();
-            os.close();
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = urlParameters.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
 
             // Get the response code
             int responseCode = connection.getResponseCode();
 
             // If the response code is 200 (HTTP_OK), read the response
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
+                // Use UTF-8 encoding when reading the response
+                try (BufferedReader br = new BufferedReader(
+                        new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                    StringBuilder response = new StringBuilder();
+                    String responseLine;
+                    while ((responseLine = br.readLine()) != null) {
+                        response.append(responseLine.trim());
+                    }
+                    return response.toString();
                 }
-                in.close();
-
-                // Print the response
-                return response.toString();
             } else {
-                System.out.println("POST request not worked");
+                setKeyValid(false);
+                System.out.println("POST request not worked. Response Code: " + responseCode);
             }
         } catch (Exception e) {
+            setKeyValid(false);
             e.printStackTrace();
         }
+        setKeyValid(false);
         return "";
     }
 
@@ -155,21 +179,24 @@ public class Deepl {
         // URL of the DeepL API
         String url = getUsageUrl();
         if(url.isEmpty()){
+            setKeyValid(false);
             return "";
         }
         String paramUrl = "auth_key=" + config.getAPIKey();
-        return getResponce(url, paramUrl);
+        return getResponse(url, paramUrl);
     }
 
     private String getUsageUrl() {
         String baseUrl = getBaseUrl();
         if (baseUrl.isEmpty()) {
+            setKeyValid(false);
             return "";
         }
         return getBaseUrl() + "usage";
     }
 
-    // function to add to hashmap of past translations
-
-    // function to add the translation to a file of past translations
+    private void setUsageAndLimitInThread(){
+        Thread thread = new Thread(this::setUsageAndLimit);
+        thread.start();
+    }
 }
