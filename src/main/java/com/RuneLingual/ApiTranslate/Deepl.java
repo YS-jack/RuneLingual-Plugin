@@ -60,6 +60,11 @@ public class Deepl {
             return pastTranslation;
         }
 
+        //if the character count is close to the limit, return the original text
+        if(deeplCount > deeplLimit - text.length() - 1000){
+            return text;
+        }
+
         deeplKey = plugin.getConfig().getAPIKey();
 
         String url = getTranslatorUrl();
