@@ -137,7 +137,7 @@ public class MouseTooltipOverlay extends Overlay
         // if is set to be translated with API,
         if(this.plugin.getConfig().allowAPI()){
             // only translate if it has been translated before
-            if(haveTranslatedBefore(option, target, menuEntry)) {
+            if(plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedBefore(option, target, menuEntry)) {
                 setMouseHover(menuEntry, true);
             } else { // dont translate if it hasnt been translated before
                 setMouseHover(menuEntry, false);
@@ -151,67 +151,9 @@ public class MouseTooltipOverlay extends Overlay
         return null;
     }
 
-    private boolean haveTranslatedBefore(String option, String target, MenuEntry menuEntry){
-        String[] optionWordArray = Colors.getWordArray(option);
-        String[] targetWordArray = Colors.getWordArray(target);
-        boolean optionTranslated = true;
-        boolean targetTranslated = true;
-        // if option is set to be translated with API, check if all elements have been translated before
-        if(plugin.getConfig().getMenuOption().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)){
-            if(!checkAllElementExistInPastTranslation(optionWordArray)){
-                return false;
-            }
-        }
 
-        // if target is item name and that is set to be translated with API,
-        // check if all elements have been translated before
-        if(plugin.getConfig().getItemNames().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
-            && (plugin.getMenuCapture().isItemInWidget(menuEntry) || plugin.getMenuCapture().isItemOnGround(menuEntry.getType()))) {
-            if(!checkAllElementExistInPastTranslation(targetWordArray)){
-                return false;
-            }
-        }
 
-        // if target is object name, check if all elements have been translated before
-        if(plugin.getConfig().getObjectNames().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
-            && plugin.getMenuCapture().isObjectMenu(menuEntry.getType())) {
-            if(!checkAllElementExistInPastTranslation(targetWordArray)){
-                return false;
-            }
-        }
 
-        // if target is npc name, check if all elements have been translated before
-        if(plugin.getConfig().getNPCNames().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
-            && plugin.getMenuCapture().isNpcMenu(menuEntry.getType())) {
-            if(!checkAllElementExistInPastTranslation(targetWordArray)){
-                return false;
-            }
-        }
-
-        // if other target (general menu, walk here, player, etc) is set to be translated with API,
-        // check if all elements have been translated before
-        if(!target.isEmpty() &&
-                plugin.getConfig().getMenuOption().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
-            && !plugin.getMenuCapture().isItemInWidget(menuEntry)
-            && !plugin.getMenuCapture().isItemOnGround(menuEntry.getType())
-            && !plugin.getMenuCapture().isObjectMenu(menuEntry.getType())
-            && !plugin.getMenuCapture().isNpcMenu(menuEntry.getType())) {
-            if(!checkAllElementExistInPastTranslation(targetWordArray)){
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private boolean checkAllElementExistInPastTranslation(String[] wordArray){
-        for (String word : wordArray){
-            if(plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(word) == null){
-                return false;
-            }
-        }
-        return true;
-    }
 
     private void setMouseHover(MenuEntry menuEntry, boolean transform){
         String newTarget = "";

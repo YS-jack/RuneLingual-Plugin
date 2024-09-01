@@ -69,7 +69,8 @@ public class MenuCapture
 				// if config is set to use local data, it has to be on main thread (for general menus specifically)
 				handleMenuEvent(menu);
 			} else {
-				if (plugin.getConfig().allowAPI()) {
+				if (plugin.getConfig().allowAPI() &&
+						!plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedBefore(menu.getOption(), menu.getTarget(), menu)){
 					Thread thread = new Thread(() -> {
 						handleMenuEvent(menu);
 					});

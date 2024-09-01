@@ -1,11 +1,14 @@
 package com.RuneLingual.ApiTranslate;
 
+import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.RuneLingualPlugin;
+import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.RuneLingual.commonFunctions.FileActions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.MenuEntry;
 import org.json.JSONObject;
 
 import javax.inject.Inject;
@@ -86,5 +89,67 @@ public class PastTranslationManager {
         } catch (IOException e) {
             log.error("Error writing to file: " + e.getMessage(), e);
         }
+    }
+
+    public boolean haveTranslatedBefore(String option, String target, MenuEntry menuEntry){
+        String[] optionWordArray = Colors.getWordArray(option);
+        String[] targetWordArray = Colors.getWordArray(target);
+
+        // if option is set to be translated with API, check if all elements have been translated before
+        if(plugin.getConfig().getMenuOption().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)){
+            if(!checkAllElementExistInPastTranslation(optionWordArray)){
+                return false;
+            }
+        }
+
+        // if target is item name and that is set to be translated with API,
+        // check if all elements have been translated before
+        if(plugin.getConfig().getItemNames().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
+                && (plugin.getMenuCapture().isItemInWidget(menuEntry) || plugin.getMenuCapture().isItemOnGround(menuEntry.getType()))) {
+            if(!checkAllElementExistInPastTranslation(targetWordArray)){
+                return false;
+            }
+        }
+
+        // if target is object name, check if all elements have been translated before
+        if(plugin.getConfig().getObjectNames().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
+                && plugin.getMenuCapture().isObjectMenu(menuEntry.getType())) {
+            if(!checkAllElementExistInPastTranslation(targetWordArray)){
+                return false;
+            }
+        }
+
+        // if target is npc name, check if all elements have been translated before
+        if(plugin.getConfig().getNPCNames().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
+                && plugin.getMenuCapture().isNpcMenu(menuEntry.getType())) {
+            if(!checkAllElementExistInPastTranslation(targetWordArray)){
+                return false;
+            }
+        }
+
+
+        // if other target (general menu, walk here, player, etc) is set to be translated with API,
+        // check if all elements have been translated before
+        if(!target.isEmpty() &&
+                plugin.getConfig().getMenuOption().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
+                && !plugin.getMenuCapture().isItemInWidget(menuEntry)
+                && !plugin.getMenuCapture().isItemOnGround(menuEntry.getType())
+                && !plugin.getMenuCapture().isObjectMenu(menuEntry.getType())
+                && !plugin.getMenuCapture().isNpcMenu(menuEntry.getType())) {
+            if(!checkAllElementExistInPastTranslation(targetWordArray)){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean checkAllElementExistInPastTranslation(String[] wordArray){
+        for (String word : wordArray){
+            if(plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(word) == null){
+                return false;
+            }
+        }
+        return true;
     }
 }
