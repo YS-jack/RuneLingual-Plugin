@@ -9,6 +9,9 @@ import javax.inject.Inject;
 
 import lombok.Setter;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ChatCapture
 {
     /* Captures chat messages from any source
@@ -59,193 +62,47 @@ public class ChatCapture
         this.translateGame = true;
         this.translateOverHeads = true;
     }
-    
-    
-    
+
+
+
     public void handleChatMessage(ChatMessage event) throws Exception {
-        // tries to translate and replace chat messages by their given message node
         ChatMessageType type = event.getType();
         MessageNode messageNode = event.getMessageNode();
         String message = event.getMessage();
-        
-        if(messageTypeRequiresKey(type) && dynamicTranslations)
-        {
-            if(type.equals(ChatMessageType.AUTOTYPER) && translatePublic)
-            {
-                onlineTranslator(message, messageNode);
+
+        Map<ChatMessageType, Runnable> actions = new HashMap<>();
+        actions.put(ChatMessageType.AUTOTYPER, () -> onlineTranslator(message, messageNode));
+        actions.put(ChatMessageType.BROADCAST, () -> onlineTranslator(message, messageNode));
+        actions.put(ChatMessageType.CLAN_CHAT, () -> onlineTranslator(message, messageNode));
+        actions.put(ChatMessageType.CLAN_GIM_CHAT, () -> onlineTranslator(message, messageNode));
+        actions.put(ChatMessageType.CLAN_GUEST_CHAT, () -> onlineTranslator(message, messageNode));
+        actions.put(ChatMessageType.FRIENDSCHAT, () -> onlineTranslator(message, messageNode));
+        actions.put(ChatMessageType.MODAUTOTYPER, () -> onlineTranslator(message, messageNode));
+        actions.put(ChatMessageType.MODCHAT, () -> onlineTranslator(message, messageNode));
+        actions.put(ChatMessageType.MODPRIVATECHAT, () -> onlineTranslator(message, messageNode));
+        actions.put(ChatMessageType.PRIVATECHAT, () -> onlineTranslator(message, messageNode));
+        actions.put(ChatMessageType.PRIVATECHATOUT, () -> onlineTranslator(message, messageNode));
+        actions.put(ChatMessageType.PUBLICCHAT, () -> {
+            onlineTranslator(message, messageNode);
+            if (dynamicTranslations) {
+                String newMessage = messageNode.getValue();
+                overheadReplacer(message, newMessage);
             }
-            else if(type.equals(ChatMessageType.BROADCAST) && translateGame)
-            {
-                onlineTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.CLAN_CHAT) && translateClan)
-            {
-                onlineTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.CLAN_GIM_CHAT) && translateClan)
-            {
-                onlineTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.CLAN_GUEST_CHAT) && translateClan)
-            {
-                onlineTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.FRIENDSCHAT) && translateFriends)
-            {
-                onlineTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.MODAUTOTYPER) && translatePublic)
-            {
-                onlineTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.MODCHAT) && translatePublic)
-            {
-                onlineTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.MODPRIVATECHAT) && translateFriends)
-            {
-                onlineTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.PRIVATECHAT) && translateFriends)
-            {
-                onlineTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.PRIVATECHATOUT) && translateFriends)
-            {
-                onlineTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.PUBLICCHAT) && translatePublic)
-            {
-                onlineTranslator(message, messageNode);
-                if(dynamicTranslations)
-                {
-                    // avoids duplicate translation requests
-                    // looks for the player that sent the message and translates it
-                    String newMessage = messageNode.getValue();
-                    overheadReplacer(message, newMessage);
-                }
-            }
-            else if(type.equals(ChatMessageType.TRADE) && translatePublic)
-            {
-                onlineTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.UNKNOWN) && translatePublic)
-            {
-                onlineTranslator(message, messageNode);
-            }
-            else
-            {
-                if(logErrors)
-                {
+        });
+        actions.put(ChatMessageType.TRADE, () -> onlineTranslator(message, messageNode));
+        actions.put(ChatMessageType.UNKNOWN, () -> onlineTranslator(message, messageNode));
+
+        if (messageTypeRequiresApi(type) && dynamicTranslations) {
+            Runnable action = actions.get(type);
+            if (action != null) {
+                action.run();
+            } else {
+                if (logErrors) {
                     logger.log("Unknown message '" + message + "' type: " + type.toString());
                 }
             }
-        }
-        else
-        {
-            if(type.equals(ChatMessageType.CHALREQ_CLANCHAT) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.CHALREQ_FRIENDSCHAT) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.CHALREQ_TRADE) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.CLAN_CREATION_INVITATION) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.CLAN_GIM_FORM_GROUP) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.CLAN_GIM_GROUP_WITH) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.CLAN_GIM_MESSAGE) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.CLAN_GUEST_MESSAGE) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.CLAN_MESSAGE) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.CONSOLE) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.ENGINE) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.FRIENDNOTIFICATION) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.FRIENDSCHATNOTIFICATION) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.GAMEMESSAGE) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.IGNORENOTIFICATION) && translateFriends)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.ITEM_EXAMINE) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.LOGINLOGOUTNOTIFICATION) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.NPC_EXAMINE) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.OBJECT_EXAMINE) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.SNAPSHOTFEEDBACK) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.TENSECTIMEOUT) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.TRADE_SENT) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.TRADEREQ) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else if(type.equals(ChatMessageType.WELCOME) && translateGame)
-            {
-                localTranslator(message, messageNode);
-            }
-            else
-            {
-                if(logErrors)
-                {
-                    logger.log("Unknown message '" + message + "' type: " + type.toString());
-                }
-            }
+        } else {
+            localTranslator(message, messageNode);
         }
     }
     
@@ -327,7 +184,7 @@ public class ChatCapture
         }
     }
     
-    private boolean messageTypeRequiresKey(ChatMessageType type)
+    private boolean messageTypeRequiresApi(ChatMessageType type)
     {
         // checks if the message requires an API key for translating
         if(type.equals(ChatMessageType.AUTOTYPER)
@@ -335,7 +192,6 @@ public class ChatCapture
                 || type.equals(ChatMessageType.CLAN_CHAT)
                 || type.equals(ChatMessageType.CLAN_GIM_CHAT)
                 || type.equals(ChatMessageType.CLAN_GUEST_CHAT)
-                || type.equals(ChatMessageType.BROADCAST)
                 || type.equals(ChatMessageType.MODCHAT)
                 || type.equals(ChatMessageType.MODPRIVATECHAT)
                 || type.equals(ChatMessageType.PRIVATECHAT)

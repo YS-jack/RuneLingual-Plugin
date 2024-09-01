@@ -28,6 +28,7 @@ public enum Colors {
     orange3("ff981f","orange"),
     red("ff0000","red"),
     red2("800000","red"),
+    red3("6800bf","red"),
     white("ffffff","white"),
     white2("9f9f9f","white"),
     yellow("ffff00", "yellow"),

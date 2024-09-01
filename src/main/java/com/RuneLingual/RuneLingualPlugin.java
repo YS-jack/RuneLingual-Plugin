@@ -12,6 +12,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
+import net.runelite.api.GameState;
 import net.runelite.api.events.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
@@ -160,11 +161,11 @@ public class RuneLingualPlugin extends Plugin
 		chatTranslator.setTranslatedDialog(dialogTranscriptManager.translatedTranscript);
 		//chatTranslator.setOnlineTranslator(this::temporaryTranslator);
 		
-		menuCapture.setLogger(this::pluginLog);
-		menuCapture.setActionTranslator(actionTranscriptManager.translatedTranscript);
-		menuCapture.setNpcTranslator(dialogTranscriptManager.translatedTranscript);
-		menuCapture.setObjectTranslator(objectTranscriptManager.translatedTranscript);
-		menuCapture.setItemTranslator(itemTranscriptManager.translatedTranscript);
+//		menuCapture.setLogger(this::pluginLog);
+//		menuCapture.setActionTranslator(actionTranscriptManager.translatedTranscript);
+//		menuCapture.setNpcTranslator(dialogTranscriptManager.translatedTranscript);
+//		menuCapture.setObjectTranslator(objectTranscriptManager.translatedTranscript);
+//		menuCapture.setItemTranslator(itemTranscriptManager.translatedTranscript);
 		// old code ends here (for this method)
 		log.info("RuneLingual started!");
 	}
@@ -252,6 +253,9 @@ public class RuneLingualPlugin extends Plugin
 		if (targetLanguage == LangCodeSelectableList.ENGLISH) {
 			return;
 		}
+		if (client.getGameState() != GameState.LOGGED_IN && client.getGameState() != GameState.HOPPING) {
+			return;
+		}
 		chatTranslator.handleChatMessage(event);
 	}
 	
@@ -304,7 +308,8 @@ public class RuneLingualPlugin extends Plugin
 				dialogTranscriptManager.saveOriginalTranscript();
 			}
 		}
-		
+
+		// need this
 		if(chatTranslator != null)
 		{
 			chatTranslator.updateConfigs();
