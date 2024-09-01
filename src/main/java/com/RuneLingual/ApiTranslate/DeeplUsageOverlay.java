@@ -30,7 +30,7 @@ public class DeeplUsageOverlay  extends Overlay {
 
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (!config.showUsageOverlay() || !config.allowAPI())
+        if (!config.showUsageOverlay())
             return null;
 
         int enCharSize = LangCodeSelectableList.ENGLISH.getCharSize();

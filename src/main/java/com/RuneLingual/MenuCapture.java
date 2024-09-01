@@ -32,7 +32,7 @@ public class MenuCapture
 	private Client client;
 	@Inject
 	private RuneLingualPlugin plugin;
-	
+
 	@Setter
 	private TranscriptManager actionTranslator;
 	@Setter
@@ -41,12 +41,12 @@ public class MenuCapture
 	private TranscriptManager objectTranslator;
 	@Setter
 	private TranscriptManager itemTranslator;
-	
+
 	@Setter
 	private LogHandler logger;
 	private boolean debugMessages = true;
 	private final Colors colorObj = Colors.black;
-    @Inject
+	@Inject
 	private Transformer transformer;
 	@Inject
 	private OutputToFile outputToFile;
@@ -59,25 +59,38 @@ public class MenuCapture
 	}
 
 	private final Colors optionColor = Colors.white;
-	
+
 	// TODO: right click menu title 'Chose Options' - seems to not be directly editable
 
 	public void handleOpenedMenu(MenuOpened event){
 		MenuEntry[] menus = event.getMenuEntries();
-		for(MenuEntry menu : menus){
-			handleMenuEvent(new MenuEntryAdded(menu));
+		for (MenuEntry menu : menus) {
+			if (isGeneralMenu(menu) && plugin.getConfig().getMenuOption().equals(ingameTranslationConfig.USE_LOCAL_DATA)){
+				// if config is set to use local data, it has to be on main thread (for general menus specifically)
+				handleMenuEvent(menu);
+			} else {
+				if (plugin.getConfig().allowAPI()) {
+					Thread thread = new Thread(() -> {
+						handleMenuEvent(menu);
+					});
+					thread.setDaemon(false);
+					thread.start();
+				} else {
+					handleMenuEvent(menu);
+				}
+			}
 		}
+
 	}
-	
-	public void handleMenuEvent(MenuEntryAdded event) {
+
+	public void handleMenuEvent(MenuEntry currentMenu) {
 		// called whenever a right click menu is opened
-		MenuEntry currentMenu = event.getMenuEntry();
 		String[] newMenus = translateMenuAction(currentMenu);
 		String newTarget = newMenus[0];
 		String newOption = newMenus[1];
 
 		// reorder them if it is grammatically correct to do so in that language
-		if(this.plugin.getTargetLanguage().swapMenuOptionAndTarget()) {
+		if(plugin.getTargetLanguage().swapMenuOptionAndTarget()) {
 			String temp = newOption;
 			newOption = newTarget;
 			newTarget = temp;
@@ -93,194 +106,6 @@ public class MenuCapture
 			}
 			currentMenu.setOption(newOption);
 		}
-		//old codes
-		/*
-		try
-		{
-			if(isPlayerMenu(menuType))
-			{
-				translateMenuAction("playeractions", event, menuAction);
-			}
-			else if(isNpcMenu(menuType))
-			{
-				translateMenuAction("npcactions", event, menuAction);
-
-				// translates npc name
-				try
-				{
-					int combatLevel = targetNpc.getCombatLevel();
-					if(combatLevel > 0)
-					{
-						// attackable npcs
-						int levelIndicatorIndex = menuTarget.indexOf('(');
-						if(levelIndicatorIndex != -1)
-						{  // npc has a combat level
-							String actualName = menuTarget.substring(0, levelIndicatorIndex);
-							String newName = npcTranslator.getName(actualName, true);
-
-							String levelIndicator = actionTranslator.getText("npcactions", "level", true);
-							newName += " (" + levelIndicator + "-" + combatLevel + ")";
-							event.getMenuEntry().setTarget(newName);
-						}
-						else
-						{  // npc does not have a combat level
-							String newName = npcTranslator.getName(menuTarget, true);
-							event.getMenuEntry().setTarget(newName);
-						}
-					}
-					else
-					{  // non attackable npcs
-						String newName = npcTranslator.getName(menuTarget, true);
-						event.getMenuEntry().setTarget(newName);
-					}
-
-				}
-				catch(Exception f)
-				{
-					if(debugMessages)
-					{
-						logger.log("Could not translate npc name: "
-			                + menuTarget
-			                + " - "
-				            + f.getMessage());
-					}
-				}
-
-			}
-			else if(isWidgetOnSomething(menuType))
-			{
-				Pair<String, String> result = convertWidgetOnSomething(currentMenu);
-				String itemName = result.getLeft();
-				String useOnX = result.getRight();
-				String newName = itemTranslator.getText("items", itemName, true);
-				if (menuType.equals(MenuAction.WIDGET_TARGET_ON_NPC))
-				{
-					try
-					{
-						int combatLevel = targetNpc.getCombatLevel();
-						if(combatLevel > 0)
-						{
-							// attackable npcs
-							int levelIndicatorIndex = useOnX.indexOf('(');
-							if(levelIndicatorIndex != -1)
-							{  // npc has a combat level
-								String actualName = useOnX.substring(0, levelIndicatorIndex);
-								String NPCname = npcTranslator.getName(actualName, true);
-
-								String levelIndicator = actionTranslator.getText("npcactions", "level", true);
-								useOnX = NPCname + " (" + levelIndicator + "-" + combatLevel + ")";
-								//event.getMenuEntry().setTarget(newName);
-							}
-							else
-							{  // npc does not have a combat level
-								useOnX = npcTranslator.getName(useOnX, true);
-							}
-						}
-						else
-						{  // non attackable npcs
-							useOnX = npcTranslator.getName(useOnX, true);
-						}
-					}
-					catch(Exception f)
-					{
-						if(debugMessages)
-						{
-							logger.log("Could not translate npc name: "
-									+ menuTarget
-									+ " - "
-									+ f.getMessage());
-						}
-					}
-				}
-				else if (menuType.equals(MenuAction.WIDGET_TARGET_ON_GAME_OBJECT))
-				{
-					useOnX = objectTranslator.getText("objects", useOnX, true);
-				}
-				else if (menuType.equals(MenuAction.WIDGET_TARGET_ON_WIDGET) || menuType.equals(MenuAction.WIDGET_TARGET_ON_GROUND_ITEM))
-				{
-					useOnX = itemTranslator.getText("items", useOnX, true);
-				}
-				translateMenuAction("iteminterfaceactions", event, menuAction);
-				event.getMenuEntry().setTarget(newName + " -> " + useOnX);
-			}
-			else if(isObjectMenu(menuType))
-			{
-				translateItemName("objects", event, menuTarget);
-				translateMenuAction("objectactions", event, menuAction);
-			}
-			else if(isItemMenu(menuType))
-			{  // ground item
-				translateItemName("items", event, menuTarget);
-				translateMenuAction("itemactions", event, menuAction);
-			}
-			else if(targetItem != -1)
-			{  // inventory item
-				translateItemName("items", event, menuTarget);
-				translateMenuAction("iteminterfaceactions", event, menuAction);
-			}
-			else if(isGeneralMenu(menuType))
-			{
-				try
-				{
-					String newAction = actionTranslator.getText("generalactions", menuAction, true);
-					event.getMenuEntry().setOption(newAction);
-				}
-				catch(Exception f)
-				{
-					if(debugMessages)
-					{
-						logger.log("Could not translate action: " + f.getMessage());
-					}
-				}
-				try
-				{
-					translateItemName("items", event, menuTarget);
-					translateMenuAction("iteminterfaceaction", event, menuAction);
-				}
-				catch(Exception f)
-				{
-					if(debugMessages)
-					{
-						logger.log("Could not translate action: " + f.getMessage());
-					}
-				}
-			}
-			else
-			{
-				// TODO: this
-				// nor a player or npc
-				logger.log("Menu action:"
-			           + menuAction
-			           + " - Menu target:"
-			           + menuTarget
-			           + "type:"
-			           + event.getMenuEntry().getType());
-
-				/*
-				// tries to translate general actions
-				try
-				{
-					String newAction = actionTranslator.getTranslatedText("generalactions", menuAction, true);
-					event.getMenuEntry().setOption(newAction);
-				}
-				catch(Exception f)
-				{
-
-					logger.logger("Could not translate action: " + f.getMessage());
-
-				} end comment here with * and /
-
-			}
-
-		}
-		catch (Exception e)
-		{
-			if(debugMessages)
-			{
-				logger.log("Critical error happened while processing right click menus: " + e.getMessage());
-			}
-		}
-		*/
 	}
 
 	public String[] translateMenuAction(MenuEntry currentMenu) {
@@ -301,6 +126,8 @@ public class MenuCapture
 		String[] actionWordArray = Colors.getWordArray(menuOption); // eg. ["Attack"]
 		Colors[] actionColorArray = Colors.getColorArray(menuOption, optionColor);
 
+
+
 		menuOptionTransformOption = getTransformOption(this.plugin.getConfig().getMenuOption());
 		// for debug purposes
 		if(!isWalkOrCancel(menuType)){
@@ -317,7 +144,7 @@ public class MenuCapture
 		String[] result = new String[] {};
 		// get translation for both target and option
 		if(isWalkOrCancel(menuType))
-		{// needs to be checked
+		{
 			result = translateWalkOrCancel(menuTarget, menuOption, actionWordArray, actionColorArray, targetWordArray, targetColorArray);
 		}
 		else if (isPlayerMenu(menuType)){
@@ -355,14 +182,10 @@ public class MenuCapture
 			String newOption = translateInventoryItem(itemName, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(menuOption))[1];
 			result = new String[]{newTarget, newOption};
 		} else { // is a general menu
-			//printMenuEntry(event);
+			printMenuEntry(currentMenu);
 			// for debug purposes
-			String source = getSourceNameFromMenu(currentMenu);
-			Ids ids = this.plugin.getIds();
-
 			//outputToFile.menuTarget(menuTarget,SqlVariables.menuInSubCategory.getValue(), source);
 			//outputToFile.menuOption(menuOption,SqlVariables.menuInSubCategory.getValue(), source);
-
 			result = translateGeneralMenu(menuTarget, menuOption, actionWordArray, actionColorArray, targetWordArray, currentMenu);
 		}
 
@@ -373,7 +196,6 @@ public class MenuCapture
 
 		String newTarget = result[0];
 		String newOption = result[1];
-
 
 		return new String[]{newTarget, newOption};
 	}
@@ -489,7 +311,12 @@ public class MenuCapture
 	private String[] translateGeneralMenu(String menuTarget, String menuOption, String[] actionWordArray, Colors[] actionColorArray, String[] targetWordArray, MenuEntry currentMenu){
 		String newTarget, newOption;
 		// check what widget it is in, then set the source column value accordingly
-		String source = getSourceNameFromMenu(currentMenu);
+		String source;
+		if(plugin.getConfig().getMenuOption().equals(ingameTranslationConfig.USE_API) && plugin.getConfig().allowAPI()){
+			source = "";
+		} else {
+			source = getSourceNameFromMenu(currentMenu);
+		}
 
 		SqlQuery actionSqlQuery = new SqlQuery(this.plugin);
 		actionSqlQuery.setMenuAcitons(menuOption, optionColor);
@@ -600,11 +427,11 @@ public class MenuCapture
 
 	private TransformOption getTransformOption(ingameTranslationConfig conf) {
 		TransformOption transformOption;
-		if(conf == ingameTranslationConfig.USE_LOCAL_DATA){
+		if(conf.equals(ingameTranslationConfig.USE_LOCAL_DATA)){
 			transformOption = TransformOption.TRANSLATE_LOCAL;
-		} else if(conf == ingameTranslationConfig.DONT_TRANSLATE){
+		} else if(conf.equals(ingameTranslationConfig.DONT_TRANSLATE)){
 			transformOption = TransformOption.AS_IS;
-		} else if(conf == ingameTranslationConfig.USE_API){
+		} else if(conf.equals(ingameTranslationConfig.USE_API)){
 			transformOption = TransformOption.TRANSLATE_API;
 		} else {
 			transformOption = TransformOption.TRANSLATE_LOCAL;
@@ -660,83 +487,6 @@ public class MenuCapture
 		}
 	}
 
-	private void translateItemName(String source, MenuEntryAdded entryAdded, String target)
-	{
-		if(target.length() == 0)
-		{
-			return;
-		}
-		
-		// translates item name
-		try
-		{
-			String newName = target;
-			if(source.equals("items"))
-			{
-				newName = itemTranslator.getText(source, target, true);
-				entryAdded.getMenuEntry().setTarget(newName);
-			}
-			else if(source.equals("objects"))
-			{
-				newName = objectTranslator.getText(source, target, true);
-				entryAdded.getMenuEntry().setTarget(newName);
-			}
-		}
-		catch(Exception f)
-		{
-			if(debugMessages)
-			{
-				logger.log("Could not translate '"
-		            + source
-			        + "' name: "
-		            + target
-					+ " - "
-					+ f.getMessage());
-			}
-		}
-	}
-	private void translateMenuAction(String actionSource, MenuEntryAdded entryAdded, String target)
-	{
-		// translates menu action
-		try
-		{
-			String newAction = actionTranslator.getText(actionSource, target, true);
-			entryAdded.getMenuEntry().setOption(newAction);
-		}
-		catch(Exception f)
-		{
-			// if current action is not from the informed category
-			// checks if it is a generic action
-			if(!actionSource.equals("generalactions"))
-			{
-				try
-				{
-					translateMenuAction("generalactions", entryAdded, target);
-				}
-				catch(Exception g)
-				{
-					if(debugMessages)
-					{
-						logger.log("Could not translate menu '"
-					        + actionSource
-					        + "' action: "
-					        + target
-					        + " - "
-					        + f.getMessage()
-							+ " - "
-							+ g.getMessage());
-					}
-				}
-			}
-			else if(debugMessages)
-			{
-				logger.log("Could not translate general action menu entry: "
-		            + target
-			        + " - "
-			        + f.getMessage());
-			}
-		}
-	}
 	private Pair<String, String> convertWidgetOnSomething(MenuEntry entry)
 	{
 		String menuTarget = entry.getTarget();
@@ -753,26 +503,27 @@ public class MenuCapture
 		return re.matcher(target).find();
 	}
 
-
-
 	private boolean isWalkOrCancel(MenuAction action)
 	{
 		return ((action.equals(MenuAction.CANCEL))
 				|| (action.equals(MenuAction.WALK)));
 	}
 
-	private boolean isGeneralMenu(MenuEntry menuEntry)
+	public boolean isGeneralMenu(MenuEntry menuEntry)
 	{
 		MenuAction action = menuEntry.getType();
 		// checks if current action target is a menu that introduces general actions
 		return  (!isItemInWidget(menuEntry) &&
-				(action.equals(MenuAction.CC_OP)
-				|| action.equals(MenuAction.CC_OP_LOW_PRIORITY)))
-				|| isWalkOrCancel(action)
-				|| action.equals(MenuAction.RUNELITE_OVERLAY)
-				|| action.equals(MenuAction.RUNELITE);
+					(action.equals(MenuAction.CC_OP)
+						|| action.equals(MenuAction.CC_OP_LOW_PRIORITY)
+						|| isWalkOrCancel(action)
+						|| action.equals(MenuAction.RUNELITE_OVERLAY)
+						|| action.equals(MenuAction.RUNELITE)
+					)
+		);
 	}
-	private boolean isObjectMenu(MenuAction action)
+
+	public boolean isObjectMenu(MenuAction action)
 	{
 		return ((action.equals(MenuAction.EXAMINE_OBJECT))
 				|| (action.equals(MenuAction.GAME_OBJECT_FIRST_OPTION))
@@ -781,7 +532,7 @@ public class MenuCapture
 				|| (action.equals(MenuAction.GAME_OBJECT_FOURTH_OPTION))
 				|| (action.equals(MenuAction.GAME_OBJECT_FIFTH_OPTION)));
 	}
-	private boolean isNpcMenu(MenuAction action)
+	public boolean isNpcMenu(MenuAction action)
 	{
 		return ((action.equals(MenuAction.EXAMINE_NPC))
 				|| (action.equals(MenuAction.NPC_FIRST_OPTION))
@@ -790,7 +541,7 @@ public class MenuCapture
 				|| (action.equals(MenuAction.NPC_FOURTH_OPTION))
 				|| (action.equals(MenuAction.NPC_FIFTH_OPTION)));
 	}
-	private boolean isItemOnGround(MenuAction action)
+	public boolean isItemOnGround(MenuAction action)
 	{
 		return ((action.equals(MenuAction.EXAMINE_ITEM_GROUND))
 				|| (action.equals(MenuAction.GROUND_ITEM_FIRST_OPTION))
@@ -799,7 +550,7 @@ public class MenuCapture
 				|| (action.equals(MenuAction.GROUND_ITEM_FOURTH_OPTION))
 				|| (action.equals(MenuAction.GROUND_ITEM_FIFTH_OPTION)));
 	}
-	private boolean isPlayerMenu(MenuAction action)
+	public boolean isPlayerMenu(MenuAction action)
 	{
 		return ((action.equals(MenuAction.PLAYER_FIRST_OPTION))
 				|| (action.equals(MenuAction.PLAYER_SECOND_OPTION))
@@ -811,7 +562,7 @@ public class MenuCapture
 				|| (action.equals(MenuAction.PLAYER_EIGHTH_OPTION))
 				|| (action.equals(MenuAction.RUNELITE_PLAYER)));
 	}
-	private boolean isWidgetOnSomething(MenuAction action)
+	public boolean isWidgetOnSomething(MenuAction action)
 	{
 		return ((action.equals(MenuAction.WIDGET_TARGET_ON_WIDGET))
 				|| (action.equals(MenuAction.WIDGET_TARGET_ON_GAME_OBJECT))
@@ -820,7 +571,7 @@ public class MenuCapture
 				|| (action.equals(MenuAction.WIDGET_TARGET_ON_PLAYER)));
 	}
 
-	private boolean isItemInWidget(MenuEntry menuEntry){ // todo: needs checking
+	public boolean isItemInWidget(MenuEntry menuEntry){
 		MenuAction action = menuEntry.getType();
 		String target = menuEntry.getTarget();
 		target = Colors.removeColorTag(target);
@@ -834,14 +585,10 @@ public class MenuCapture
 
 		return sqlQuery.getMatching(SqlVariables.columnEnglish, false).length > 0 &&
 				(action.equals(MenuAction.CC_OP)
-				|| action.equals(MenuAction.CC_OP_LOW_PRIORITY)
-				|| action.equals(MenuAction.WIDGET_TARGET)
+						|| action.equals(MenuAction.CC_OP_LOW_PRIORITY)
+						|| action.equals(MenuAction.WIDGET_TARGET)
 				);
 
-	}
-
-	private Widget getWidgetOfMenu(MenuEntry menuEntry){
-		return client.getWidget(menuEntry.getParam1());
 	}
 
 	private boolean isChildWidgetOf(int widgetIdToCheck, MenuEntry menuEntry){

@@ -2,6 +2,8 @@ package com.RuneLingual.MouseOverlays;
 
 import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.RuneLingualPlugin;
+import com.RuneLingual.MenuCapture;
+import com.RuneLingual.commonFunctions.Colors;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import java.awt.Dimension;
@@ -11,6 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.widgets.ComponentID;
@@ -24,6 +27,8 @@ import net.runelite.client.ui.overlay.tooltip.Tooltip;
 import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 
 import com.RuneLingual.MenuCapture;
+
+import static java.lang.Thread.sleep;
 
 /*
  * Copyright (c) 2017, Aria <aria@ar1as.space>
@@ -87,6 +92,8 @@ public class MouseTooltipOverlay extends Overlay
     private final RuneLingualConfig config;
     @Inject
     private RuneLingualPlugin plugin;
+    @Setter
+    private static List<String> attemptedTranslation = Collections.synchronizedList(new ArrayList<>());
 
     @Inject
     MouseTooltipOverlay(Client client, TooltipManager tooltipManager, RuneLingualConfig config, RuneLingualPlugin plugin)
@@ -127,25 +134,109 @@ public class MouseTooltipOverlay extends Overlay
             return null;
         }
 
+        // if is set to be translated with API,
+        if(this.plugin.getConfig().allowAPI()){
+            // only translate if it has been translated before
+            if(haveTranslatedBefore(option, target, menuEntry)) {
+                setMouseHover(menuEntry, true);
+            } else { // dont translate if it hasnt been translated before
+                setMouseHover(menuEntry, false);
+                return null;
+            }
+        } else {
+            // translate with local data if not set to use API
+            setMouseHover(menuEntry, true);
+            return null;
+        }
+        return null;
+    }
+
+    private boolean haveTranslatedBefore(String option, String target, MenuEntry menuEntry){
+        String[] optionWordArray = Colors.getWordArray(option);
+        String[] targetWordArray = Colors.getWordArray(target);
+        boolean optionTranslated = true;
+        boolean targetTranslated = true;
+        // if option is set to be translated with API, check if all elements have been translated before
+        if(plugin.getConfig().getMenuOption().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)){
+            if(!checkAllElementExistInPastTranslation(optionWordArray)){
+                return false;
+            }
+        }
+
+        // if target is item name and that is set to be translated with API,
+        // check if all elements have been translated before
+        if(plugin.getConfig().getItemNames().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
+            && (plugin.getMenuCapture().isItemInWidget(menuEntry) || plugin.getMenuCapture().isItemOnGround(menuEntry.getType()))) {
+            if(!checkAllElementExistInPastTranslation(targetWordArray)){
+                return false;
+            }
+        }
+
+        // if target is object name, check if all elements have been translated before
+        if(plugin.getConfig().getObjectNames().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
+            && plugin.getMenuCapture().isObjectMenu(menuEntry.getType())) {
+            if(!checkAllElementExistInPastTranslation(targetWordArray)){
+                return false;
+            }
+        }
+
+        // if target is npc name, check if all elements have been translated before
+        if(plugin.getConfig().getNPCNames().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
+            && plugin.getMenuCapture().isNpcMenu(menuEntry.getType())) {
+            if(!checkAllElementExistInPastTranslation(targetWordArray)){
+                return false;
+            }
+        }
+
+        // if other target (general menu, walk here, player, etc) is set to be translated with API,
+        // check if all elements have been translated before
+        if(!target.isEmpty() &&
+                plugin.getConfig().getMenuOption().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
+            && !plugin.getMenuCapture().isItemInWidget(menuEntry)
+            && !plugin.getMenuCapture().isItemOnGround(menuEntry.getType())
+            && !plugin.getMenuCapture().isObjectMenu(menuEntry.getType())
+            && !plugin.getMenuCapture().isNpcMenu(menuEntry.getType())) {
+            if(!checkAllElementExistInPastTranslation(targetWordArray)){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean checkAllElementExistInPastTranslation(String[] wordArray){
+        for (String word : wordArray){
+            if(plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(word) == null){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void setMouseHover(MenuEntry menuEntry, boolean transform){
         String newTarget = "";
         String newOption = "";
 
-        MenuCapture menuCapture = this.plugin.getMenuTranslator();;
+        MenuCapture menuCapture = this.plugin.getMenuCapture();
+        // if set not to transform, add the current target and option
+        if (!transform){
+            tooltipManager.addFront(new Tooltip(menuEntry.getOption() + (Strings.isNullOrEmpty(menuEntry.getTarget()) ? "" : " " + menuEntry.getTarget())));
+            return;
+        }
+
+        //otherwise translate the target and option
         String[] newMenus = menuCapture.translateMenuAction(menuEntry);
         if (newMenus != null)
         {
             newTarget = newMenus[0];
             newOption = newMenus[1];
         }
-
         if (this.plugin.getTargetLanguage().swapMenuOptionAndTarget())
         {
             tooltipManager.addFront(new Tooltip((Strings.isNullOrEmpty(newTarget) ? newOption : newTarget + " " + newOption)));
-            //tooltipManager.addFront(new Tooltip("テスト贖罪"));
-            return null;
+            return;
         }
         tooltipManager.addFront(new Tooltip(newOption + (Strings.isNullOrEmpty(newTarget) ? "" : " " + newTarget)));
-        return null;
     }
 
 
@@ -163,11 +254,6 @@ public class MouseTooltipOverlay extends Overlay
         }
 
 //        // Trivial options that don't need to be highlighted, add more as they appear.
-//        String codeWalkHere = japanesePlugin.getJapTransforms().getCharImgTagsFromJapString("ここまで歩く", Colors.white);
-//        String codeCancel = japanesePlugin.getJapTransforms().getCharImgTagsFromJapString("キャンセル", Colors.white);
-//        String codeContinue = japanesePlugin.getJapTransforms().getCharImgTagsFromJapString("続ける", Colors.white);
-//        String codeSlide = japanesePlugin.getJapTransforms().getCharImgTagsFromJapString("スライド", Colors.orange);
-
         if (option.equals("Walk here") || option.equals("Cancel") || option.equals("Continue") || target.contains("Slide"))
             return false;
         if (!config.getMouseHover())

@@ -1,5 +1,6 @@
 package com.RuneLingual.commonFunctions;
 
+import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.nonLatinChar.GeneralFunctions;
 import com.RuneLingual.SQL.SqlVariables;
@@ -77,7 +78,7 @@ public class Transformer {
             }
             //translatedText = this.plugin.getTranscriptActions().getTranslation(text);
         } else if(option == TransformOption.TRANSLATE_API){
-            //return
+            translatedText = sqlQuery.getEnglish();
         } else if(option == TransformOption.TRANSLITERATE){
             //return
         }
@@ -131,7 +132,8 @@ public class Transformer {
             }
             //translatedText = this.plugin.getTranscriptActions().getTranslation(text);
         } else if(option == TransformOption.TRANSLATE_API){
-            //return
+            translatedText = this.plugin.getDeepl().translate(text,
+                    LangCodeSelectableList.ENGLISH ,this.plugin.getConfig().getSelectedLanguage());
         } else if(option == TransformOption.TRANSLITERATE){
             //return
         }
@@ -152,7 +154,7 @@ public class Transformer {
      * 3. recombine into string
      */
     public String transform(String[] texts, Colors[] colors, TransformOption option, SqlQuery sqlQuery, boolean searchAlike){
-        if(Colors.countColorTagsAfterReformat(sqlQuery.getEnglish()) > 1){
+        if(Colors.countColorTagsAfterReformat(sqlQuery.getEnglish()) > 1 && option != TransformOption.TRANSLATE_API){
             return transformEngWithColor(option, sqlQuery, searchAlike);
         }
         StringBuilder transformedTexts = new StringBuilder();
@@ -165,7 +167,7 @@ public class Transformer {
     public String transform(String[] texts, Colors[] colors, TransformOption option, SqlQuery[] sqlQueries, boolean searchAlike){
         StringBuilder transformedTexts = new StringBuilder();
         for(int i = 0; i < texts.length; i++){
-            if(Colors.countColorTagsAfterReformat(sqlQueries[i].getEnglish()) > 1){
+            if(Colors.countColorTagsAfterReformat(sqlQueries[i].getEnglish()) > 1 && option != TransformOption.TRANSLATE_API){
                 transformedTexts.append(transformEngWithColor(option, sqlQueries[i], searchAlike));
             } else {
                 transformedTexts.append(transform(texts[i], colors[i], option, sqlQueries[i], searchAlike));
@@ -188,7 +190,7 @@ public class Transformer {
     public String transform(String[] texts, Colors[] colors, TransformOption[] options, SqlQuery[] sqlQueries, boolean searchAlike){
         StringBuilder transformedTexts = new StringBuilder();
         for(int i = 0; i < texts.length; i++){
-            if(Colors.countColorTagsAfterReformat(sqlQueries[i].getEnglish()) > 1){
+            if(Colors.countColorTagsAfterReformat(sqlQueries[i].getEnglish()) > 1 && options[i] != TransformOption.TRANSLATE_API){
                 transformedTexts.append(transformEngWithColor(options[i], sqlQueries[i], searchAlike));
             } else {
                 transformedTexts.append(transform(texts[i], colors[i], options[i], sqlQueries[i], searchAlike));

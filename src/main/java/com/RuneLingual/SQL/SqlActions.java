@@ -48,21 +48,6 @@ public class SqlActions {
         }
     }
 
-//    public static void tsvToSqlQuery(String url, String tsvFile) {
-//        String user = "sa"; // Change this to your H2 database username
-//        String password = ""; // Change this to your H2 database password
-//        //String tsvFile = "/path/to/your/file.tsv"; // Change this to your TSV file path
-//        try (Connection conn = DriverManager.getConnection(url)) {
-//            String sql = "INSERT INTO "+ tableName + " SELECT * FROM CSVREAD('" + tsvFile + "', null, 'fieldSeparator=\\t')";
-//
-//            try (Statement stmt = conn.createStatement()) {
-//                stmt.execute(sql);
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
 
     public void tsvToSqlDatabase(String[] tsvFiles, String tsvFolderPath){
         // note: table must exist before calling this function

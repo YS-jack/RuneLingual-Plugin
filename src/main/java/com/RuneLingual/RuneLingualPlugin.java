@@ -4,7 +4,6 @@ import com.RuneLingual.ApiTranslate.*;
 import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
-import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.google.inject.Provides;
 import javax.inject.Inject;
@@ -13,7 +12,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
-import net.runelite.api.MenuEntry;
 import net.runelite.api.events.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
@@ -41,6 +39,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 @Slf4j
@@ -83,7 +82,7 @@ public class RuneLingualPlugin extends Plugin
 	@Inject
 	private DialogCapture dialogTranslator;
 	@Inject @Getter
-	private MenuCapture menuTranslator;
+	private MenuCapture menuCapture;
 	@Inject
 	private GroundItems groundItemsTranslator;
 	@Inject
@@ -161,11 +160,11 @@ public class RuneLingualPlugin extends Plugin
 		chatTranslator.setTranslatedDialog(dialogTranscriptManager.translatedTranscript);
 		//chatTranslator.setOnlineTranslator(this::temporaryTranslator);
 		
-		menuTranslator.setLogger(this::pluginLog);
-		menuTranslator.setActionTranslator(actionTranscriptManager.translatedTranscript);
-		menuTranslator.setNpcTranslator(dialogTranscriptManager.translatedTranscript);
-		menuTranslator.setObjectTranslator(objectTranscriptManager.translatedTranscript);
-		menuTranslator.setItemTranslator(itemTranscriptManager.translatedTranscript);
+		menuCapture.setLogger(this::pluginLog);
+		menuCapture.setActionTranslator(actionTranscriptManager.translatedTranscript);
+		menuCapture.setNpcTranslator(dialogTranscriptManager.translatedTranscript);
+		menuCapture.setObjectTranslator(objectTranscriptManager.translatedTranscript);
+		menuCapture.setItemTranslator(itemTranscriptManager.translatedTranscript);
 		// old code ends here (for this method)
 		log.info("RuneLingual started!");
 	}
@@ -235,7 +234,7 @@ public class RuneLingualPlugin extends Plugin
 //			e.setOption(generalFunctions.StringToTags(testString, Colors.fromName("black")));
 //		}
 
-		menuTranslator.handleOpenedMenu(event);
+		menuCapture.handleOpenedMenu(event);
 	}
 	
 	@Subscribe
@@ -268,7 +267,8 @@ public class RuneLingualPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		if(targetLanguage != config.getSelectedLanguage()){ // if language is changed
+		// if language is changed
+		if(targetLanguage != config.getSelectedLanguage()){
 			targetLanguage = config.getSelectedLanguage();
 			initLangFiles();
 			// todo: change the database URL and the connection to it
@@ -288,6 +288,8 @@ public class RuneLingualPlugin extends Plugin
 				charImageInit.loadCharImages();
 			}
 
+			// reset language specific variables
+			MouseTooltipOverlay.setAttemptedTranslation(new ArrayList<>());
 
 			restartPanel();
 		}
