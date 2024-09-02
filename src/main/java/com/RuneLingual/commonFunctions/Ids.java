@@ -60,7 +60,7 @@ public class Ids {
         if(w != null) {
             return w.getParentId();
         }
-        log.info("parent of ComponentID.COMBAT_LEVEL is null");
+        //log.info("parent of ComponentID.COMBAT_LEVEL is null");
         return -1;
     }
 
@@ -69,7 +69,7 @@ public class Ids {
         if(w != null) {
             return w.getParent().getParent().getParentId();
         }
-        log.info("parent^3 of ComponentID.ACHIEVEMENT_DIARY_CONTAINER is null");
+        //log.info("parent^3 of ComponentID.ACHIEVEMENT_DIARY_CONTAINER is null");
         return -1;
     }
 
@@ -78,7 +78,7 @@ public class Ids {
         if(w != null) {
             return w.getParentId();
         }
-        log.info("parent of ComponentID.FRIEND_LIST_TITLE is null");
+        //log.info("parent of ComponentID.FRIEND_LIST_TITLE is null");
         return -1;
     }
 
@@ -87,7 +87,7 @@ public class Ids {
         if(w != null) {
             return w.getParentId();
         }
-        log.info("parent of ComponentID.IGNORE_LIST_TITLE is null");
+        //log.info("parent of ComponentID.IGNORE_LIST_TITLE is null");
         return -1;
     }
 
@@ -96,7 +96,7 @@ public class Ids {
         if(w != null) {
             return w.getParentId();
         }
-        log.info("parent of ComponentID.CHARACTER_SUMMARY_CONTAINER is null");
+        //log.info("parent of ComponentID.CHARACTER_SUMMARY_CONTAINER is null");
         return -1;
     }
 }

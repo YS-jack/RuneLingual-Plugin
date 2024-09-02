@@ -22,6 +22,7 @@ public class Transformer {
         TRANSLATE_LOCAL,
         TRANSLATE_API,
         TRANSLITERATE,
+        TRANSFORM, // such as from alphabet to kanji, like neko -> 猫
     }
 
     @Inject

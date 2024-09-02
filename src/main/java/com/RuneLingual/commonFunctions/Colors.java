@@ -245,6 +245,10 @@ public enum Colors {
         return str.replaceAll("<(?!img|>).*?>", "");
     }
 
+    public static String removeAllTags(String str) {
+        return str.replaceAll("<.*?>", "");
+    }
+
     public static String enumerateColorsInColWord(String colWord) {
         Pattern re = Pattern.compile("<col[=a-zA-Z0-9]*?>");
         String[] parts = re.split(colWord);
@@ -259,6 +263,7 @@ public enum Colors {
     }
 
     public static List<String> getColorTagsAsIs(String strWithColor) {
+        // supports abnormal color tags such as <colHIGHLIGHT>, as long as its only numbers and alphabets, no symbols
         List<String> matches = new ArrayList<>();
         Pattern pattern = Pattern.compile("<col[=a-zA-Z0-9]*?>");
         Matcher matcher = pattern.matcher(strWithColor);

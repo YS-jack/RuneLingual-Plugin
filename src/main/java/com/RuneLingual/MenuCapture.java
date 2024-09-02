@@ -164,7 +164,7 @@ public class MenuCapture
 			result = translateInventoryItem(menuTarget, menuOption, actionWordArray, actionColorArray, targetWordArray);
 		}
 		else if(isWidgetOnSomething(menuType)){ // needs checking
-			printMenuEntry(currentMenu);
+			//printMenuEntry(currentMenu);
 			Pair<String, String> results = convertWidgetOnSomething(currentMenu);
 			String itemName = results.getLeft();
 			String useOnX = results.getRight();
@@ -183,7 +183,8 @@ public class MenuCapture
 			String newOption = translateInventoryItem(itemName, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(menuOption))[1];
 			result = new String[]{newTarget, newOption};
 		} else { // is a general menu
-			printMenuEntry(currentMenu);
+			//printMenuEntry(currentMenu);
+
 			// for debug purposes
 			//outputToFile.menuTarget(menuTarget,SqlVariables.menuInSubCategory.getValue(), source);
 			//outputToFile.menuOption(menuOption,SqlVariables.menuInSubCategory.getValue(), source);
@@ -407,7 +408,7 @@ public class MenuCapture
 		} else if(isChildWidgetOf(ids.getMusicTabParentWidgetId(), menu)){
 			source = SqlVariables.musicTabInSource.getValue();
 		}
-		log.info("source: " + source);
+		//log.info("source: " + source);
 		return source;
 	}
 

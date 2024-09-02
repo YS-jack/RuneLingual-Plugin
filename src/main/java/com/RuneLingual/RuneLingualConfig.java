@@ -231,8 +231,8 @@ public interface RuneLingualConfig extends Config
 
 	final int offset_section4 = 60;
 	@ConfigSection(
-			name = "Specific Player Settings",
-			description = "Options for specific players",
+			name = "Forceful Player Settings",
+			description = "Options for specific players. This will take priority over other settings in this order",
 			position = offset_section4,
 			closedByDefault = false
 	)
@@ -425,7 +425,8 @@ public interface RuneLingualConfig extends Config
 			name = "Local file location",
 			description = "Location of the files to be translated",
 			keyName = "fileLocation",
-			position = 200 + offset
+			position = 200 + offset,
+			secret = true
 	)
 	default String getFileLocation() {return RuneLite.RUNELITE_DIR.getPath() + File.separator + "RuneLingual_resources";}
 
