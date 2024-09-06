@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.MessageNode;
 import net.runelite.api.ChatMessageType;
-import net.runelite.api.Varbits;
 import net.runelite.api.events.ChatMessage;
 
 import javax.inject.Inject;
@@ -243,53 +242,74 @@ public class ChatCapture
             return TransformOption.TRANSFORM;
 
         // if possible, check what chat im typing into, and decide with that
-//        //if its by the player themselves
-//        if (Objects.equals(playerName, client.getLocalPlayer().getName()))
-//            switch (config.selfConfig()) {
-//                case そのまま表示:
-//                    return transformOptions.doNothing;
-//                case ローマ字変換:
-//                    return transformOptions.alpToJap;
-//            }
+        //if its by the player themselves
+        if (Objects.equals(playerName, client.getLocalPlayer().getName()))
+            switch (config.getMyChatConfig()) {
+                case TRANSFORM:
+                    return TransformOption.TRANSFORM;
+                case LEAVE_AS_IS:
+                    return TransformOption.AS_IS;
+            }
 
-        //if its from a friend
-//        boolean isFriend = client.isFriended(playerName,true);
-//        if (isFriend)
-//            switch (japanesePlugin.config.friendConfig()) {
-//                case ローマ字変換:
-//                    return transformOptions.alpToJap;
-//                case そのまま表示:
-//                    return transformOptions.doNothing;
+        // if its from a friend
+        boolean isFriend = client.isFriended(playerName,true);
+        if (isFriend)
+            switch (config.getAllFriendsConfig()) {
+                case TRANSFORM:
+                    return TransformOption.TRANSFORM;
+                case LEAVE_AS_IS:
+                    return TransformOption.AS_IS;
 //                case 簡易翻訳:
 //                    return transformOptions.wordToWord;
-//                case DeepL翻訳:
-//                    return transformOptions.API;
-//            }
-//        switch (chatMessage.getType()){
-//            case PUBLICCHAT:
-//                return getChatsChatConfig(japanesePlugin.config.publicConfig());
-//            case CLAN_CHAT:
-//                return getChatsChatConfig(japanesePlugin.config.clanConfig());
-//            case CLAN_GUEST_CHAT:
-//                return getChatsChatConfig(japanesePlugin.config.clanGuestConfig());
-//            case FRIENDSCHAT:
-//                return getChatsChatConfig(japanesePlugin.config.friendChatConfig());
-//            case CLAN_GIM_CHAT:
-//
-//                if (!Objects.equals(playerName, "null") && !playerName.isEmpty())
-//                    return getChatsChatConfig(japanesePlugin.config.gimConfig());
-//
-//            default://if its examine, engine, etc
-//                switch (japanesePlugin.config.gameMessageConfig()) {
-//                    case そのまま:
-//                        return transformOptions.doNothing;
-//                    case 簡易翻訳:
-//                        return transformOptions.wordToWord;
-//                    case DeepL翻訳:
-//                        return transformOptions.API;
-//                }
-//        }
+                case USE_API:
+                    return TransformOption.TRANSLATE_API;
+            }
+        switch (chatMessage.getType()){
+            case PUBLICCHAT:
+                return getChatsChatConfig(config.getPublicChatConfig());
+            case CLAN_CHAT:
+                return getChatsChatConfig(config.getClanChatConfig());
+            case CLAN_GUEST_CHAT:
+                return getChatsChatConfig(config.getGuestClanChatConfig());
+            case FRIENDSCHAT:
+                return getChatsChatConfig(config.getFriendsChatConfig());
+            case CLAN_GIM_CHAT:
+                if (!Objects.equals(playerName, "null") && !playerName.isEmpty())
+                    return getChatsChatConfig(config.getGIMChatConfig());
+
+            default://if its examine, engine, etc
+                switch (config.getGameMessagesConfig()) {
+                    case DONT_TRANSLATE:
+                        return TransformOption.AS_IS;
+                    case USE_LOCAL_DATA:
+                        return TransformOption.TRANSLATE_LOCAL;
+                    case USE_API:
+                        return TransformOption.TRANSLATE_API;
+                }
+        }
         return TransformOption.AS_IS;
+    }
+
+    private TransformOption getChatsChatConfig(RuneLingualConfig.chatConfig chatConfig) {
+        switch (chatConfig) {
+            case TRANSFORM:
+                return TransformOption.TRANSFORM;
+            case LEAVE_AS_IS:
+                return TransformOption.AS_IS;
+//            case 簡易翻訳:
+//                return transformOptions.wordToWord;
+            case USE_API:
+                return TransformOption.TRANSLATE_API;
+            default:
+                switch (config.getGameMessagesConfig()) {
+                    case USE_API:
+                        return TransformOption.TRANSLATE_API;
+                    case USE_LOCAL_DATA:
+                        return TransformOption.TRANSLATE_LOCAL;
+                    default:
+                        return TransformOption.AS_IS;
+                }
+        }
     }
 
     private boolean isInConfigList(String item, String arrayInString) {

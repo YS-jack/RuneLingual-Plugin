@@ -46,6 +46,61 @@ public interface RuneLingualConfig extends Config
 
 
 
+	final int offset = 5;
+	String GROUP = "lingualConfig";
+	@ConfigSection(
+			name = "Dynamic translating",
+			description = "Online translation options",
+			position = 1 + offset,
+			closedByDefault = false
+	)
+	String SECTION_CHAT_SETTINGS = "chatSettings";
+
+
+	@ConfigItem(
+			name = "Enable Online Translation",
+			description = "whether to translate using online services",
+			section = SECTION_CHAT_SETTINGS,
+			keyName = "enableAPI",
+			position = 2 + offset
+	)
+	default boolean ApiConfig() {return false;}
+
+	@ConfigItem(
+			name = "Translating service",
+			description = "Select your preferred translation service",
+			section = SECTION_CHAT_SETTINGS,
+			keyName = "translatingService",
+			position = 3 + offset
+	)
+	default TranslatingServiceSelectableList getApiServiceConfig() {return TranslatingServiceSelectableList.DeepL;}
+
+	@ConfigItem(
+			name = "Service API Key",
+			description = "Your API key for the chosen translating service",
+			section = SECTION_CHAT_SETTINGS,
+			keyName = "APIKey",
+			position = 4 + offset,
+			secret = true
+			//hidden = true
+	)
+	default String getAPIKey() {return "";}
+
+	@ConfigItem(
+			name = "Enable Word Count Overlay",
+			description = "whether to show how many characters you have used",
+			section = SECTION_CHAT_SETTINGS,
+			keyName = "enableUsageOverlay",
+			position = 2 + offset
+	)
+	default boolean showUsageOverlayConfig() {return true;}
+
+
+
+
+
+
+
 	int offset_section2 = 20;
 	@ConfigSection(
 			name = "Game system text",
@@ -70,7 +125,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "npcDialogue",
 			section = SECTION_GAME_SYSTEM_TEXT
 	)
-	default ingameTranslationConfig getNpcDialogue() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+	default ingameTranslationConfig getNpcDialogueConfig() {return ingameTranslationConfig.USE_LOCAL_DATA;}
 
 	@ConfigItem(
 			name = "Game Messages",
@@ -79,7 +134,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "gameMessages",
 			section = SECTION_GAME_SYSTEM_TEXT
 	)
-	default ingameTranslationConfig getGameMessages() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+	default ingameTranslationConfig getGameMessagesConfig() {return ingameTranslationConfig.USE_LOCAL_DATA;}
 
 	@ConfigItem(
 			name = "Item Names",
@@ -88,7 +143,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "itemNames",
 			section = SECTION_GAME_SYSTEM_TEXT
 	)
-	default ingameTranslationConfig getItemNames() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+	default ingameTranslationConfig getItemNamesConfig() {return ingameTranslationConfig.USE_LOCAL_DATA;}
 
 	@ConfigItem(
 			name = "NPC Names",
@@ -97,7 +152,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "NPCNames",
 			section = SECTION_GAME_SYSTEM_TEXT
 	)
-	default ingameTranslationConfig getNPCNames() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+	default ingameTranslationConfig getNPCNamesConfig() {return ingameTranslationConfig.USE_LOCAL_DATA;}
 
 	@ConfigItem(
 			name = "Object Names",
@@ -106,7 +161,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "objectNames",
 			section = SECTION_GAME_SYSTEM_TEXT
 	)
-	default ingameTranslationConfig getObjectNames() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+	default ingameTranslationConfig getObjectNamesConfig() {return ingameTranslationConfig.USE_LOCAL_DATA;}
 
 	@ConfigItem(
 			name = "Interfaces",
@@ -115,7 +170,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "interfaceText",
 			section = SECTION_GAME_SYSTEM_TEXT
 	)
-	default ingameTranslationConfig getInterfaceText() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+	default ingameTranslationConfig getInterfaceTextConfig() {return ingameTranslationConfig.USE_LOCAL_DATA;}
 
 	@ConfigItem(
 			name = "Mouse Menu Options",
@@ -124,7 +179,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "menuOption",
 			section = SECTION_GAME_SYSTEM_TEXT
 	)
-	default ingameTranslationConfig getMenuOption() {return ingameTranslationConfig.USE_LOCAL_DATA;}
+	default ingameTranslationConfig getMenuOptionConfig() {return ingameTranslationConfig.USE_LOCAL_DATA;}
 
 	@ConfigItem(
 			name = "Enable Mouse Hover Text",
@@ -133,7 +188,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "overheadText",
 			section = SECTION_GAME_SYSTEM_TEXT
 	)
-	default boolean getMouseHover() {return true;}
+	default boolean getMouseHoverConfig() {return true;}
 
 
 
@@ -146,29 +201,16 @@ public interface RuneLingualConfig extends Config
 		USE_API, // eg: I like dogs -> 私は犬が好き
 		LEAVE_AS_IS, // eg: I like dogs -> I like dogs
 	}
-	enum chatSelfConfig
-	{
-		TRANSFORM,
-		LEAVE_AS_IS,
-	}
+
 
 	final int offset_section3 = 40;
 	@ConfigSection(
-			name = "Chat messages",
+			name = "Others' Chat messages",
 			description = "Options for chat messages",
 			position = offset_section3,
 			closedByDefault = false
 	)
 	String SECTION_CHAT_MESSAGES = "chatMessages";
-
-	@ConfigItem(
-			name = "My Messages",
-			description = "Option for your own messages",
-			position = 1 + offset_section3,
-			keyName = "myChat",
-			section = SECTION_CHAT_MESSAGES
-	)
-	default chatSelfConfig getMyChat() {return chatSelfConfig.TRANSFORM;}
 
 	@ConfigItem(
 			name = "All Friends",
@@ -177,7 +219,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "allFriends",
 			section = SECTION_CHAT_MESSAGES
 	)
-	default chatConfig getAllFriends() {return chatConfig.LEAVE_AS_IS;}
+	default chatConfig getAllFriendsConfig() {return chatConfig.LEAVE_AS_IS;}
 
 	@ConfigItem(
 			name = "Public",
@@ -186,7 +228,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "publicChat",
 			section = SECTION_CHAT_MESSAGES
 	)
-	default chatConfig getPublicChat() {return chatConfig.LEAVE_AS_IS;}
+	default chatConfig getPublicChatConfig() {return chatConfig.LEAVE_AS_IS;}
 
 	@ConfigItem(
 			name = "Clan",
@@ -195,7 +237,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "clanChat",
 			section = SECTION_CHAT_MESSAGES
 	)
-	default chatConfig getClanChat() {return chatConfig.LEAVE_AS_IS;}
+	default chatConfig getClanChatConfig() {return chatConfig.LEAVE_AS_IS;}
 
 	@ConfigItem(
 			name = "Guest Clan",
@@ -204,7 +246,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "guestClanChat",
 			section = SECTION_CHAT_MESSAGES
 	)
-	default chatConfig getGuestClanChat() {return chatConfig.LEAVE_AS_IS;}
+	default chatConfig getGuestClanChatConfig() {return chatConfig.LEAVE_AS_IS;}
 
 	@ConfigItem(
 			name = "Friends Chat",
@@ -213,7 +255,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "friendsChat",
 			section = SECTION_CHAT_MESSAGES
 	)
-	default chatConfig getFriendsChat() {return chatConfig.LEAVE_AS_IS;}
+	default chatConfig getFriendsChatConfig() {return chatConfig.LEAVE_AS_IS;}
 
 	@ConfigItem(
 			name = "GIM Group",
@@ -222,18 +264,77 @@ public interface RuneLingualConfig extends Config
 			keyName = "GIMChat",
 			section = SECTION_CHAT_MESSAGES
 	)
-	default chatConfig getGIMChat() {return chatConfig.LEAVE_AS_IS;}
+	default chatConfig getGIMChatConfig() {return chatConfig.LEAVE_AS_IS;}
+
+
+	enum chatSelfConfig
+	{
+		TRANSFORM,
+		LEAVE_AS_IS,
+	}
+
+	int offset_section4 = 60;
+	@ConfigSection(
+			name = "My Chat messages",
+			description = "Options for chat messages",
+			position = offset_section4,
+			closedByDefault = false
+	)
+	String SECTION_MY_CHAT_MESSAGES = "myChatMessages";
+
+	@ConfigItem(
+			name = "Me in Public",
+			description = "Option for your own messages in Public chat",
+			position = 1 + offset_section4,
+			keyName = "myChatConfig",
+			section = SECTION_MY_CHAT_MESSAGES
+	)
+	default chatSelfConfig getMyChatConfig() {return chatSelfConfig.TRANSFORM;}
+
+	@ConfigItem(
+			name = "Me in Friends Chat",
+			description = "Option for your own messages in Friends chat",
+			position = 2 + offset_section4,
+			keyName = "myFcConfig",
+			section = SECTION_MY_CHAT_MESSAGES
+	)
+	default chatSelfConfig getMyFcConfig() {return chatSelfConfig.TRANSFORM;}
+
+	@ConfigItem(
+			name = "Me in Clan",
+			description = "Option for your own messages in Clan chat",
+			position = 3 + offset_section4,
+			keyName = "myClanConfig",
+			section = SECTION_MY_CHAT_MESSAGES
+	)
+	default chatSelfConfig getMyClanConfig() {return chatSelfConfig.TRANSFORM;}
+
+	@ConfigItem(
+			name = "Me in Guest Clan",
+			description = "Option for your own messages in Guest Clan chat",
+			position = 4 + offset_section4,
+			keyName = "myGuestClanConfig",
+			section = SECTION_MY_CHAT_MESSAGES
+	)
+	default chatSelfConfig getMyGuestClanConfig() {return chatSelfConfig.TRANSFORM;}
+
+	@ConfigItem(
+			name = "Me in GIM",
+			description = "Option for your own messages in GIM chat",
+			position = 5 + offset_section4,
+			keyName = "myGimConfig",
+			section = SECTION_MY_CHAT_MESSAGES
+	)
+	default chatSelfConfig getMyGIMConfig() {return chatSelfConfig.TRANSFORM;}
 
 
 
 
-
-
-	final int offset_section4 = 60;
+	final int offset_section5 = 80;
 	@ConfigSection(
 			name = "Forceful Player Settings",
 			description = "Options for specific players. This will take priority over other settings in this order",
-			position = offset_section4,
+			position = offset_section5,
 			closedByDefault = false
 	)
 	String SECTION_SPECIFIC_PLAYER_SETTINGS = "specificPlayerSettings";
@@ -241,7 +342,7 @@ public interface RuneLingualConfig extends Config
 	@ConfigItem(
 			name = "Don't translate",
 			description = "Specific players to not translate",
-			position = 1 + offset_section4,
+			position = 1 + offset_section5,
 			keyName = "specificDontTranslate",
 			section = SECTION_SPECIFIC_PLAYER_SETTINGS
 	)
@@ -250,7 +351,7 @@ public interface RuneLingualConfig extends Config
 	@ConfigItem(
 			name = "Translate with APIs",
 			description = "Specific players to translate using online translators",
-			position = 2 + offset_section4,
+			position = 2 + offset_section5,
 			keyName = "specificApiTranslate",
 			section = SECTION_SPECIFIC_PLAYER_SETTINGS
 	)
@@ -259,7 +360,7 @@ public interface RuneLingualConfig extends Config
 	@ConfigItem(
 			name = "Transform",
 			description = "Specific players to transform",
-			position = 3 + offset_section4,
+			position = 3 + offset_section5,
 			keyName = "specificTransform",
 			section = SECTION_SPECIFIC_PLAYER_SETTINGS
 	)
@@ -268,56 +369,6 @@ public interface RuneLingualConfig extends Config
 
 
 
-
-
-	final int offset = 100;
-	String GROUP = "lingualConfig";
-	@ConfigSection(
-			name = "Dynamic translating",
-			description = "Online translation options",
-			position = 1 + offset,
-			closedByDefault = false
-	)
-	String SECTION_CHAT_SETTINGS = "chatSettings";
-
-
-	@ConfigItem(
-			name = "Enable Online Translation",
-			description = "whether to translate using online services",
-			section = SECTION_CHAT_SETTINGS,
-			keyName = "enableAPI",
-			position = 2 + offset
-	)
-	default boolean allowAPI() {return false;}
-
-	@ConfigItem(
-			name = "Translating service",
-			description = "Select your preferred translation service",
-			section = SECTION_CHAT_SETTINGS,
-			keyName = "translatingService",
-			position = 3 + offset
-	)
-	default TranslatingServiceSelectableList getService() {return TranslatingServiceSelectableList.DeepL;}
-
-	@ConfigItem(
-			name = "Service API Key",
-			description = "Your API key for the chosen translating service",
-			section = SECTION_CHAT_SETTINGS,
-			keyName = "APIKey",
-			position = 4 + offset,
-			secret = true
-			//hidden = true
-	)
-	default String getAPIKey() {return "";}
-
-	@ConfigItem(
-			name = "Enable Word Count Overlay",
-			description = "whether to show how many characters you have used",
-			section = SECTION_CHAT_SETTINGS,
-			keyName = "enableUsageOverlay",
-			position = 2 + offset
-	)
-	default boolean showUsageOverlay() {return true;}
 
 
 

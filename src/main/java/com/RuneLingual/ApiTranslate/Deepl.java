@@ -106,9 +106,9 @@ public class Deepl {
     }
 
     private String getBaseUrl() {
-        if (Objects.equals(config.getService().getServiceName(), TranslatingServiceSelectableList.DeepL.getServiceName())) {
+        if (Objects.equals(config.getApiServiceConfig().getServiceName(), TranslatingServiceSelectableList.DeepL.getServiceName())) {
             return "https://api-free.deepl.com/v2/";
-        } else if (Objects.equals(config.getService().getServiceName(), TranslatingServiceSelectableList.DeepL_PRO.getServiceName())) {
+        } else if (Objects.equals(config.getApiServiceConfig().getServiceName(), TranslatingServiceSelectableList.DeepL_PRO.getServiceName())) {
             return "https://api.deepl.com/v2/";
         } else {
             return "";

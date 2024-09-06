@@ -7,7 +7,6 @@ import com.RuneLingual.SQL.SqlVariables;
 import com.RuneLingual.SQL.SqlQuery;
 
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.Client;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
@@ -65,11 +64,11 @@ public class MenuCapture
 	public void handleOpenedMenu(MenuOpened event){
 		MenuEntry[] menus = event.getMenuEntries();
 		for (MenuEntry menu : menus) {
-			if (isGeneralMenu(menu) && plugin.getConfig().getMenuOption().equals(ingameTranslationConfig.USE_LOCAL_DATA)){
+			if (isGeneralMenu(menu) && plugin.getConfig().getMenuOptionConfig().equals(ingameTranslationConfig.USE_LOCAL_DATA)){
 				// if config is set to use local data, it has to be on main thread (for general menus specifically)
 				handleMenuEvent(menu);
 			} else {
-				if (plugin.getConfig().allowAPI() &&
+				if (plugin.getConfig().ApiConfig() &&
 						!plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedBefore(menu.getOption(), menu.getTarget(), menu)){
 					Thread thread = new Thread(() -> {
 						handleMenuEvent(menu);
@@ -129,7 +128,7 @@ public class MenuCapture
 
 
 
-		menuOptionTransformOption = getTransformOption(this.plugin.getConfig().getMenuOption());
+		menuOptionTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
 		// for debug purposes
 		if(!isWalkOrCancel(menuType)){
 			//printMenuEntry(currentMenu);
@@ -215,7 +214,7 @@ public class MenuCapture
 		if(Colors.removeColorTag(menuTarget).isEmpty()) {
 			newTarget = "";
 		} else {
-			TransformOption menuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOption());
+			TransformOption menuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
 			if(hasLevel(menuTarget)){
 				// if walk has a target with level, its a player
 				newTarget = translatePlayerTargetPart(targetWordArray, targetColorArray);
@@ -246,7 +245,7 @@ public class MenuCapture
 		String newTarget, newOption;
 		SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
 		SqlQuery actionSqlQuery = new SqlQuery(this.plugin);
-		TransformOption npcTransformOption = getTransformOption(this.plugin.getConfig().getNPCNames());
+		TransformOption npcTransformOption = getTransformOption(this.plugin.getConfig().getNPCNamesConfig());
 		if(hasLevel(menuTarget)){
 			// if npc has a level, translate the name and level separately
 			targetSqlQuery.setNpcName(targetWordArray[0], targetColorArray[0]);
@@ -274,7 +273,7 @@ public class MenuCapture
 
 		Colors[] targetColorArray = Colors.getColorArray(menuTarget, Colors.lightblue); //default color is not the same as initial definition
 
-		TransformOption	objectTransformOption = getTransformOption(this.plugin.getConfig().getObjectNames());
+		TransformOption	objectTransformOption = getTransformOption(this.plugin.getConfig().getObjectNamesConfig());
 		String newTarget = transformer.transform(targetWordArray, targetColorArray, objectTransformOption, targetSqlQuery, false);
 		String newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
 
@@ -289,7 +288,7 @@ public class MenuCapture
 
 		Colors[] targetColorArray = Colors.getColorArray(menuTarget, Colors.orange); //default color is not the same as initial definition
 
-		TransformOption itemTransformOption = getTransformOption(this.plugin.getConfig().getItemNames());
+		TransformOption itemTransformOption = getTransformOption(this.plugin.getConfig().getItemNamesConfig());
 		String newTarget = transformer.transform(targetWordArray, targetColorArray, itemTransformOption, targetSqlQuery, false);
 		String newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
 		return new String[] {newTarget, newOption};
@@ -304,7 +303,7 @@ public class MenuCapture
 
 		Colors[] targetColorArray = Colors.getColorArray(menuTarget, Colors.orange); //default color is not the same as initial definition
 
-		TransformOption itemTransformOption = getTransformOption(this.plugin.getConfig().getItemNames());
+		TransformOption itemTransformOption = getTransformOption(this.plugin.getConfig().getItemNamesConfig());
 		String newTarget = transformer.transform(targetWordArray, targetColorArray, itemTransformOption, targetSqlQuery, false);
 		String newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
 		return new String[] {newTarget, newOption};
@@ -314,7 +313,7 @@ public class MenuCapture
 		String newTarget, newOption;
 		// check what widget it is in, then set the source column value accordingly
 		String source;
-		if(plugin.getConfig().getMenuOption().equals(ingameTranslationConfig.USE_API) && plugin.getConfig().allowAPI()){
+		if(plugin.getConfig().getMenuOptionConfig().equals(ingameTranslationConfig.USE_API) && plugin.getConfig().ApiConfig()){
 			source = "";
 		} else {
 			source = getSourceNameFromMenu(currentMenu);
@@ -340,7 +339,7 @@ public class MenuCapture
 			targetSqlQuery.setSubCategory(SqlVariables.menuInSubCategory.getValue());
 			targetSqlQuery.setSource(source);
 
-			TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOption());
+			TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
 			Colors[] targetColorArray = Colors.getColorArray(menuTarget, Colors.orange); //default color is not the same as initial definition
 			newTarget = transformer.transform(targetWordArray, targetColorArray, generalMenuTransformOption, targetSqlQuery, false);
 		}
@@ -353,7 +352,7 @@ public class MenuCapture
 		targetSqlQuery.setCategory(SqlVariables.manualInCategory.getValue());
 		targetSqlQuery.setSubCategory(SqlVariables.questInSubCategory.getValue());
 
-		TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOption());
+		TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
 		// color is not possible to obtain by simple means, so its just orange for now
 		return transformer.transform(questName, Colors.orange, generalMenuTransformOption, targetSqlQuery, false);
 	}
@@ -419,7 +418,7 @@ public class MenuCapture
 		levelQuery.setPlayerLevel();
 		Transformer transformer = new Transformer(this.plugin);
 
-		TransformOption option = getTransformOption(this.plugin.getConfig().getGameMessages());
+		TransformOption option = getTransformOption(this.plugin.getConfig().getGameMessagesConfig());
 
 		String levelTranslation = transformer.transform(levelQuery.getEnglish(), color, option, levelQuery, false);
 		String openBracket = transformer.transform("(", color, TransformOption.AS_IS, null, false);

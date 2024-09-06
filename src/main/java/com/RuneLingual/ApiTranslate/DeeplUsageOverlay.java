@@ -9,7 +9,6 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import javax.inject.Inject;
 import java.awt.*;
 
@@ -30,7 +29,7 @@ public class DeeplUsageOverlay  extends Overlay {
 
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (!config.showUsageOverlay())
+        if (!config.showUsageOverlayConfig())
             return null;
 
         int enCharSize = LangCodeSelectableList.ENGLISH.getCharSize();

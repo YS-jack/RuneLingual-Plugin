@@ -3,30 +3,22 @@ package com.RuneLingual.MouseOverlays;
 import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.MenuCapture;
-import com.RuneLingual.commonFunctions.Colors;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.inject.Inject;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
-import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.InterfaceID;
-import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetUtil;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.tooltip.Tooltip;
 import net.runelite.client.ui.overlay.tooltip.TooltipManager;
-
-import com.RuneLingual.MenuCapture;
 
 import static java.lang.Thread.sleep;
 
@@ -135,7 +127,7 @@ public class MouseTooltipOverlay extends Overlay
         }
 
         // if is set to be translated with API,
-        if(this.plugin.getConfig().allowAPI()){
+        if(this.plugin.getConfig().ApiConfig()){
             // only translate if it has been translated before
             if(plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedBefore(option, target, menuEntry)) {
                 setMouseHover(menuEntry, true);
@@ -198,7 +190,7 @@ public class MouseTooltipOverlay extends Overlay
 //        // Trivial options that don't need to be highlighted, add more as they appear.
         if (option.equals("Walk here") || option.equals("Cancel") || option.equals("Continue") || target.contains("Slide"))
             return false;
-        if (!config.getMouseHover())
+        if (!config.getMouseHoverConfig())
         {
             return false;
         }
