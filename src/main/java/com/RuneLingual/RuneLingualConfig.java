@@ -289,7 +289,7 @@ public interface RuneLingualConfig extends Config
 			keyName = "myChatConfig",
 			section = SECTION_MY_CHAT_MESSAGES
 	)
-	default chatSelfConfig getMyChatConfig() {return chatSelfConfig.TRANSFORM;}
+	default chatSelfConfig getMyPublicConfig() {return chatSelfConfig.TRANSFORM;}
 
 	@ConfigItem(
 			name = "Me in Friends Chat",

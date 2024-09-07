@@ -1,6 +1,7 @@
 package com.RuneLingual;
 
 import com.RuneLingual.ApiTranslate.*;
+import com.RuneLingual.ChatMessages.ChatCapture;
 import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
@@ -78,8 +79,8 @@ public class RuneLingualPlugin extends Plugin
 	private TranscriptsFileManager itemTranscriptManager = new TranscriptsFileManager();
 	
 	// main modules
-	@Inject
-	private ChatCapture chatTranslator;
+	@Inject @Getter
+	private ChatCapture chatCapture;
 	@Inject
 	private DialogCapture dialogTranslator;
 	@Inject @Getter
@@ -156,9 +157,9 @@ public class RuneLingualPlugin extends Plugin
 		dialogTranslator.setTranslatedDialog(dialogTranscriptManager.translatedTranscript);
 		
 		// chat translator handles game messages, contained also by the dialog transcript
-		chatTranslator.setLogger(this::pluginLog);
-		chatTranslator.setOriginalDialog(dialogTranscriptManager.originalTranscript);
-		chatTranslator.setTranslatedDialog(dialogTranscriptManager.translatedTranscript);
+		chatCapture.setLogger(this::pluginLog);
+		chatCapture.setOriginalDialog(dialogTranscriptManager.originalTranscript);
+		chatCapture.setTranslatedDialog(dialogTranscriptManager.translatedTranscript);
 		//chatTranslator.setOnlineTranslator(this::temporaryTranslator);
 		
 //		menuCapture.setLogger(this::pluginLog);
@@ -256,7 +257,7 @@ public class RuneLingualPlugin extends Plugin
 		if (client.getGameState() != GameState.LOGGED_IN && client.getGameState() != GameState.HOPPING) {
 			return;
 		}
-		chatTranslator.handleChatMessage(event);
+		chatCapture.handleChatMessage(event);
 	}
 	
 	@Subscribe
@@ -310,9 +311,9 @@ public class RuneLingualPlugin extends Plugin
 		}
 
 		// need this
-		if(chatTranslator != null)
+		if(chatCapture != null)
 		{
-			chatTranslator.updateConfigs();
+			chatCapture.updateConfigs();
 		}
 
 	}

@@ -1,10 +1,10 @@
-package com.RuneLingual;
+package com.RuneLingual.ChatMessages;
 
+import com.RuneLingual.*;
+import com.RuneLingual.commonFunctions.Transformer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Client;
-import net.runelite.api.MessageNode;
-import net.runelite.api.ChatMessageType;
+import net.runelite.api.*;
 import net.runelite.api.events.ChatMessage;
 
 import javax.inject.Inject;
@@ -30,6 +30,10 @@ public class ChatCapture
     private RuneLingualConfig config;
     @Inject @Getter
     private RuneLingualPlugin plugin;
+    @Inject
+    private PlayerMessage playerMessage;
+
+    // from here its old variables
     
     // transcript managers
     @Setter
@@ -76,7 +80,7 @@ public class ChatCapture
         CLOSED
     }
 
-    public enum setChatMode{
+    public enum chatModes {
         PUBLIC,
         CHANNEL,
         CLAN,
@@ -94,9 +98,12 @@ public class ChatCapture
         // debug
         log.info("Chat message received: " + message + " | type: " + type.toString() + " | name: " + name);
         openChatbox chatbox = getOpenChatbox();
-        setChatMode chatMode = getChatMode();
+        chatModes chatMode = getChatMode();
         log.info("Chatbox: " + chatbox.toString() + " | Chat mode: " + chatMode.toString());
-
+        PlayerMessage.talkingIn talkingIn = playerMessage.getTalkingIn();
+        log.info("Talking in: " + talkingIn.toString());
+        TransformOption translationOption = playerMessage.getTranslationOption();
+        log.info("player translation option: " + translationOption.toString());
 
         Map<ChatMessageType, Runnable> actions = new HashMap<>();
         actions.put(ChatMessageType.AUTOTYPER, () -> onlineTranslator(message, messageNode));
@@ -243,13 +250,9 @@ public class ChatCapture
 
         // if possible, check what chat im typing into, and decide with that
         //if its by the player themselves
-        if (Objects.equals(playerName, client.getLocalPlayer().getName()))
-            switch (config.getMyChatConfig()) {
-                case TRANSFORM:
-                    return TransformOption.TRANSFORM;
-                case LEAVE_AS_IS:
-                    return TransformOption.AS_IS;
-            }
+        if (Objects.equals(playerName, client.getLocalPlayer().getName())) {
+            return playerMessage.getTranslationOption();
+        }
 
         // if its from a friend
         boolean isFriend = client.isFriended(playerName,true);
@@ -290,7 +293,9 @@ public class ChatCapture
         return TransformOption.AS_IS;
     }
 
-    private TransformOption getChatsChatConfig(RuneLingualConfig.chatConfig chatConfig) {
+
+
+    public TransformOption getChatsChatConfig(RuneLingualConfig.chatConfig chatConfig) {
         switch (chatConfig) {
             case TRANSFORM:
                 return TransformOption.TRANSFORM;
@@ -312,6 +317,8 @@ public class ChatCapture
         }
     }
 
+
+
     private boolean isInConfigList(String item, String arrayInString) {
         String[] array = arrayInString.split(",");
         for (String s:array)
@@ -320,47 +327,47 @@ public class ChatCapture
         return false;
     }
 
-    private openChatbox getOpenChatbox() {
+    public ChatCapture.openChatbox getOpenChatbox() {
         int chatboxVarbitValue = client.getVarcIntValue(41);
         switch (chatboxVarbitValue) {
             case 0:
-                return openChatbox.ALL;
+                return ChatCapture.openChatbox.ALL;
             case 1:
-                return openChatbox.GAME;
+                return ChatCapture.openChatbox.GAME;
             case 2:
-                return openChatbox.PUBLIC;
+                return ChatCapture.openChatbox.PUBLIC;
             case 3:
-                return openChatbox.PRIVATE;
+                return ChatCapture.openChatbox.PRIVATE;
             case 4:
-                return openChatbox.CHANNEL;
+                return ChatCapture.openChatbox.CHANNEL;
             case 5:
-                return openChatbox.CLAN;
+                return ChatCapture.openChatbox.CLAN;
             case 6:
-                return openChatbox.TRADE_GIM;
+                return ChatCapture.openChatbox.TRADE_GIM;
             case 1337:
-                return openChatbox.CLOSED;
+                return ChatCapture.openChatbox.CLOSED;
             default:
                 log.info("Chatbox not found, defaulting to all");
-                return openChatbox.ALL;
+                return ChatCapture.openChatbox.ALL;
         }
     }
 
-    private setChatMode getChatMode() {
+    public chatModes getChatMode() {
         int forceSendVarbitValue = client.getVarcIntValue(945);
         switch(forceSendVarbitValue) {
             case 0:
-                return setChatMode.PUBLIC;
+                return chatModes.PUBLIC;
             case 1:
-                return setChatMode.CHANNEL;
+                return chatModes.CHANNEL;
             case 2:
-                return setChatMode.CLAN;
+                return chatModes.CLAN;
             case 3:
-                return setChatMode.GUEST_CLAN;
+                return chatModes.GUEST_CLAN;
             case 4:
-                return setChatMode.GROUP;
+                return chatModes.GROUP;
             default:
                 log.info("Chat mode not found, defaulting to public");
-                return setChatMode.PUBLIC;
+                return chatModes.PUBLIC;
         }
     }
 //
