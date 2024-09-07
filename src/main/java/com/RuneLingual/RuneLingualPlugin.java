@@ -1,10 +1,13 @@
 package com.RuneLingual;
 
 import com.RuneLingual.ApiTranslate.*;
+import com.RuneLingual.ChatMessages.ChatCapture;
 import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
+import com.RuneLingual.nonLatin.ChatInputOverlay;
+import com.RuneLingual.nonLatin.Japanese.UpdateChatInputJa;
 import com.google.inject.Provides;
 import javax.inject.Inject;
 
@@ -32,9 +35,11 @@ import lombok.Getter;
 import com.RuneLingual.SidePanelComponents.SidePanel;
 import com.RuneLingual.commonFunctions.FileActions;
 import com.RuneLingual.prepareResources.Downloader;
-import com.RuneLingual.nonLatinChar.CharImageInit;
-import com.RuneLingual.nonLatinChar.GeneralFunctions;
+import com.RuneLingual.nonLatin.CharImageInit;
+import com.RuneLingual.nonLatin.GeneralFunctions;
 import com.RuneLingual.commonFunctions.Ids;
+import com.RuneLingual.nonLatin.chatInput;
+
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -78,8 +83,8 @@ public class RuneLingualPlugin extends Plugin
 	private TranscriptsFileManager itemTranscriptManager = new TranscriptsFileManager();
 	
 	// main modules
-	@Inject
-	private ChatCapture chatTranslator;
+	@Inject @Getter
+	private ChatCapture chatCapture;
 	@Inject
 	private DialogCapture dialogTranslator;
 	@Inject @Getter
@@ -116,6 +121,10 @@ public class RuneLingualPlugin extends Plugin
 	private Deepl deepl;
 	@Inject
 	private DeeplUsageOverlay deeplUsageOverlay;
+	@Inject @Getter
+	private UpdateChatInputJa updateChatInputJa;
+	@Inject @Getter
+	private ChatInputOverlay chatInputOverlay;
 
 	@Override
 	protected void startUp() throws Exception
@@ -136,6 +145,7 @@ public class RuneLingualPlugin extends Plugin
 		// initiate overlays
 		overlayManager.add(mouseTooltipOverlay);
 		overlayManager.add(deeplUsageOverlay);
+		overlayManager.add(chatInputOverlay);
 
 
 		// load image files
@@ -156,9 +166,9 @@ public class RuneLingualPlugin extends Plugin
 		dialogTranslator.setTranslatedDialog(dialogTranscriptManager.translatedTranscript);
 		
 		// chat translator handles game messages, contained also by the dialog transcript
-		chatTranslator.setLogger(this::pluginLog);
-		chatTranslator.setOriginalDialog(dialogTranscriptManager.originalTranscript);
-		chatTranslator.setTranslatedDialog(dialogTranscriptManager.translatedTranscript);
+		chatCapture.setLogger(this::pluginLog);
+		chatCapture.setOriginalDialog(dialogTranscriptManager.originalTranscript);
+		chatCapture.setTranslatedDialog(dialogTranscriptManager.translatedTranscript);
 		//chatTranslator.setOnlineTranslator(this::temporaryTranslator);
 		
 //		menuCapture.setLogger(this::pluginLog);
@@ -169,6 +179,7 @@ public class RuneLingualPlugin extends Plugin
 		// old code ends here (for this method)
 		log.info("RuneLingual started!");
 	}
+
 	
 	@Subscribe
 	private void onBeforeRender(BeforeRender event)
@@ -182,39 +193,15 @@ public class RuneLingualPlugin extends Plugin
 		// somewhere before the rendering process actually happens
 		// so having this happen every game tick instead
 		// of every client tick is actually less resource intensive
+
+		updateChatInputJa.updateInput();
+
+		// old code
 		dialogTranslator.handleDialogs();
 		for (Widget widgetRoot : client.getWidgetRoots()) {
 			MenuCapture.remapWidget(widgetRoot);
 		}
-		int currentHudTab = -1; // client.getVarcIntValue(VarClientInt.INVENTORY_TAB);
-		switch(currentHudTab)
-		{
-			case 0:
-			{
-				System.out.println("combat opt");
-				break;
-			}
-			case 1:
-			{
-				System.out.println("skills");
-				break;
-			}
-			case 2:
-			{
-				System.out.println("quest");
-				menuBar.handleQuestMenuTab();
-				break;
-			}
-			case 3:
-			{
-				System.out.println("inv");
-				break;
-			}
-			default:
-			{
-				break;
-			}
-		}
+
 	}
 	
 	@Subscribe
@@ -256,7 +243,7 @@ public class RuneLingualPlugin extends Plugin
 		if (client.getGameState() != GameState.LOGGED_IN && client.getGameState() != GameState.HOPPING) {
 			return;
 		}
-		chatTranslator.handleChatMessage(event);
+		chatCapture.handleChatMessage(event);
 	}
 	
 	@Subscribe
@@ -293,7 +280,13 @@ public class RuneLingualPlugin extends Plugin
 			}
 
 			// reset language specific variables
+
+			overlayManager.remove(mouseTooltipOverlay);
 			MouseTooltipOverlay.setAttemptedTranslation(new ArrayList<>());
+			overlayManager.add(mouseTooltipOverlay);
+
+			//reset deepl's past translations
+			deepl = new Deepl(this);
 
 			restartPanel();
 		}
@@ -310,9 +303,9 @@ public class RuneLingualPlugin extends Plugin
 		}
 
 		// need this
-		if(chatTranslator != null)
+		if(chatCapture != null)
 		{
-			chatTranslator.updateConfigs();
+			chatCapture.updateConfigs();
 		}
 
 	}
@@ -321,6 +314,9 @@ public class RuneLingualPlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		clientToolBar.removeNavigation(navButton);
+		overlayManager.remove(mouseTooltipOverlay);
+		overlayManager.remove(deeplUsageOverlay);
+		overlayManager.remove(chatInputOverlay);
 		//transcriptManager.saveTranscript();
 		log.info("RuneLingual plugin stopped!");
 	}

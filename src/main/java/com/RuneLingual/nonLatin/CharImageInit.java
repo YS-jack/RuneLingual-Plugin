@@ -1,4 +1,4 @@
-package com.RuneLingual.nonLatinChar;
+package com.RuneLingual.nonLatin;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -8,7 +8,6 @@ import java.util.HashMap;
 import com.RuneLingual.prepareResources.Downloader;
 import com.RuneLingual.RuneLingualPlugin;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ChatIconManager;
 
@@ -22,7 +21,7 @@ public class CharImageInit {
 
     public void loadCharImages()
     {
-        if(!runeLingualPlugin.getTargetLanguage().needCharImages()){
+        if(!runeLingualPlugin.getTargetLanguage().needsCharImages()){
             return;
         }
 

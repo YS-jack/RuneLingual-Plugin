@@ -19,6 +19,7 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.Arrays;
 import java.util.regex.Pattern;
 import com.RuneLingual.debug.OutputToFile;
 import com.RuneLingual.commonFunctions.Ids;
@@ -90,7 +91,7 @@ public class MenuCapture
 		String newOption = newMenus[1];
 
 		// reorder them if it is grammatically correct to do so in that language
-		if(plugin.getTargetLanguage().swapMenuOptionAndTarget()) {
+		if(plugin.getTargetLanguage().needsSwapMenuOptionAndTarget()) {
 			String temp = newOption;
 			newOption = newTarget;
 			newTarget = temp;
@@ -360,11 +361,25 @@ public class MenuCapture
 	private String translatePlayerTargetPart(String[] targetWordArray, Colors[] targetColorArray) {
 
 		//leave name as is (but still give to transformer to replace to char image if needed)
-		String playerName = targetWordArray[0];
-		String translatedName = transformer.transform(playerName, Colors.white, TransformOption.AS_IS, null, false);
+		if(!targetWordArray[0].matches("^<img=.*>$")) { // doesn't have icons before their names
+			String playerName = targetWordArray[0];
+			String translatedName = transformer.transform(playerName, Colors.white, TransformOption.AS_IS, null, false);
 
-
-		return translatedName + getLevelTranslation(targetWordArray[1], targetColorArray[1]);
+			return translatedName + getLevelTranslation(targetWordArray[1], targetColorArray[1]);
+		} else {
+			// contains icons before their names, such as clan rank symbols
+			StringBuilder newName = new StringBuilder();
+			String levelString = "  (level-0)";
+			for(int i = 0; i < targetWordArray.length; i++){
+				if(i == targetWordArray.length - 1){ // the last element of targetWordArray is always the level part
+					levelString = targetWordArray[i];
+					break;
+				}
+				newName.append(targetWordArray[i]);
+			}
+			String translatedName = transformer.transform(newName.toString(), Colors.white, TransformOption.AS_IS, null, false);
+			return translatedName + getLevelTranslation(levelString, targetColorArray[targetWordArray.length - 1]);
+		}
 	}
 
 	private String getSourceNameFromMenu(MenuEntry menu){
@@ -423,7 +438,7 @@ public class MenuCapture
 		String levelTranslation = transformer.transform(levelQuery.getEnglish(), color, option, levelQuery, false);
 		String openBracket = transformer.transform("(", color, TransformOption.AS_IS, null, false);
 		String lvAndCloseBracket = transformer.transform(level+")", color, TransformOption.AS_IS, null, false);
-		return openBracket + levelTranslation + color.getColorTag() + lvAndCloseBracket;
+		return "  " + openBracket + levelTranslation + color.getColorTag() + lvAndCloseBracket;
 	}
 
 	private TransformOption getTransformOption(ingameTranslationConfig conf) {

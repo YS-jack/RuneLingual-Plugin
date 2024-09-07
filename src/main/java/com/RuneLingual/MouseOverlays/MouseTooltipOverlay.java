@@ -165,7 +165,7 @@ public class MouseTooltipOverlay extends Overlay
             newTarget = newMenus[0];
             newOption = newMenus[1];
         }
-        if (this.plugin.getTargetLanguage().swapMenuOptionAndTarget())
+        if (this.plugin.getTargetLanguage().needsSwapMenuOptionAndTarget())
         {
             tooltipManager.addFront(new Tooltip((Strings.isNullOrEmpty(newTarget) ? newOption : newTarget + " " + newOption)));
             return;
