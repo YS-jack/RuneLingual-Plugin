@@ -47,17 +47,14 @@ public class ChatInputOverlay extends Overlay //remove abstract when actually ma
         int msgLength = playerMessage.getChatInputString().length();
         String nonLatinMsg = "";
 
+        if(plugin.getConfig().getSelectedLanguage().equals(LangCodeSelectableList.日本語)){
+            nonLatinMsg = plugin.getUpdateChatInputJa().getChatJpMsg();
+        } // TODO: add more languages that need this overlay
 
-
-        if (plugin.getConfig().getSelectedLanguage().needsInputOverlay()){
-            if(plugin.getConfig().getSelectedLanguage().equals(LangCodeSelectableList.日本語)){
-                nonLatinMsg = plugin.getUpdateChatInputJa().getChatJpMsg();
-            }
-        }
 
         if (msgLength == 0
                 || playerMessage.getTranslationOption().equals(Transformer.TransformOption.AS_IS)
-                || nonLatinMsg.trim().isEmpty()) return null; // also this if in npc dialogue
+                || nonLatinMsg.trim().isEmpty()) return null; // todo:also this if in npc dialogue
 
         panelComponent.getChildren().clear();
 

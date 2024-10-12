@@ -1,24 +1,58 @@
 package com.RuneLingual.nonLatin.Japanese;
 
+import com.RuneLingual.LangCodeSelectableList;
+import com.RuneLingual.commonFunctions.FileNameAndPath;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+import javax.inject.Inject;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class Rom2kat {
-
-
+@Slf4j
+public class Rom2hira {
 
     public int inputCount = 0; //for counting number of words in chat input
     public String chatJpMsg = "";//whats written for chat input overlay
-    public List<String> kanjKatCandidates = new ArrayList<>();//candidates of kanji or katakana from input, also used for candidates overlay
+    public List<String> kanjiCandidates = new ArrayList<>();//candidates of kanji or katakana from input, also used for candidates overlay
     public int instCandidateSelection = -1;
     private List<FourValues> japCharDS = new ArrayList<>();//store all japanese words's written form, how its read, type, rank
     private List<String> prevHiraList = new ArrayList<>();//stores the last updated words that are displayed
     private List<String> prevJPList = new ArrayList<>();
     private HashMap<String,String> char2char = new HashMap<>();
     private String notAvailable = "nan";
+
+    @Inject
+    Rom2hira() {
+        String charDir = FileNameAndPath.getLocalBaseFolder() + "/" +
+                LangCodeSelectableList.日本語.getLangCode() +
+                "/latin2foreign_" + LangCodeSelectableList.日本語.getLangCode() + ".txt";
+
+        char2char = new HashMap<>();
+        putCharToHash(char2char, charDir);
+    }
+
+    private void putCharToHash(HashMap<String, String> hash, String dirName) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader
+                (new FileInputStream(dirName), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\\|");
+                if (parts.length == 2) {
+                    hash.put(parts[0].trim().toLowerCase(), parts[1].trim());
+                }
+            }
+        } catch (IOException e) {
+            log.info("error creating hashmap for transform dict, for type : " + dirName);
+            e.printStackTrace();
+        }
+    }
 
 
     public static class FourValues {
@@ -45,11 +79,27 @@ public class Rom2kat {
         String pattern = "n[,.!?;:#$%&()'\\s\\d]$";
         String pattern2 = ".+n[,.!?;:#$%&()'\\s\\d]$";
 
+        List<String> escapePattern = Arrays.asList("::",";;");
+        boolean escaping = false; // escape for entering latin characters
+
         for (int i = 0; i < romMsg.length(); i++) {
             romBuilder.append(romMsg.charAt(i));
             String romBuffer = romBuilder.toString();
             int romBufferSize = romBuffer.length();
             String katCandidate;
+
+            if (escaping) {
+                katBuilder.append(romMsg.charAt(i));
+                romBuilder.setLength(0);
+                if(katBuilder.length() > 1 &&
+                        escapePattern.contains(katBuilder.substring(katBuilder.length()-2))){
+                    escaping = false;
+                    katBuilder.setLength(katBuilder.length()-2);
+                    continue;
+                } else {
+                    continue;
+                }
+            }
 
             if (romBufferSize == 0)//something went wrong
                 return "";
@@ -67,6 +117,11 @@ public class Rom2kat {
                     continue;
                 }
             } else if (romBufferSize == 2) {
+                if(escapePattern.contains(romBuffer)){
+                    romBuilder.setLength(0);
+                    escaping = true;
+                    continue;
+                }
 
                 katCandidate = romBuffer;//eg: ka > カ
                 if (char2char.containsKey(katCandidate)) {
@@ -94,6 +149,12 @@ public class Rom2kat {
                     continue;
                 }
             } else {//rombuffer size > 2
+                if(escapePattern.contains(romBuffer.substring(romBufferSize-2))){
+                    romBuilder.setLength(0);
+                    escaping = true;
+                    continue;
+                }
+
                 if (Pattern.matches(pattern2, romBuffer)){//when n comes before a symbol or space, change it to ン
                     katBuilder.append(romBuffer, 0, romBufferSize-2);
                     katBuilder.append("ん");
@@ -161,7 +222,7 @@ public class Rom2kat {
                 }
             }
         }
-        katBuilder.append(romBuilder.toString());
+        katBuilder.append(romBuilder);
         return katBuilder.toString();
     }
 

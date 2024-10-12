@@ -42,7 +42,9 @@ public class Downloader {//downloads translations and japanese char images to ex
     public boolean initDownloader(String langCodeGiven) {
         //langCode = langCodeGiven;
         final List<String> extensions_to_download = Arrays.asList("tsv", "zip"); // will download all files with these extensions
-        final List<String> file_name_to_download = List.of("char_" + langCode + ".zip"); // will download all files with these names
+        final List<String> file_name_to_download = List.of("char_" + langCode + ".zip",
+                "latin2foreign_" + langCode + ".txt",
+                "foreign2foreign_" + langCode + ".txt"); // will download all files with these names, no error if it doesnt exist
         localLangFolder = new File(localBaseFolder.getPath() + File.separator + langCode);
         plugin.getFileNameAndPath().setLocalLangFolder(localLangFolder.getPath());
 
@@ -78,6 +80,7 @@ public class Downloader {//downloads translations and japanese char images to ex
                 String localHash = localHashes.get(entry.getKey());
                 String remoteHash = entry.getValue();
                 String remote_full_path = entry.getKey();
+                //log.info("remote_full_path: " + remote_full_path);
 
                 if ( (localHash == null ||!localHash.equals(remoteHash)) // if the file is not in the local hash file or the hash value is different
                         && (fileExtensionIncludedIn(remote_full_path, extensions_to_download) // and if the file extension is in the list of extensions to download

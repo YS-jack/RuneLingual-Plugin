@@ -6,7 +6,7 @@ import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
-import com.RuneLingual.nonLatin.ChatInputOverlay;
+import com.RuneLingual.nonLatin.*;
 import com.RuneLingual.nonLatin.Japanese.UpdateChatInputJa;
 import com.google.inject.Provides;
 import javax.inject.Inject;
@@ -35,10 +35,7 @@ import lombok.Getter;
 import com.RuneLingual.SidePanelComponents.SidePanel;
 import com.RuneLingual.commonFunctions.FileActions;
 import com.RuneLingual.prepareResources.Downloader;
-import com.RuneLingual.nonLatin.CharImageInit;
-import com.RuneLingual.nonLatin.GeneralFunctions;
 import com.RuneLingual.commonFunctions.Ids;
-import com.RuneLingual.nonLatin.chatInput;
 
 
 import java.awt.image.BufferedImage;
@@ -125,6 +122,8 @@ public class RuneLingualPlugin extends Plugin
 	private UpdateChatInputJa updateChatInputJa;
 	@Inject @Getter
 	private ChatInputOverlay chatInputOverlay;
+	@Inject
+	private ChatInputCandidateOverlay chatInputCandidateOverlay;
 
 	@Override
 	protected void startUp() throws Exception
@@ -146,6 +145,7 @@ public class RuneLingualPlugin extends Plugin
 		overlayManager.add(mouseTooltipOverlay);
 		overlayManager.add(deeplUsageOverlay);
 		overlayManager.add(chatInputOverlay);
+		overlayManager.add(chatInputCandidateOverlay);
 
 
 		// load image files
@@ -317,6 +317,7 @@ public class RuneLingualPlugin extends Plugin
 		overlayManager.remove(mouseTooltipOverlay);
 		overlayManager.remove(deeplUsageOverlay);
 		overlayManager.remove(chatInputOverlay);
+		overlayManager.remove(chatInputCandidateOverlay);
 		//transcriptManager.saveTranscript();
 		log.info("RuneLingual plugin stopped!");
 	}
