@@ -48,6 +48,7 @@ public enum SqlVariables {
     worldSwitcherTabInSource("worldSwitcherTab","source"), // for world switcher
     emotesTabInSource("emotesTab","source"), // for emotes tab
     musicTabInSource("musicTab","source"), // for music tab
+
     ;
 
 

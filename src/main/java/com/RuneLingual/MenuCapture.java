@@ -19,7 +19,6 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.Arrays;
 import java.util.regex.Pattern;
 import com.RuneLingual.debug.OutputToFile;
 import com.RuneLingual.commonFunctions.Ids;
@@ -70,7 +69,7 @@ public class MenuCapture
 				handleMenuEvent(menu);
 			} else {
 				if (plugin.getConfig().ApiConfig() &&
-						!plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedBefore(menu.getOption(), menu.getTarget(), menu)){
+						!plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedMenuBefore(menu.getOption(), menu.getTarget(), menu)){
 					Thread thread = new Thread(() -> {
 						handleMenuEvent(menu);
 					});

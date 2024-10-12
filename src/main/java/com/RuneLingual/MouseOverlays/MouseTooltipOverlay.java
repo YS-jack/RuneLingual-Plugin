@@ -129,7 +129,7 @@ public class MouseTooltipOverlay extends Overlay
         // if is set to be translated with API,
         if(this.plugin.getConfig().ApiConfig()){
             // only translate if it has been translated before
-            if(plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedBefore(option, target, menuEntry)) {
+            if(plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedMenuBefore(option, target, menuEntry)) {
                 setMouseHover(menuEntry, true);
             } else { // dont translate if it hasnt been translated before
                 setMouseHover(menuEntry, false);

@@ -1,8 +1,6 @@
-package com.RuneLingual.nonLatin;
+package com.RuneLingual.ChatMessages;
 
-import com.RuneLingual.ChatMessages.PlayerMessage;
 import com.RuneLingual.LangCodeSelectableList;
-import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.commonFunctions.Transformer;
 import lombok.extern.slf4j.Slf4j;

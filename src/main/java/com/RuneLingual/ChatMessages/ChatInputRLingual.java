@@ -1,4 +1,4 @@
-package com.RuneLingual.nonLatin;
+package com.RuneLingual.ChatMessages;
 
 
 import com.RuneLingual.LangCodeSelectableList;

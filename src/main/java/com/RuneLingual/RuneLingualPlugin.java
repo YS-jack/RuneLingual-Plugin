@@ -1,13 +1,12 @@
 package com.RuneLingual;
 
 import com.RuneLingual.ApiTranslate.*;
-import com.RuneLingual.ChatMessages.ChatCapture;
+import com.RuneLingual.ChatMessages.*;
 import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.RuneLingual.nonLatin.*;
-import com.RuneLingual.nonLatin.Japanese.UpdateChatInputJa;
 import com.google.inject.Provides;
 import javax.inject.Inject;
 
@@ -124,6 +123,8 @@ public class RuneLingualPlugin extends Plugin
 	private ChatInputOverlay chatInputOverlay;
 	@Inject
 	private ChatInputCandidateOverlay chatInputCandidateOverlay;
+	@Inject
+	private OverheadCapture overheadCapture;
 
 	@Override
 	protected void startUp() throws Exception
@@ -178,6 +179,11 @@ public class RuneLingualPlugin extends Plugin
 //		menuCapture.setItemTranslator(itemTranscriptManager.translatedTranscript);
 		// old code ends here (for this method)
 		log.info("RuneLingual started!");
+	}
+
+	@Subscribe
+	public void onOverheadTextChanged(OverheadTextChanged event) throws Exception {
+		overheadCapture.translateOverhead(event);
 	}
 
 	
@@ -291,17 +297,6 @@ public class RuneLingualPlugin extends Plugin
 			deepl = new Deepl(this);
 
 			restartPanel();
-		}
-
-		// below are some old code
-
-
-		if(dialogTranscriptManager != null)
-		{
-			if(dialogTranscriptManager.isChanged())
-			{
-				dialogTranscriptManager.saveOriginalTranscript();
-			}
 		}
 
 		// need this
