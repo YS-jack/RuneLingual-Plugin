@@ -79,8 +79,8 @@ public class Rom2hira {
         String pattern = "n[,.!?;:#$%&()'\\s\\d]$";
         String pattern2 = ".+n[,.!?;:#$%&()'\\s\\d]$";
 
-        List<String> escapePattern = Arrays.asList("::",";;");
-        boolean escaping = false; // escape for entering latin characters
+        List<String> escapePattern = Arrays.asList("::",";;",";:",":;");// escape sequence for latin character input
+        boolean escaping = false;
 
         for (int i = 0; i < romMsg.length(); i++) {
             romBuilder.append(romMsg.charAt(i));
@@ -95,6 +95,7 @@ public class Rom2hira {
                         escapePattern.contains(katBuilder.substring(katBuilder.length()-2))){
                     escaping = false;
                     katBuilder.setLength(katBuilder.length()-2);
+                    katBuilder.append(" ");
                     continue;
                 } else {
                     continue;
@@ -119,6 +120,7 @@ public class Rom2hira {
             } else if (romBufferSize == 2) {
                 if(escapePattern.contains(romBuffer)){
                     romBuilder.setLength(0);
+                    katBuilder.append(" ");
                     escaping = true;
                     continue;
                 }

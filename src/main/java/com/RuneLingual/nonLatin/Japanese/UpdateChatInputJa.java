@@ -106,7 +106,8 @@ public class UpdateChatInputJa {
         boolean last;
         for (int i = startIndex; i < wordList.length; i++) {
             String word = wordList[i];
-            if (word.matches("^\\d+$") || word.matches("^を+$")){
+            if (word.matches("^\\d+$") || word.matches("^を+$")
+                    || word.matches("[^\\p{IsHiragana}]+\\s*")) {
                 changedList.add(word);
                 kanjKatCandidates.clear();
             }
