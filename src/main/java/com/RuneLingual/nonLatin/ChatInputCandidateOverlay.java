@@ -46,11 +46,11 @@ public class ChatInputCandidateOverlay extends Overlay
         String[] nonLatinMsg = {};
         
         if(plugin.getConfig().getSelectedLanguage().equals(LangCodeSelectableList.日本語)){
-            nonLatinMsg = plugin.getUpdateChatInputJa().getKanjKatCandidates().toArray(new String[0]);
+            nonLatinMsg = plugin.getChatInputRLingual().getUpdateChatInputJa().getKanjKatCandidates().toArray(new String[0]);
         }
 
-        int candSelectN = plugin.getUpdateChatInputJa().getInstCandidateSelection();
-        int msgCount = plugin.getUpdateChatInputJa().getInputCount();
+        int candSelectN = plugin.getChatInputRLingual().getUpdateChatInputJa().getInstCandidateSelection();
+        int msgCount = plugin.getChatInputRLingual().getUpdateChatInputJa().getInputCount();
 
         if (msgCount == 0
                 || playerMessage.getTranslationOption().equals(Transformer.TransformOption.AS_IS)

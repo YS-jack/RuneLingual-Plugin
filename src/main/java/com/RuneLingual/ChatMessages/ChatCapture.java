@@ -141,8 +141,8 @@ public class ChatCapture
                 thread.setDaemon(false);
                 thread.start();
                 break;
-            case TRANSFORM:
-                //transformer.transform(message, messageNode);
+            case TRANSFORM: // ex: konnnitiha -> こんにちは
+                chatTransformer(message, messageNode);
                 break;
         }
 
@@ -213,6 +213,14 @@ public class ChatCapture
         Transformer transformer = new Transformer(plugin);
         Colors textColor = chatColorManager.getMessageColor();
         String textToDisplay = transformer.stringToDisplayedString(translation, textColor);
+        replaceChatMessage(textToDisplay, node);
+    }
+
+    private void chatTransformer(String message, MessageNode node) {
+        String newMessage = plugin.getChatInputRLingual().transformChatText(message);
+        Transformer transformer = new Transformer(plugin);
+        Colors textColor = chatColorManager.getMessageColor();
+        String textToDisplay = transformer.stringToDisplayedString(newMessage, textColor);
         replaceChatMessage(textToDisplay, node);
     }
 

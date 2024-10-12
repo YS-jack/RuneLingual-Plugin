@@ -17,24 +17,13 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class Rom2hira {
-
-    public int inputCount = 0; //for counting number of words in chat input
-    public String chatJpMsg = "";//whats written for chat input overlay
-    public List<String> kanjiCandidates = new ArrayList<>();//candidates of kanji or katakana from input, also used for candidates overlay
-    public int instCandidateSelection = -1;
-    private List<FourValues> japCharDS = new ArrayList<>();//store all japanese words's written form, how its read, type, rank
-    private List<String> prevHiraList = new ArrayList<>();//stores the last updated words that are displayed
-    private List<String> prevJPList = new ArrayList<>();
     private HashMap<String,String> char2char = new HashMap<>();
-    private String notAvailable = "nan";
 
     @Inject
-    Rom2hira() {
+    public Rom2hira() {
         String charDir = FileNameAndPath.getLocalBaseFolder() + "/" +
                 LangCodeSelectableList.日本語.getLangCode() +
                 "/latin2foreign_" + LangCodeSelectableList.日本語.getLangCode() + ".txt";
-
-        char2char = new HashMap<>();
         putCharToHash(char2char, charDir);
     }
 
@@ -55,14 +44,11 @@ public class Rom2hira {
     }
 
 
+    @Setter @Getter
     public static class FourValues {
-        @Getter@Setter
         private String written;
-        @Getter@Setter
         private String read;
-        @Getter@Setter
         private String type;
-        @Getter@Setter
         private int rank;
 
         public FourValues(String value1, String value2, String value3, int value4) {
@@ -83,7 +69,9 @@ public class Rom2hira {
         boolean escaping = false;
 
         for (int i = 0; i < romMsg.length(); i++) {
-            romBuilder.append(romMsg.charAt(i));
+            String newChar = Character.toString(romMsg.charAt(i));
+            if(!escaping) newChar = newChar.toLowerCase();
+            romBuilder.append(newChar);
             String romBuffer = romBuilder.toString();
             int romBufferSize = romBuffer.length();
             String katCandidate;
@@ -94,7 +82,7 @@ public class Rom2hira {
                 if(katBuilder.length() > 1 &&
                         escapePattern.contains(katBuilder.substring(katBuilder.length()-2))){
                     escaping = false;
-                    katBuilder.setLength(katBuilder.length()-2);
+                    katBuilder.delete(katBuilder.length()-2, katBuilder.length());
                     katBuilder.append(" ");
                     continue;
                 } else {
@@ -120,6 +108,7 @@ public class Rom2hira {
             } else if (romBufferSize == 2) {
                 if(escapePattern.contains(romBuffer)){
                     romBuilder.setLength(0);
+                    //katBuilder.deleteCharAt(katBuilder.length()-1);
                     katBuilder.append(" ");
                     escaping = true;
                     continue;
@@ -152,6 +141,7 @@ public class Rom2hira {
                 }
             } else {//rombuffer size > 2
                 if(escapePattern.contains(romBuffer.substring(romBufferSize-2))){
+                    katBuilder.append(romBuffer,0,romBufferSize-2);
                     romBuilder.setLength(0);
                     escaping = true;
                     continue;

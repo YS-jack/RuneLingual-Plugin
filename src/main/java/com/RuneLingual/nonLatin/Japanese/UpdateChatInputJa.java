@@ -25,7 +25,7 @@ public class UpdateChatInputJa {
     private RuneLingualPlugin plugin;
     @Inject
     private PlayerMessage playerMessage;
-    @Inject
+    @Inject @Getter
     private Rom2hira rom2Hira;
     @Getter
     private int inputCount = 0; //for counting number of words in chat input
@@ -88,7 +88,7 @@ public class UpdateChatInputJa {
     }
 
     public String romJpTransform(String romMsg, boolean chatInput) {
-        String hiraMsg = rom2Hira.romToKat(romMsg);
+        String hiraMsg = this.rom2Hira.romToKat(romMsg);
         return hira2Jp(hiraMsg, chatInput);
     }
 
@@ -97,6 +97,7 @@ public class UpdateChatInputJa {
         String[] wordList = getWakatiGaki(hiraMsg);//get katakana text split with symbols, space attached at the end of each string if its katakana or numbers
         //eg of wordList : "強烈はぴはぴ閾値" "、," "凄く"  "!/" "だよ" "、" "kaka" "クェスト00" "やり" "33" "," "ましょう"
         List<String> wordListList = Arrays.asList(getWakatiGaki(hiraMsg));
+
         if (compareLists(wordListList, prevHiraList) && chatInput)
             return null;
         int startIndex = searchFirstDif(wordList);
@@ -107,7 +108,7 @@ public class UpdateChatInputJa {
         for (int i = startIndex; i < wordList.length; i++) {
             String word = wordList[i];
             if (word.matches("^\\d+$") || word.matches("^を+$")
-                    || word.matches("[^\\p{IsHiragana}]+\\s*")) {
+                    || word.matches("[^\\p{IsHiragana}]+\\s*")){
                 changedList.add(word);
                 kanjKatCandidates.clear();
             }
@@ -296,11 +297,12 @@ public class UpdateChatInputJa {
     private String[] getWakatiGaki (String text) {
         // Regular expression pattern for splitting
         String regexPattern =
-                "(を+)|" +
-                        "([\\p{IsAlphabetic}\\p{IsHiragana}\\p{IsKatakana}]*\\d+)|" +
-                        "([\\p{IsAlphabetic}\\p{IsHiragana}\\p{IsKatakana}]+ +)|" +
-                        "([\\p{IsAlphabetic}\\p{IsHiragana}\\p{IsKatakana}]+)|"+
-                        "([^\\p{IsAlphabetic}\\p{IsHiragana}\\p{IsKatakana}\\d ]+)";
+                "(を+)|" + "(\\d+\\s\\p{IsAlphabetic}+)|" +
+                        "(\\p{IsAlphabetic}+[\\d*\\s])|" +
+                        "([\\p{IsHiragana}\\p{IsKatakana}ー]*\\d+)|" +
+                        "([\\p{IsHiragana}\\p{IsKatakana}ー]+ +)|" +
+                        "([\\p{IsHiragana}\\p{IsKatakana}ー]+)|"+
+                        "([^\\p{IsHiragana}\\p{IsKatakana}ー\\d ]+)";
 
         Pattern patternCompiled = Pattern.compile(regexPattern);
         Matcher matcher = patternCompiled.matcher(text);
@@ -314,9 +316,12 @@ public class UpdateChatInputJa {
             }
         }
 
+
         // Convert the list to an array
         return segmentsAndPunctuation.toArray(new String[0]);
     }
+
+
 
     private String hira2kata(String hira) {
         StringBuilder kata = new StringBuilder();

@@ -48,7 +48,7 @@ public class ChatInputOverlay extends Overlay //remove abstract when actually ma
         String nonLatinMsg = "";
 
         if(plugin.getConfig().getSelectedLanguage().equals(LangCodeSelectableList.日本語)){
-            nonLatinMsg = plugin.getUpdateChatInputJa().getChatJpMsg();
+            nonLatinMsg = plugin.getChatInputRLingual().getUpdateChatInputJa().getChatJpMsg();
         } // TODO: add more languages that need this overlay
 
 

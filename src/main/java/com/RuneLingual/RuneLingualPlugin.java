@@ -119,7 +119,7 @@ public class RuneLingualPlugin extends Plugin
 	@Inject
 	private DeeplUsageOverlay deeplUsageOverlay;
 	@Inject @Getter
-	private UpdateChatInputJa updateChatInputJa;
+	private ChatInputRLingual chatInputRLingual;
 	@Inject @Getter
 	private ChatInputOverlay chatInputOverlay;
 	@Inject
@@ -188,13 +188,15 @@ public class RuneLingualPlugin extends Plugin
 			return;
 		}
 
+		chatInputRLingual.updateChatInput();
+
 		// this should be done on the onWidgetLoaded event
 		// but something seems to change the contents right back
 		// somewhere before the rendering process actually happens
 		// so having this happen every game tick instead
 		// of every client tick is actually less resource intensive
 
-		updateChatInputJa.updateInput();
+
 
 		// old code
 		dialogTranslator.handleDialogs();
