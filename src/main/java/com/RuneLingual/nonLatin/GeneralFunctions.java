@@ -1,4 +1,4 @@
-package com.RuneLingual.nonLatinChar;
+package com.RuneLingual.nonLatin;
 
 import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.RuneLingualPlugin;
@@ -6,7 +6,6 @@ import net.runelite.client.game.ChatIconManager;
 
 import javax.inject.Inject;
 import java.util.HashMap;
-import java.util.regex.Pattern;
 
 public class GeneralFunctions {
     @Inject

@@ -1,47 +1,62 @@
 package com.RuneLingual;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 
 import javax.inject.Inject;
 
+@Getter
 public enum LangCodeSelectableList
 {
-    ENGLISH ("en", "EN","EN", 8),
-    PORTUGUÊS_BRASILEIRO ("pt_br", "PT","PT-BR", 8),
-    NORSK("no", "NB", "NB", 8),
-    日本語("ja", "JA", "JA", 15);
+    ENGLISH ("en", "EN","EN", 8, 6, false, false, false, false),
+    PORTUGUÊS_BRASILEIRO ("pt_br", "PT","PT-BR", 8, 6, false, false, false, false),
+    NORSK("no", "NB", "NB", 8, 6, false, false, false, false),
+    日本語("ja", "JA", "JA", 15, 13, true, true, true, true);
     // todo: add languages here
 
-    @Getter
     private final String langCode;
-    @Getter
     private final String deeplLangCodeSource;
-    @Getter
     private final String deeplLangCodeTarget;
-    @Getter
     private final int charSize;
+    private final int chatBoxCharSize;
+
+    @Getter(AccessLevel.NONE)
+    private final boolean needCharImages;
+    @Getter(AccessLevel.NONE)
+    private final boolean swapMenuOptionAndTarget;
+    @Getter(AccessLevel.NONE)
+    private final boolean needInputOverlay;
+    @Getter(AccessLevel.NONE)
+    private final boolean needInputCandidateOverlay;
 
     @Inject
-    LangCodeSelectableList(String langCode, String deeplCodeSrc, String deeplCodeTgt, int charSize){
+    LangCodeSelectableList(String langCode, String deeplCodeSrc, String deeplCodeTgt, int charSize, int chatBoxCharSize,
+                           boolean needCharImages, boolean swapMenuOptionAndTarget,
+                           boolean needInputOverlay, boolean needInputCandidateOverlay){
         this.langCode = langCode;
         this.deeplLangCodeSource = deeplCodeSrc;
         this.deeplLangCodeTarget = deeplCodeTgt;
         this.charSize = charSize;
+        this.chatBoxCharSize = chatBoxCharSize;
+        this.needCharImages = needCharImages;
+        this.swapMenuOptionAndTarget = swapMenuOptionAndTarget;
+        this.needInputOverlay = needInputOverlay;
+        this.needInputCandidateOverlay = needInputCandidateOverlay;
     }
 
-    public boolean needCharImages(){
-        if (this == 日本語){ // todo: when adding new languages, add them here if they need char images
-            return true;
-        }
-        return false;
+    public boolean needsCharImages() {
+        return needCharImages;
+    }
+    public boolean needsSwapMenuOptionAndTarget() {
+        return swapMenuOptionAndTarget;
     }
 
-    public boolean swapMenuOptionAndTarget(){
-        if (this == 日本語){ // todo: when adding new languages, add them here if they should swap menu entries (if noun comes before verb)
-            return true;
-        }
-        return false;
+    public boolean needsInputOverlay() {
+        return needInputOverlay;
     }
 
+    public boolean needsInputCandidateOverlay() {
+        return needInputCandidateOverlay;
+    }
 
 }

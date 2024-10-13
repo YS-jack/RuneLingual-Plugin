@@ -33,7 +33,7 @@ public class Deepl {
     @Getter @Setter
     private boolean keyValid = true;
 
-    @Getter
+    @Getter @Setter
     private PastTranslationManager deeplPastTranslationManager;
 
     @Inject

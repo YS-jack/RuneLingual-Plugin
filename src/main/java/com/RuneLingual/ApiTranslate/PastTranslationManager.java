@@ -69,6 +69,11 @@ public class PastTranslationManager {
     }
 
     public String getPastTranslation(String text){
+        /*
+        returns: String =
+            the translation of the text from sourceLang to targetLang
+            if failed, returns null
+         */
         return pastTranslations.getOrDefault(text, null);
     }
 
@@ -86,7 +91,7 @@ public class PastTranslationManager {
         }
     }
 
-    public boolean haveTranslatedBefore(String option, String target, MenuEntry menuEntry){
+    public boolean haveTranslatedMenuBefore(String option, String target, MenuEntry menuEntry){
         String[] optionWordArray = Colors.getWordArray(option);
         String[] targetWordArray = Colors.getWordArray(target);
 

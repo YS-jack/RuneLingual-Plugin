@@ -1,11 +1,12 @@
 package com.RuneLingual;
 
 import com.RuneLingual.ApiTranslate.*;
-import com.RuneLingual.ChatMessages.ChatCapture;
+import com.RuneLingual.ChatMessages.*;
 import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
+import com.RuneLingual.nonLatin.*;
 import com.google.inject.Provides;
 import javax.inject.Inject;
 
@@ -33,9 +34,8 @@ import lombok.Getter;
 import com.RuneLingual.SidePanelComponents.SidePanel;
 import com.RuneLingual.commonFunctions.FileActions;
 import com.RuneLingual.prepareResources.Downloader;
-import com.RuneLingual.nonLatinChar.CharImageInit;
-import com.RuneLingual.nonLatinChar.GeneralFunctions;
 import com.RuneLingual.commonFunctions.Ids;
+
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -117,6 +117,14 @@ public class RuneLingualPlugin extends Plugin
 	private Deepl deepl;
 	@Inject
 	private DeeplUsageOverlay deeplUsageOverlay;
+	@Inject @Getter
+	private ChatInputRLingual chatInputRLingual;
+	@Inject @Getter
+	private ChatInputOverlay chatInputOverlay;
+	@Inject
+	private ChatInputCandidateOverlay chatInputCandidateOverlay;
+	@Inject
+	private OverheadCapture overheadCapture;
 
 	@Override
 	protected void startUp() throws Exception
@@ -137,6 +145,8 @@ public class RuneLingualPlugin extends Plugin
 		// initiate overlays
 		overlayManager.add(mouseTooltipOverlay);
 		overlayManager.add(deeplUsageOverlay);
+		overlayManager.add(chatInputOverlay);
+		overlayManager.add(chatInputCandidateOverlay);
 
 
 		// load image files
@@ -170,6 +180,12 @@ public class RuneLingualPlugin extends Plugin
 		// old code ends here (for this method)
 		log.info("RuneLingual started!");
 	}
+
+	@Subscribe
+	public void onOverheadTextChanged(OverheadTextChanged event) throws Exception {
+		overheadCapture.translateOverhead(event);
+	}
+
 	
 	@Subscribe
 	private void onBeforeRender(BeforeRender event)
@@ -178,44 +194,22 @@ public class RuneLingualPlugin extends Plugin
 			return;
 		}
 
+		chatInputRLingual.updateChatInput();
+
 		// this should be done on the onWidgetLoaded event
 		// but something seems to change the contents right back
 		// somewhere before the rendering process actually happens
 		// so having this happen every game tick instead
 		// of every client tick is actually less resource intensive
+
+
+
+		// old code
 		dialogTranslator.handleDialogs();
 		for (Widget widgetRoot : client.getWidgetRoots()) {
 			MenuCapture.remapWidget(widgetRoot);
 		}
-		int currentHudTab = -1; // client.getVarcIntValue(VarClientInt.INVENTORY_TAB);
-		switch(currentHudTab)
-		{
-			case 0:
-			{
-				System.out.println("combat opt");
-				break;
-			}
-			case 1:
-			{
-				System.out.println("skills");
-				break;
-			}
-			case 2:
-			{
-				System.out.println("quest");
-				menuBar.handleQuestMenuTab();
-				break;
-			}
-			case 3:
-			{
-				System.out.println("inv");
-				break;
-			}
-			default:
-			{
-				break;
-			}
-		}
+
 	}
 	
 	@Subscribe
@@ -294,20 +288,15 @@ public class RuneLingualPlugin extends Plugin
 			}
 
 			// reset language specific variables
+
+			overlayManager.remove(mouseTooltipOverlay);
 			MouseTooltipOverlay.setAttemptedTranslation(new ArrayList<>());
+			overlayManager.add(mouseTooltipOverlay);
+
+			//reset deepl's past translations
+			deepl = new Deepl(this);
 
 			restartPanel();
-		}
-
-		// below are some old code
-
-
-		if(dialogTranscriptManager != null)
-		{
-			if(dialogTranscriptManager.isChanged())
-			{
-				dialogTranscriptManager.saveOriginalTranscript();
-			}
 		}
 
 		// need this
@@ -322,6 +311,10 @@ public class RuneLingualPlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		clientToolBar.removeNavigation(navButton);
+		overlayManager.remove(mouseTooltipOverlay);
+		overlayManager.remove(deeplUsageOverlay);
+		overlayManager.remove(chatInputOverlay);
+		overlayManager.remove(chatInputCandidateOverlay);
 		//transcriptManager.saveTranscript();
 		log.info("RuneLingual plugin stopped!");
 	}

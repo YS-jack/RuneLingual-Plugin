@@ -2,7 +2,7 @@ package com.RuneLingual.commonFunctions;
 
 import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
-import com.RuneLingual.nonLatinChar.GeneralFunctions;
+import com.RuneLingual.nonLatin.GeneralFunctions;
 import com.RuneLingual.SQL.SqlVariables;
 import com.RuneLingual.SQL.SqlQuery;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class Transformer {
 
 
     public String transformEngWithColor(TransformOption option, SqlQuery sqlQuery, boolean searchAlike){
-        boolean needCharImage = plugin.getConfig().getSelectedLanguage().needCharImages();
+        boolean needCharImage = plugin.getConfig().getSelectedLanguage().needsCharImages();
         GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
         String text = sqlQuery.getEnglish();
         if(text == null || text.isEmpty()){
@@ -102,9 +102,6 @@ public class Transformer {
     }
 
     public String transform(String text, Colors colors, TransformOption option, SqlQuery sqlQuery, boolean searchAlike){
-        boolean needCharImage = plugin.getConfig().getSelectedLanguage().needCharImages();
-        GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
-
         if(text == null || text.isEmpty()){
             return text;
         }
@@ -138,12 +135,13 @@ public class Transformer {
         } else if(option == TransformOption.TRANSLITERATE){
             //return
         }
+        return stringToDisplayedString(translatedText, colors);
 
-        if(needCharImage) {// needs char image but just 1 color
-            return generalFunctions.StringToTags(Colors.removeColorTag(translatedText), colors);
-        } else { // doesnt need char image and just 1 color
-            return "<col=" + colors.getHex() + ">" + translatedText + "</col>";
-        }
+//        if(needCharImage) {// needs char image but just 1 color
+//            return generalFunctions.StringToTags(Colors.removeColorTag(translatedText), colors);
+//        } else { // doesnt need char image and just 1 color
+//            return "<col=" + colors.getHex() + ">" + translatedText + "</col>";
+//        }
     }
 
     /*
@@ -232,6 +230,17 @@ public class Transformer {
             fullWidthStr = fullWidthStr.replace(pair[0], pair[1]);
         }
         return fullWidthStr;
+    }
+
+    public String stringToDisplayedString(String translatedText, Colors colors){
+        boolean needCharImage = plugin.getConfig().getSelectedLanguage().needsCharImages();
+        GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
+
+        if(needCharImage) {// needs char image but just 1 color
+            return generalFunctions.StringToTags(Colors.removeColorTag(translatedText), colors);
+        } else { // doesnt need char image and just 1 color
+            return "<col=" + colors.getHex() + ">" + translatedText + "</col>";
+        }
     }
 
 }
