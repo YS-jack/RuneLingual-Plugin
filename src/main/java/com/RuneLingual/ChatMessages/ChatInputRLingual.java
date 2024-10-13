@@ -21,7 +21,7 @@ public class ChatInputRLingual {
         this.plugin = plugin;
     }
 
-    public void updateChatInput() {
+    public void updateChatInput() { // to update input and candidate overlay
         if (plugin.getConfig().getSelectedLanguage().needsCharImages()){
             if(plugin.getConfig().getSelectedLanguage().equals(LangCodeSelectableList.日本語)){
                 updateChatInputJa.updateInput();
@@ -29,7 +29,7 @@ public class ChatInputRLingual {
         }
     }
 
-    public String transformChatText(String text) {
+    public String transformChatText(String text) { // example: "konnnitiha" -> "こんにちは"
         if (plugin.getConfig().getSelectedLanguage().needsCharImages()){
             if(plugin.getConfig().getSelectedLanguage().equals(LangCodeSelectableList.日本語)){
                 return updateChatInputJa.romJpTransform(text, false);

@@ -2,6 +2,7 @@ package com.RuneLingual.ChatMessages;
 
 import com.RuneLingual.*;
 import com.RuneLingual.ApiTranslate.Deepl;
+import com.RuneLingual.SidePanelComponents.ChatBoxSection;
 import com.RuneLingual.commonFunctions.Transformer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -131,17 +132,17 @@ public class ChatCapture
             case AS_IS:
                 return;
             case TRANSLATE_LOCAL:
-                localTranslator(message, messageNode);
+                localTranslator(message, messageNode, chatMessage);
                 break;
             case TRANSLATE_API:
                 Thread thread = new Thread(() -> {
-                    onlineTranslator(message, messageNode);
+                    onlineTranslator(message, messageNode, chatMessage);
                 });
                 thread.setDaemon(false);
                 thread.start();
                 break;
             case TRANSFORM: // ex: konnnitiha -> こんにちは
-                chatTransformer(message, messageNode);
+                chatTransformer(message, messageNode, chatMessage);
                 break;
         }
 
@@ -154,53 +155,14 @@ public class ChatCapture
         this.translateOverHeads = config.getAllowOverHead();
     }
     
-    private void localTranslator(String message, MessageNode node)
+    private void localTranslator(String message, MessageNode node, ChatMessage chatMessage)
     {
         // todo after adding transcripts for this type of message
-
-        // below are some old codes
-//        try
-//        {
-//            String translatedMessage = translatedDialog.getText("game", message, true);
-//            node.setValue(translatedMessage);
-//
-//            if(logTranslations)
-//            {
-//                logger.log("Replaced game message '" + message + "'.");
-//            }
-//        }
-//        catch (Exception e)
-//        {
-//            if(e.getMessage() == "LineNotFound")
-//            {
-//                try
-//                {
-//                    originalDialog.addTranscript("game", message);
-//                    return;
-//                }
-//                catch(Exception unknownException)
-//                {
-//                    if(logErrors)
-//                    {
-//                        logger.log("Could not add '"
-//                            + message
-//                            + "'line to transcript: "
-//                            + unknownException.getMessage());
-//                    }
-//                }
-//            }
-//
-//            if(logErrors)
-//            {
-//                String originalContents = node.getValue();
-//                logger.log("Could not replace contents for '"
-//                   + originalContents + "', exception occurred: "
-//                   + e.getMessage());
-//            }
-//        }
+        String newMessage = message;
+        addMsgToSidePanel(chatMessage, newMessage);
     }
     
-    private void onlineTranslator(String message, MessageNode node)
+    private void onlineTranslator(String message, MessageNode node, ChatMessage chatMessage)
     {
         if(deepl.getDeeplCount() + message.length() + 1000 > deepl.getDeeplLimit())
         {
@@ -213,14 +175,16 @@ public class ChatCapture
         Colors textColor = chatColorManager.getMessageColor();
         String textToDisplay = transformer.stringToDisplayedString(translation, textColor);
         replaceChatMessage(textToDisplay, node);
+        addMsgToSidePanel(chatMessage, translation);
     }
 
-    private void chatTransformer(String message, MessageNode node) {
+    private void chatTransformer(String message, MessageNode node, ChatMessage chatMessage) {
         String newMessage = plugin.getChatInputRLingual().transformChatText(message);
         Transformer transformer = new Transformer(plugin);
         Colors textColor = chatColorManager.getMessageColor();
         String textToDisplay = transformer.stringToDisplayedString(newMessage, textColor);
         replaceChatMessage(textToDisplay, node);
+        addMsgToSidePanel(chatMessage, newMessage);
     }
 
     private void replaceChatMessage(String newMessage, MessageNode node) {
@@ -229,6 +193,36 @@ public class ChatCapture
         }
         node.setRuneLiteFormatMessage(newMessage);
         this.client.refreshChat();
+    }
+
+    private void addMsgToSidePanel(ChatMessage chatMessage, String newMessage)
+    {
+        newMessage = Colors.removeAllTags(newMessage);
+
+        String senderName = chatMessage.getName();
+        senderName = Colors.removeAllTags(senderName);
+
+        String messageToAdd = senderName.isEmpty() ? newMessage : senderName + ": " + newMessage;
+        String chatType;
+        ChatBoxSection chatBoxSection = plugin.getPanel().getChatBoxSection();
+        switch (chatMessage.getType()) {
+            case PUBLICCHAT:
+                chatType = chatBoxSection.getTabNamePublic();
+                break;
+            case CLAN_CHAT:
+            case CLAN_GUEST_CHAT:
+                chatType = chatBoxSection.getTabNameClan();
+                break;
+            case FRIENDSCHAT:
+                chatType = chatBoxSection.getTabNameChannel();
+                break;
+            case CLAN_GIM_CHAT:
+                chatType = chatBoxSection.getTabNameGIM();
+                break;
+            default:
+                chatType = chatBoxSection.getTabNameGame();
+        }
+        plugin.getPanel().getChatBoxSection().addSentenceToTab(chatType, messageToAdd);
     }
 
     private TransformOption getTranslationOption(ChatMessage chatMessage) {

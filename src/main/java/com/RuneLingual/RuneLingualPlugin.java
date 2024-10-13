@@ -100,7 +100,7 @@ public class RuneLingualPlugin extends Plugin
 
 	@Inject @Getter
 	private Downloader downloader;
-	@Inject
+	@Inject @Getter
 	private SidePanel panel;
 	private NavigationButton navButton;
 	@Inject @Getter

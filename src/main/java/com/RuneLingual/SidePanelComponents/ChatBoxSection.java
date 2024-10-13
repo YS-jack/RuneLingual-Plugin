@@ -3,14 +3,17 @@ package com.RuneLingual.SidePanelComponents;
 import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
+import javax.swing.border.MatteBorder;
+import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 public class ChatBoxSection {
     private SidePanel sidePanel;
-    private RuneLingualPlugin plugin;
     @Getter
     private String tabNameGame = "Game";
     @Getter
@@ -25,7 +28,6 @@ public class ChatBoxSection {
 
     public ChatBoxSection(SidePanel sideP, LangCodeSelectableList langList, RuneLingualPlugin plugin) {
         this.sidePanel = sideP;
-        this.plugin = plugin;
 
         translateTabNames(langList);
 
@@ -36,32 +38,40 @@ public class ChatBoxSection {
         addTab(tabbedPane, tabNameGIM);
 
         sidePanel.add(tabbedPane);
-        sidePanel.setSize(400, 300);
+        sidePanel.setSize(400, 800);
         sidePanel.setVisible(true);
     }
 
-    private static void addTab(JTabbedPane tabbedPane, String title) {
-        JTextArea textArea = new JTextArea();
-//        for (String sentence : sentences) {
-//            textArea.append(sentence + "\n");
-//        }
-        textArea.setEditable(false); // This line makes the text uneditable
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        tabbedPane.addTab(title, scrollPane);
-    }
+private static void addTab(JTabbedPane tabbedPane, String title) {
+    JTextArea textArea = new JTextArea();
+    textArea.setEditable(false); // This line makes the text uneditable
+    textArea.setCursor(new Cursor(Cursor.TEXT_CURSOR)); // This line changes the cursor to the I-beam shape
+    textArea.setSelectionColor(new Color(50,50,200)); // This line sets the background color of the selected text to black
+    textArea.setSelectedTextColor(Color.WHITE); // This line sets the color of the selected text to white
+    textArea.setLineWrap(true); // This line enables line wrapping
 
-    public void addSentenceToTab(String tabTitle, String sentence) {
-        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-            if (tabbedPane.getTitleAt(i).equals(tabTitle)) {
-                JScrollPane scrollPane = (JScrollPane) tabbedPane.getComponentAt(i);
-                JViewport viewport = scrollPane.getViewport();
-                JTextArea textArea = (JTextArea) viewport.getView();
-                textArea.append(sentence + "\n");
-                return;
+    JScrollPane scrollPane = new JScrollPane(textArea);
+    scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER); // This line disables horizontal scrolling
+
+    tabbedPane.addTab(title, scrollPane);
+    textArea.setBackground(java.awt.Color.darkGray);
+}
+
+public void addSentenceToTab(String tabTitle, String sentence) {
+    for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+        if (tabbedPane.getTitleAt(i).equals(tabTitle)) {
+            JScrollPane scrollPane = (JScrollPane) tabbedPane.getComponentAt(i);
+            JViewport viewport = scrollPane.getViewport();
+            JTextArea textArea = (JTextArea) viewport.getView();
+            if (textArea.getDocument().getLength() != 0) { // Check if the text area is not empty
+                textArea.append("--------------------\n"); // Append a separator line
             }
+            textArea.append(sentence + "\n");
+            return;
         }
-        System.out.println("No tab found with title: " + tabTitle);
     }
+    log.info("No tab found with title: " + tabTitle);
+}
 
 
     private void translateTabNames(LangCodeSelectableList targetLanguage) {

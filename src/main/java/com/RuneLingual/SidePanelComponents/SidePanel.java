@@ -2,6 +2,7 @@ package com.RuneLingual.SidePanelComponents;
 
 import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.ui.PluginPanel;
 
@@ -28,19 +29,22 @@ public class SidePanel extends PluginPanel{
     String titleText = "RuneLingual";
     String helpText = "Help with settings";
     String discordText = "Ask for help on Discord";
+    @Getter
+    ChatBoxSection chatBoxSection;
 
     @Inject
     private SidePanel(RuneLingualPlugin plugin){
         LangCodeSelectableList targetLanguage = FileActions.getLangCodeFromFile();
         translatePanelTexts(targetLanguage);
 
-        this.setPreferredSize(new Dimension(200, 800));
+        this.setPreferredSize(new Dimension(200, 1500));
         this.add(createTitleLabel(titleText));
         this.add(createClickableLabel(helpText, helpLink));
         this.add(createClickableLabel(discordText, "https://discord.gg/8vJ2T8Q"));
-        ChatBoxSection chatBoxSection = new ChatBoxSection(this, targetLanguage, plugin);
+        chatBoxSection = new ChatBoxSection(this, targetLanguage, plugin);
         SearchSection searchSection = new SearchSection(this, targetLanguage, plugin);
     }
+
 
     private void translatePanelTexts(LangCodeSelectableList targetLanguage) {
         if (targetLanguage == LangCodeSelectableList.ENGLISH) {
