@@ -212,14 +212,15 @@ public interface RuneLingualConfig extends Config
 	)
 	String SECTION_CHAT_MESSAGES = "chatMessages";
 
-	@ConfigItem(
-			name = "All Friends",
-			description = "Option that applies to all friends",
-			position = 2 + offset_section3,
-			keyName = "allFriends",
-			section = SECTION_CHAT_MESSAGES
-	)
-	default chatConfig getAllFriendsConfig() {return chatConfig.LEAVE_AS_IS;}
+	//not using this, makes configuration annoying
+//	@ConfigItem(
+//			name = "All Friends",
+//			description = "Option that applies to all friends",
+//			position = 2 + offset_section3,
+//			keyName = "allFriends",
+//			section = SECTION_CHAT_MESSAGES
+//	)
+//	default chatConfig getAllFriendsConfig() {return chatConfig.LEAVE_AS_IS;}
 
 	@ConfigItem(
 			name = "Public",
@@ -340,7 +341,7 @@ public interface RuneLingualConfig extends Config
 	String SECTION_SPECIFIC_PLAYER_SETTINGS = "specificPlayerSettings";
 
 	@ConfigItem(
-			name = "Don't translate",
+			name = "Leave as is",
 			description = "Specific players to not translate",
 			position = 1 + offset_section5,
 			keyName = "specificDontTranslate",

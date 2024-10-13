@@ -5,6 +5,7 @@ import com.RuneLingual.ChatMessages.*;
 import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
+import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.RuneLingual.nonLatin.*;
 import com.google.inject.Provides;
@@ -15,7 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.VarPlayer;
 import net.runelite.api.events.*;
+import net.runelite.api.widgets.InterfaceID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -27,6 +30,7 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.game.ChatIconManager;
+import net.runelite.client.callback.ClientThread;
 
 
 import lombok.Getter;
@@ -44,6 +48,8 @@ import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static javax.swing.SwingUtilities.invokeLater;
+
 @Slf4j
 @PluginDescriptor(
 	// Plugin name shown at plugin hub
@@ -55,6 +61,8 @@ public class RuneLingualPlugin extends Plugin
 {
 	@Inject @Getter
 	private Client client;
+	@Inject
+	private ClientThread clientThread;
 	@Inject
 	private OverlayManager overlayManager;
 	@Inject
@@ -252,8 +260,69 @@ public class RuneLingualPlugin extends Plugin
 			return;
 		}
 		chatCapture.handleChatMessage(event);
+
+//		int color;
+//		switch (event.getType()) {
+//			case PUBLICCHAT:
+//				color = client.getVarpValue(VarPlayer.SETTINGS_OPAQUE_CHAT_PUBLIC);
+//				break;
+//			case PRIVATECHAT:
+//				color = client.getVarpValue(VarPlayer.SETTINGS_OPAQUE_CHAT_PRIVATE);
+//				break;
+//			case AUTOTYPER:
+//				color = client.getVarpValue(VarPlayer.SETTINGS_OPAQUE_CHAT_AUTO);
+//				break;
+//			case BROADCAST:
+//				color = client.getVarpValue(VarPlayer.SETTINGS_OPAQUE_CHAT_BROADCAST);
+//				break;
+//			case FRIENDSCHAT:
+//				color = client.getVarpValue(VarPlayer.SETTINGS_OPAQUE_CHAT_FRIEND);
+//				break;
+//			case CLAN_CHAT:
+//				color = client.getVarpValue(VarPlayer.SETTINGS_OPAQUE_CHAT_CLAN);
+//				break;
+//			case CLAN_GUEST_CHAT:
+//				color = client.getVarpValue(VarPlayer.SETTINGS_OPAQUE_CHAT_GUEST_CLAN);
+//				break;
+//			case CLAN_MESSAGE:
+//				color = client.getVarpValue(VarPlayer.SETTINGS_OPAQUE_CHAT_CLAN_BROADCAST);
+//				break;
+//			case CLAN_GIM_CHAT:
+//				color = client.getVarpValue(VarPlayer.SETTINGS_OPAQUE_CHAT_IRON_GROUP_CHAT);
+//				break;
+//			case CLAN_GIM_MESSAGE:
+//				color = client.getVarpValue(VarPlayer.SETTINGS_OPAQUE_CHAT_IRON_GROUP_BROADCAST);
+//				break;
+//			case TRADE:
+//				color = client.getVarpValue(VarPlayer.SETTINGS_OPAQUE_CHAT_TRADE_REQUEST);
+//				break;
+//			case CHALREQ_CLANCHAT:
+//			case CHALREQ_FRIENDSCHAT:
+//			case CHALREQ_TRADE:
+//				color = client.getVarpValue(VarPlayer.SETTINGS_OPAQUE_CHAT_CHALLENGE_REQUEST);
+//				break;
+//			default:
+//				color = 0;
+//		}
+//		log.info("color = " + color);
+
 	}
-	
+
+//	@Subscribe
+//	public void onWidgetLoaded(WidgetLoaded event)
+//	{
+//		if (targetLanguage == LangCodeSelectableList.ENGLISH) {
+//			return;
+//		}
+//		log.info("Widget loaded:" + event.getGroupId() );
+//		if (event.getGroupId() == InterfaceID.CHATBOX) {
+//			log.info("Chatbox loaded");
+////			clientThread.invokeLater(() -> {
+////				MenuCapture.remapWidget(event.getWidget());
+////			});
+//		}
+//	}
+
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged event)
 	{

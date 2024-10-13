@@ -76,19 +76,54 @@ public class PlayerMessage {
         if(typedPublicCode()){
             return talkingIn.PUBLIC;
         }
-        if(typedFriendsChannelCode() && joinedFC()){
-            return talkingIn.CHANNEL;
-        }
-        if(typedClanCode() && joinedClan()){
-            return talkingIn.CLAN;
-        }
-        if(typedGuestClanCode() && joinedGuestClan()){
-            return talkingIn.GUEST_CLAN;
-        }
-        if(typedGimCode() && joinedGIM()){
-            return talkingIn.GIM;
+
+        if(typedFriendsChannelCode()){
+            if(joinedFC())
+                return talkingIn.CHANNEL;
+            else
+                return talkingIn.PUBLIC;
         }
 
+        if(typedClanCode()){
+            if(joinedClan()){
+                if(joinedGIM())
+                    return talkingIn.GIM;
+                else
+                    return talkingIn.CLAN;
+            } else {
+                return talkingIn.NONE;
+            }
+        }
+
+        if(typedGuestClanCode()){
+            if(joinedGuestClan())
+                return talkingIn.GUEST_CLAN;
+            else
+                return talkingIn.NONE;
+        }
+
+        if(typedGimCode()){
+            if(joinedGIM())
+                return talkingIn.GIM;
+            else {
+                if(getChatInputString().startsWith("////")){
+                    if(joinedGuestClan())
+                        return talkingIn.GUEST_CLAN;
+                    else
+                        return talkingIn.NONE;
+                }
+                else if(getChatInputString().startsWith("/g"))
+                    return talkingIn.PUBLIC;
+                else if(getChatInputString().startsWith("@g")){
+                    if(joinedClan())
+                        return talkingIn.CLAN;
+                    else
+                        return talkingIn.NONE;
+                }
+            }
+        }
+
+        // if no chat code is found
         if(chatMode == ChatCapture.chatModes.PUBLIC) {
             if (chatbox == ChatCapture.openChatbox.ALL
                     || chatbox == ChatCapture.openChatbox.GAME
@@ -98,30 +133,31 @@ public class PlayerMessage {
             }
 
             // if friends chat tab is opened
-            if (chatbox == ChatCapture.openChatbox.CHANNEL && joinedFC()) {
-                return talkingIn.CHANNEL;
-            }
-            if (chatbox == ChatCapture.openChatbox.CHANNEL && !joinedFC()) {
-                return talkingIn.PUBLIC;
+            if (chatbox == ChatCapture.openChatbox.CHANNEL) {
+                if(joinedFC())
+                    return talkingIn.CHANNEL;
+                else
+                    return talkingIn.PUBLIC;
             }
 
             // if clan chat tab is opened
-            if (chatbox == ChatCapture.openChatbox.CLAN && joinedClan()) {
-                return talkingIn.CLAN;
-            }
-            if (chatbox == ChatCapture.openChatbox.CLAN && !joinedClan()) {
-                return talkingIn.NONE;
+            if (chatbox == ChatCapture.openChatbox.CLAN) {
+                if(joinedClan())
+                    return talkingIn.CLAN;
+                else
+                    return talkingIn.PUBLIC;
             }
 
             // if trade or gim tab is opened
-            if (chatbox == ChatCapture.openChatbox.TRADE_GIM && joinedGIM()) {
-                return talkingIn.GIM;
-            }
-            if (chatbox == ChatCapture.openChatbox.TRADE_GIM && !joinedGIM()) {
-                return talkingIn.PUBLIC;
+            if (chatbox == ChatCapture.openChatbox.TRADE_GIM) {
+                if(joinedGIM())
+                    return talkingIn.GIM;
+                else
+                    return talkingIn.PUBLIC;
             }
 
-        } else if(chatMode == ChatCapture.chatModes.CHANNEL){
+        }
+        else if(chatMode == ChatCapture.chatModes.CHANNEL){
             if(!joinedFC()){
                 if(chatbox == ChatCapture.openChatbox.ALL
                         || chatbox == ChatCapture.openChatbox.GAME
@@ -166,7 +202,8 @@ public class PlayerMessage {
                     return talkingIn.CHANNEL;
                 }
             }
-        } else if(chatMode == ChatCapture.chatModes.CLAN){
+        }
+        else if(chatMode == ChatCapture.chatModes.CLAN){
             if(!joinedClan()){
                 if(chatbox == ChatCapture.openChatbox.ALL
                         || chatbox == ChatCapture.openChatbox.GAME
@@ -209,7 +246,8 @@ public class PlayerMessage {
                 }
 
             }
-        } else if(chatMode == ChatCapture.chatModes.GUEST_CLAN){
+        }
+        else if(chatMode == ChatCapture.chatModes.GUEST_CLAN){
             if(!joinedGuestClan()){
                 if(chatbox == ChatCapture.openChatbox.ALL
                         || chatbox == ChatCapture.openChatbox.GAME
@@ -258,7 +296,8 @@ public class PlayerMessage {
                     return talkingIn.GUEST_CLAN;
                 }
             }
-        } else if(chatMode == ChatCapture.chatModes.GROUP){
+        }
+        else if(chatMode == ChatCapture.chatModes.GROUP){
             if(!joinedGIM()) {
                 // this shouldn't even happen, but to be safe
                 return talkingIn.NONE;
@@ -283,7 +322,7 @@ public class PlayerMessage {
                 }
             }
         }
-        log.info("warning: no chat mode found");
+        //log.info("warning: no chat mode found");
         return  talkingIn.NONE;
     }
 
@@ -315,7 +354,11 @@ public class PlayerMessage {
     }
 
     private boolean typedFriendsChannelCode() {
-        if((getChatInputString().startsWith("/") && !getChatInputString().startsWith("//"))
+        if((getChatInputString().startsWith("/") && !getChatInputString().startsWith("//")
+                && !getChatInputString().startsWith("/c ") && !getChatInputString().startsWith("/@c")
+                && !getChatInputString().startsWith("/gc ") && !getChatInputString().startsWith("/@gc")
+                && !getChatInputString().startsWith("/g ") && !getChatInputString().startsWith("/@g")
+                && !getChatInputString().startsWith("/@p"))
                 || getChatInputString().startsWith("/@f"))
             return true;
         return false;
@@ -337,7 +380,7 @@ public class PlayerMessage {
     private boolean typedGimCode() {
         if(getChatInputString().startsWith("////")
                 || getChatInputString().startsWith("/g ")
-                || getChatInputString().startsWith("/@g"))
+                || (getChatInputString().startsWith("/@g") && !getChatInputString().startsWith("/@gc")) )
             return true;
         return false;
     }

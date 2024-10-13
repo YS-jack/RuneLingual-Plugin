@@ -41,7 +41,7 @@ public class ChatColorManager {
         }
     }
 
-    private Colors getOpaqueBoxMessageColor(ChatMessageType type) {
+    public Colors getOpaqueBoxMessageColor(ChatMessageType type) {
         int color;
         switch (type) {
             case PUBLICCHAT:
@@ -85,6 +85,8 @@ public class ChatColorManager {
             default:
                 color = 0;
         }
+        if(color==0)
+            return Colors.black;
         color--;
         return Colors.fromHex(Integer.toHexString(color));
     }

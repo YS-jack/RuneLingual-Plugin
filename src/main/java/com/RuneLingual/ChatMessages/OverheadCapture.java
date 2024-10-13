@@ -7,6 +7,8 @@ import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.Transformer;
 import com.RuneLingual.commonFunctions.Transformer.TransformOption;
 import com.RuneLingual.ChatMessages.ChatCapture;
+import com.RuneLingual.RuneLingualConfig;
+
 import net.runelite.api.*;
 import net.runelite.api.events.OverheadTextChanged;
 import net.runelite.client.game.ChatIconManager;
@@ -107,7 +109,8 @@ public class OverheadCapture {
             name = Colors.removeAllTags(name);
             //the player is the local player
             if (name.equals(client.getLocalPlayer().getName())) {
-                return playerMessage.getTranslationOption();
+                //return playerMessage.getTranslationOption();
+                return getMatchingOption(plugin.getConfig().getMyPublicConfig());
             }
 
             // check inside forceful config setting
@@ -118,25 +121,39 @@ public class OverheadCapture {
             if (plugin.getChatCapture().isInConfigList(name, plugin.getConfig().getSpecificApiTranslate()))
                 return TransformOption.TRANSLATE_API;
 
-            if (client.isFriended(name, true)) {
-                switch (plugin.getConfig().getAllFriendsConfig()) {
-                    case LEAVE_AS_IS:
-                        return TransformOption.AS_IS;
-                    case TRANSFORM:
-                        return TransformOption.TRANSFORM;
-                    case USE_API:
-                        return TransformOption.TRANSLATE_API;
-                }
-            }
-            switch (plugin.getConfig().getPublicChatConfig()) {
-                case LEAVE_AS_IS:
-                    return TransformOption.AS_IS;
-                case TRANSFORM:
-                    return TransformOption.TRANSFORM;
-                case USE_API:
-                    return TransformOption.TRANSLATE_API;
-            }
+            // if its from a friend
+//            if (client.isFriended(name, true)) {
+//                return getMatchingOption(plugin.getConfig().getAllFriendsConfig());
+//            }
+
+            // if its not from local player nor a friend
+            return getMatchingOption(plugin.getConfig().getPublicChatConfig());
         }
         return TransformOption.AS_IS;
     }
+
+    private TransformOption getMatchingOption(RuneLingualConfig.chatSelfConfig configSelf){
+        switch (configSelf) {
+            case LEAVE_AS_IS:
+                return TransformOption.AS_IS;
+            case TRANSFORM:
+                return TransformOption.TRANSFORM;
+            default:
+                return TransformOption.AS_IS;
+        }
+    }
+
+    private TransformOption getMatchingOption(RuneLingualConfig.chatConfig config){
+        switch (config) {
+            case LEAVE_AS_IS:
+                return TransformOption.AS_IS;
+            case TRANSFORM:
+                return TransformOption.TRANSFORM;
+            case USE_API:
+                return TransformOption.TRANSLATE_API;
+            default:
+                return TransformOption.AS_IS;
+        }
+    }
+
 }

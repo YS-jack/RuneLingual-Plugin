@@ -126,7 +126,7 @@ public class ChatCapture
         }
 
         //log.info("Translation option: " + translationOption.toString());
-
+        chatColorManager.setMessageColor(chatMessage.getMessageNode().getType());
         switch (translationOption) {
             case AS_IS:
                 return;
@@ -134,7 +134,6 @@ public class ChatCapture
                 localTranslator(message, messageNode);
                 break;
             case TRANSLATE_API:
-                chatColorManager.setMessageColor(chatMessage.getMessageNode().getType());
                 Thread thread = new Thread(() -> {
                     onlineTranslator(message, messageNode);
                 });
@@ -232,29 +231,6 @@ public class ChatCapture
         this.client.refreshChat();
     }
 
-    private void overheadReplacer(String currentMessage, String newMessage)
-    {
-        try
-        {
-            String translatedMessage = overheadReplacer.replace(currentMessage, newMessage);
-            
-            if(logTranslations)
-            {
-                logger.log("Replaced overhead message '" + currentMessage + "'.");
-            }
-        }
-        catch (Exception e)
-        {
-            if(logErrors)
-            {
-                logger.log("Could not replace contents for '"
-                    + currentMessage
-                    + "', exception occurred: "
-                    + e.getMessage());
-            }
-        }
-    }
-
     private TransformOption getTranslationOption(ChatMessage chatMessage) {
         String playerName = Colors.removeAllTags(chatMessage.getName());
         if (isInConfigList(playerName, config.getSpecificDontTranslate()))
@@ -264,28 +240,44 @@ public class ChatCapture
         else if (isInConfigList(playerName, config.getSpecificTransform()))
             return TransformOption.TRANSFORM;
 
+        boolean isLocalPlayer = Objects.equals(playerName, client.getLocalPlayer().getName());
         //if its by the player themselves
-        if (Objects.equals(playerName, client.getLocalPlayer().getName())) {
-            return playerMessage.getTranslationOption();
-        }
+//        if (Objects.equals(playerName, client.getLocalPlayer().getName())) {
+//            return playerMessage.getTranslationOption();
+//        }
 
         // if its from a friend
-        boolean isFriend = client.isFriended(playerName,true);
-        if (isFriend) {
-            return getChatsChatConfig(config.getAllFriendsConfig());
-        }
+//        boolean isFriend = client.isFriended(playerName,true);
+//        if (isFriend && !isLocalPlayer) {
+//            return getChatsChatConfig(config.getAllFriendsConfig());
+//        }
         switch (chatMessage.getType()){
             case PUBLICCHAT:
-                return getChatsChatConfig(config.getPublicChatConfig());
+                if(isLocalPlayer)
+                    return getChatsChatConfig(config.getMyPublicConfig());
+                else
+                    return getChatsChatConfig(config.getPublicChatConfig());
             case CLAN_CHAT:
-                return getChatsChatConfig(config.getClanChatConfig());
+                if(isLocalPlayer)
+                    return getChatsChatConfig(config.getMyClanConfig());
+                else
+                    return getChatsChatConfig(config.getClanChatConfig());
             case CLAN_GUEST_CHAT:
-                return getChatsChatConfig(config.getGuestClanChatConfig());
+                if(isLocalPlayer)
+                    return getChatsChatConfig(config.getMyGuestClanConfig());
+                else
+                    return getChatsChatConfig(config.getGuestClanChatConfig());
             case FRIENDSCHAT:
-                return getChatsChatConfig(config.getFriendsChatConfig());
+                if(isLocalPlayer)
+                    return getChatsChatConfig(config.getMyFcConfig());
+                else
+                    return getChatsChatConfig(config.getFriendsChatConfig());
             case CLAN_GIM_CHAT:
                 if (!Objects.equals(playerName, "null") && !playerName.isEmpty())
-                    return getChatsChatConfig(config.getGIMChatConfig());
+                    if(isLocalPlayer)
+                        return getChatsChatConfig(config.getMyGIMConfig());
+                    else
+                        return getChatsChatConfig(config.getGIMChatConfig());
 
             default://if its examine, engine, etc
                 switch (config.getGameMessagesConfig()) {
@@ -318,6 +310,17 @@ public class ChatCapture
                     default:
                         return TransformOption.AS_IS;
                 }
+        }
+    }
+
+    public TransformOption getChatsChatConfig(RuneLingualConfig.chatSelfConfig chatConfig) {
+        switch (chatConfig) {
+            case TRANSFORM:
+                return TransformOption.TRANSFORM;
+            case LEAVE_AS_IS:
+                return TransformOption.AS_IS;
+            default:
+                return TransformOption.AS_IS;
         }
     }
 

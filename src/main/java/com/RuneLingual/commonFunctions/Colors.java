@@ -144,6 +144,9 @@ public enum Colors {
     }
 
     public static int hexToInt(String hex) {
+        if(hex.length() > 6){
+            hex = hex.substring(0,6);
+        }
         return Integer.parseInt(hex, 16);
     }
 
