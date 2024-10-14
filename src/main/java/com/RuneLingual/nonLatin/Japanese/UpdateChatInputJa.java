@@ -297,11 +297,12 @@ public class UpdateChatInputJa {
     private String[] getWakatiGaki (String text) {
         // Regular expression pattern for splitting
         String regexPattern =
-                "(を+)|" + "(\\d+\\s\\p{IsAlphabetic}+)|" +
-                        "(\\p{IsAlphabetic}+[\\d*\\s])|" +
+                "(を+)|" + "([^\\p{IsAlphabetic}]+[a-zA-Z]+)|" +
+                        "([a-zA-Z]+[^\\p{IsAlphabetic}]+)|" +
                         "([\\p{IsHiragana}\\p{IsKatakana}ー]*\\d+)|" +
                         "([\\p{IsHiragana}\\p{IsKatakana}ー]+ +)|" +
                         "([\\p{IsHiragana}\\p{IsKatakana}ー]+)|"+
+                        "(\\s*[\\d]+\\s*)|" +
                         "([^\\p{IsHiragana}\\p{IsKatakana}ー\\d ]+)";
 
         Pattern patternCompiled = Pattern.compile(regexPattern);

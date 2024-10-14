@@ -25,7 +25,7 @@ public class ChatInputCandidateOverlay extends Overlay
     private final PanelComponent panelComponent = new PanelComponent();
     private int[] ovlPos;
     private int inputWidth = 400;
-    private int japCharSize = 14; // px width of each japanese characters
+    private int foreignCharSize; // px width of each japanese characters
     private int enCharSize = 8;
     private final int candListMax = 7;//max vert number of words
 
@@ -41,6 +41,8 @@ public class ChatInputCandidateOverlay extends Overlay
         if(!plugin.getConfig().getSelectedLanguage().needsInputCandidateOverlay()){
             return null;
         }
+
+        foreignCharSize = plugin.getConfig().getSelectedLanguage().getCharSize() + 1;
 
         String[] nonLatinMsg = {};
         
@@ -73,9 +75,9 @@ public class ChatInputCandidateOverlay extends Overlay
                     panelWordLen[j] = word.length();
                 }
             }
-            panelWidth += panelWordLen[j] * japCharSize;
+            panelWidth += panelWordLen[j] * foreignCharSize;
         }
-        panelWidth += japCharSize*panelN + enCharSize*3*panelN + enCharSize*2*(panelN-1);
+        panelWidth += foreignCharSize *panelN + enCharSize*3*panelN + enCharSize*2*(panelN-1);
         //if (panelN > 1)
         //   panelWidth += japCharSize*(panelN-1);
         for(int i = 0; i < candListMax; i++) {

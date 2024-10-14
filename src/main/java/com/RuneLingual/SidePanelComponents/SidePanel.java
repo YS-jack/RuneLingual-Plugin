@@ -41,6 +41,7 @@ public class SidePanel extends PluginPanel{
         this.add(createTitleLabel(titleText));
         this.add(createClickableLabel(helpText, helpLink));
         this.add(createClickableLabel(discordText, "https://discord.gg/8vJ2T8Q"));
+        this.add(new JSeparator());
         chatBoxSection = new ChatBoxSection(this, targetLanguage, plugin);
         SearchSection searchSection = new SearchSection(this, targetLanguage, plugin);
     }

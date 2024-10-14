@@ -54,7 +54,7 @@ private static void addTab(JTabbedPane tabbedPane, String title) {
     scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER); // This line disables horizontal scrolling
 
     tabbedPane.addTab(title, scrollPane);
-    textArea.setBackground(java.awt.Color.darkGray);
+    textArea.setBackground(new Color(30,30,30));
 }
 
 public void addSentenceToTab(String tabTitle, String sentence) {
