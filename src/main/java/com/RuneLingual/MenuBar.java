@@ -1,18 +1,14 @@
 package com.RuneLingual;
 
-import static com.RuneLingual.WidgetsUtil.getAllChildren;
+import static com.RuneLingual.Wigets.WidgetsUtilRLingual.getAllChildren;
 
 import net.runelite.api.Client;
 import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.Widget;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Getter;
 import lombok.Setter;
 
 public class MenuBar

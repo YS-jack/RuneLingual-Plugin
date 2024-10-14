@@ -440,7 +440,7 @@ public class MenuCapture
 		return "  " + openBracket + levelTranslation + color.getColorTag() + lvAndCloseBracket;
 	}
 
-	private TransformOption getTransformOption(ingameTranslationConfig conf) {
+	public static TransformOption getTransformOption(ingameTranslationConfig conf) {
 		TransformOption transformOption;
 		if(conf.equals(ingameTranslationConfig.USE_LOCAL_DATA)){
 			transformOption = TransformOption.TRANSLATE_LOCAL;

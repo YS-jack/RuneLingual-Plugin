@@ -111,6 +111,8 @@ public class SqlActions {
 
                     pstmt.executeUpdate();
                 } catch (SQLException e) {
+                    log.info("Error processing TSV file " + tsvFilePath + " at line " + i + " : '" + lines.get(i) + "'");
+                    log.info("sql: '" + sql + "'");
                     e.printStackTrace();
                 }
             }

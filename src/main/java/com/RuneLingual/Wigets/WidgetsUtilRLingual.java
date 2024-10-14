@@ -1,12 +1,32 @@
-package com.RuneLingual;
+package com.RuneLingual.Wigets;
 
+import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.ArrayList;
 
-public class WidgetsUtil
+public class WidgetsUtilRLingual
 {
+	@Inject
+	private Client client;
+
+	public Widget[] getAllChildren()
+	{
+		// Create a list to store widgets
+		List<Widget> widgetList = new ArrayList<>();
+
+		Widget[] roots = client.getWidgetRoots();
+		for (Widget root : roots) {
+			iterateWidgetsRecursive(root, widgetList);
+		}
+
+		// Convert the list to an array and return
+		return widgetList.toArray(new Widget[0]);
+	}
+
+
 	public static List<Widget> getAllChildren(Widget widget)
 	{
 		// Create a list to store widgets
@@ -25,7 +45,7 @@ public class WidgetsUtil
 		if(widget != null && !widget.isHidden())
 		{
 			// Add the widget to the list
-			if(widget.getText().length() > 0 || widget.getName().length() > 0)
+			if(!widget.getText().isBlank() || !widget.getName().isBlank())
 			{
 				widgetList.add(widget);
 			}

@@ -2,6 +2,7 @@ package com.RuneLingual.nonLatin;
 
 import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.RuneLingualPlugin;
+import com.google.protobuf.GeneratedMessageLite;
 import net.runelite.client.game.ChatIconManager;
 
 import javax.inject.Inject;
@@ -13,9 +14,10 @@ public class GeneralFunctions {
     @Inject
     private RuneLingualPlugin runeLingualPlugin;
 
+
     public String StringToTags(String string, Colors colors) {
         /*
-        This function takes a string and a color and returns a string with the color tags
+        This function takes a string + color and returns emojis that looks like letters
         But leave <img=??> tags as they are (they are already emojis)
         eg: こんにちは,<img=43>Lukyさん -> <img=1> <img=2> <img=3> <img=4> <img=5> <img=6> <img=43> <img=9>...
 

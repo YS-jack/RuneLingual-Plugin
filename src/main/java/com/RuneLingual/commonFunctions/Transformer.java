@@ -136,12 +136,6 @@ public class Transformer {
             //return
         }
         return stringToDisplayedString(translatedText, colors);
-
-//        if(needCharImage) {// needs char image but just 1 color
-//            return generalFunctions.StringToTags(Colors.removeColorTag(translatedText), colors);
-//        } else { // doesnt need char image and just 1 color
-//            return "<col=" + colors.getHex() + ">" + translatedText + "</col>";
-//        }
     }
 
     /*
