@@ -1,5 +1,7 @@
 package com.RuneLingual.Wigets;
 
+import com.RuneLingual.RuneLingualPlugin;
+import com.RuneLingual.commonFunctions.Colors;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
 
@@ -11,6 +13,103 @@ public class WidgetsUtilRLingual
 {
 	@Inject
 	private Client client;
+	@Inject
+	private RuneLingualPlugin plugin;
+
+	@Inject
+	public WidgetsUtilRLingual(Client client, RuneLingualPlugin plugin)
+	{
+		this.client = client;
+		this.plugin = plugin;
+	}
+
+	public void setWidgetText_NiceBr(Widget widget, String newText) {
+		if (newText.equals(widget.getText())) // the texts will be the same if the widget has already been translated, or doesn't have a translation available
+			return;
+
+		if (plugin.getConfig().getSelectedLanguage().needsCharImages())
+			setWidgetText_NiceBr_CharImages(widget, newText);
+		else
+			setWidgetText_NiceBr_NoCharImages(widget, newText);
+	}
+
+	public void setWidgetText_NiceBr_CharImages(Widget widget, String newText) { // todo: set to show overlay if the mouse is hovering and the widget is too small for the text to display
+		// Set the text of the widget, but insert br considering the width of the widget
+		int widgetWidth = widget.getWidth();
+		int foreignWidth = plugin.getConfig().getSelectedLanguage().getCharWidth();
+		int maxChars = widgetWidth / foreignWidth;
+
+		// if language uses charImages and needs space between words
+		if(plugin.getConfig().getSelectedLanguage().needsSpaceBetweenWords()) { // todo: test this when such language is added
+			String[] words = newText.split(" ");
+			StringBuilder newTextBuilder = new StringBuilder();
+			int currentLineLength = 0;
+			for(String word : words) {
+				if(currentLineLength + word.length() > maxChars) {
+					newTextBuilder.append("<br>");
+					currentLineLength = 0;
+				}
+				newTextBuilder.append(word);
+				currentLineLength += word.length();
+			}
+			newText = newTextBuilder.toString();
+		} else { // if language uses charImages and doesn't need space between words
+			String[] letters = newText.split("(?<=>)");
+			StringBuilder newTextBuilder = new StringBuilder();
+			int currentLineLength = 0;
+			for(String letter : letters) {
+				if(currentLineLength + 1 > maxChars) {
+					newTextBuilder.append("<br>");
+					currentLineLength = 0;
+				}
+				newTextBuilder.append(letter);
+				currentLineLength++;
+			}
+			newText = newTextBuilder.toString();
+		}
+		widget.setText(newText);
+	}
+
+	public void setWidgetText_NiceBr_NoCharImages(Widget widget, String newText) {
+		// Set the text of the widget, but insert br considering the width of the widget
+		int widgetWidth = widget.getWidth();
+		int foreignWidth = plugin.getConfig().getSelectedLanguage().getCharWidth();
+		int maxChars = widgetWidth / foreignWidth;
+
+		if(plugin.getConfig().getSelectedLanguage().needsSpaceBetweenWords()) {
+			String[] words = newText.split(" ");
+			StringBuilder newTextBuilder = new StringBuilder();
+			int currentLineLength = 0;
+			for(String word : words) {
+				if(currentLineLength + word.length() > maxChars) {
+					newTextBuilder.append("<br>");
+					currentLineLength = 0;
+				}
+				newTextBuilder.append(word);
+				currentLineLength += word.length();
+			}
+			newText = newTextBuilder.toString();
+		} else {
+			StringBuilder newTextBuilder = new StringBuilder();
+			int currentLineLength = 0;
+			for(int i = 0; i < newText.length(); i++) {
+				if(currentLineLength + 1 > maxChars) {
+					newTextBuilder.append("<br>");
+					currentLineLength = 0;
+				}
+				newTextBuilder.append(newText.charAt(i));
+				currentLineLength++;
+			}
+			newText = newTextBuilder.toString();
+		}
+		widget.setText(newText);
+	}
+
+	public static String removeBrAndTags(String str) {
+		// replaces br with space
+		String tmp = str.replaceAll("(?<=\\S)<br>(?=\\S)", " ");
+		return Colors.removeColorTag(tmp);
+	}
 
 	public Widget[] getAllChildren()
 	{

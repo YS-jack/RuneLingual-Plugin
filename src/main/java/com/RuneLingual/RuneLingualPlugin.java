@@ -190,9 +190,9 @@ public class RuneLingualPlugin extends Plugin
 			return;
 		}
 		log.info("Widget loaded:" + event.getGroupId() );
-		clientThread.invokeLater(() -> {
-			widgetCapture.translateWidget();
-		});
+//		clientThread.invokeLater(() -> {
+//			widgetCapture.translateWidget();
+//		});
 	}
 	
 	@Subscribe
@@ -204,9 +204,10 @@ public class RuneLingualPlugin extends Plugin
 
 		chatInputRLingual.updateChatInput();
 
-//		clientThread.invokeLater(() -> {
-//			widgetCapture.translateWidget();
-//		});
+
+		//clientThread.invokeLater(() -> {
+			widgetCapture.translateWidget();
+		//});
 
 	}
 	

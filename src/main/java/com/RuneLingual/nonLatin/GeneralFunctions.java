@@ -6,6 +6,7 @@ import com.google.protobuf.GeneratedMessageLite;
 import net.runelite.client.game.ChatIconManager;
 
 import javax.inject.Inject;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class GeneralFunctions {
@@ -41,7 +42,7 @@ public class GeneralFunctions {
             for (int j = 0; j < part.length(); ) {
 
                 int codePoint = part.codePointAt(j);
-                if (codePoint == 160) {
+                if (Arrays.asList(32, 160, 8195, 8194, 8201, 8202, 8203, 12288).contains(codePoint)) {
                     imgTagStrings.append(" ");
                     j += 1;
                     continue;
