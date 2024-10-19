@@ -1,7 +1,9 @@
 package com.RuneLingual.Wigets;
 
+import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.commonFunctions.Colors;
+import com.RuneLingual.nonLatin.GeneralFunctions;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
 
@@ -15,6 +17,8 @@ public class WidgetsUtilRLingual
 	private Client client;
 	@Inject
 	private RuneLingualPlugin plugin;
+	@Inject
+	private GeneralFunctions generalFunctions;
 
 	@Inject
 	public WidgetsUtilRLingual(Client client, RuneLingualPlugin plugin)
@@ -31,6 +35,13 @@ public class WidgetsUtilRLingual
 			setWidgetText_NiceBr_CharImages(widget, newText);
 		else
 			setWidgetText_NiceBr_NoCharImages(widget, newText);
+	}
+
+	public void setWidgetText_ApiTranslation(Widget widget, String newText, Colors color){
+		newText = removeBrAndTags(newText);
+		String translatedText = plugin.getDeepl().translate(newText, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
+		String displayText = generalFunctions.StringToTags(translatedText, color);
+		setWidgetText_NiceBr(widget, displayText);
 	}
 
 	public void setWidgetText_NiceBr_CharImages(Widget widget, String newText) { // todo: set to show overlay if the mouse is hovering and the widget is too small for the text to display
