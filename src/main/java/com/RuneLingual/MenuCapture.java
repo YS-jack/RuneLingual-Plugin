@@ -33,23 +33,13 @@ public class MenuCapture
 	private RuneLingualPlugin plugin;
 
 	@Setter
-	private TranscriptManager actionTranslator;
-	@Setter
-	private TranscriptManager npcTranslator;
-	@Setter
-	private TranscriptManager objectTranslator;
-	@Setter
-	private TranscriptManager itemTranslator;
-
-	@Setter
-	private LogHandler logger;
 	private boolean debugMessages = true;
 	private final Colors colorObj = Colors.black;
 	@Inject
 	private Transformer transformer;
 	@Inject
 	private OutputToFile outputToFile;
-	//private SqlVariables sqlVariables;
+
 	private TransformOption menuOptionTransformOption = TransformOption.TRANSLATE_LOCAL;
 
 	@Inject

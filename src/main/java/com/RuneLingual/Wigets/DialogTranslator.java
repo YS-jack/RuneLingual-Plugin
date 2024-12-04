@@ -124,17 +124,17 @@ public class DialogTranslator {
         switch (interfaceID) {
             case InterfaceID.DIALOG_NPC:
                 handleNpcDialog(widget);
-                break;
+                return;
             case InterfaceID.DIALOG_PLAYER:
                 handlePlayerDialog(widget);
-                break;
+                return;
             case InterfaceID.DIALOG_OPTION:
                 handleOptionDialog(widget);
-                break;
+                return;
             default:
-                log.info("Unknown dialog widget: " + widget.getId());
                 break;
         }
+        log.info("Unknown dialog widget: " + widget.getId());
     }
 
     private void handleNpcDialog(Widget widget) {

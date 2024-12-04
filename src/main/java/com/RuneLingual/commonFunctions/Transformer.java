@@ -112,7 +112,8 @@ public class Transformer {
         String translatedText = "";
 
         if(option == TransformOption.AS_IS){
-            translatedText = text;
+            // translatedText = text;
+            return text;
         } else if(option == TransformOption.TRANSLATE_LOCAL){
             List<String> colorTagsAsIs = Colors.getColorTagsAsIs(sqlQuery.getEnglish());
             int trueColorTagCount = Colors.countColorTagsAfterReformat(sqlQuery.getEnglish());
@@ -120,13 +121,16 @@ public class Transformer {
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
-                log.info("No translation found for " + text);
-                log.info("query = " + sqlQuery.getSearchQuery());
-                translatedText = text;
+                log.info("the following text doesn't exist in the English column {}", text);
+                log.info("query = {}", sqlQuery.getSearchQuery());
+                // translatedText = text;
+                return text;
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
-                    translatedText = text;
+                    //translatedText = text;
                     log.info("{} has not been translated yet", text);
+                    return text;
+
                 } else { // text has been translated
                     translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
                 }

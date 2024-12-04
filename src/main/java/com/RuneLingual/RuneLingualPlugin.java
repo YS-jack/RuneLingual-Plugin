@@ -81,22 +81,15 @@ public class RuneLingualPlugin extends Plugin
 	private LangCodeSelectableList targetLanguage;
 	@Getter
 	private String selectedLanguageName;
-	private TranscriptsFileManager dialogTranscriptManager = new TranscriptsFileManager();
-	private TranscriptsFileManager actionTranscriptManager = new TranscriptsFileManager();
-	private TranscriptsFileManager objectTranscriptManager = new TranscriptsFileManager();
-	private TranscriptsFileManager itemTranscriptManager = new TranscriptsFileManager();
+
 	
 	// main modules
 	@Inject @Getter
 	private ChatCapture chatCapture;
-	@Inject
-	private DialogTranslator dialogTranslator;
 	@Inject @Getter
 	private MenuCapture menuCapture;
-	@Inject
-	private GroundItems groundItemsTranslator;
-	@Inject
-	private MenuBar menuBar;
+
+
 
 	@Inject @Getter
 	private Downloader downloader;
@@ -212,15 +205,6 @@ public class RuneLingualPlugin extends Plugin
 	}
 	
 	@Subscribe
-	public void onItemQuantityChanged(ItemQuantityChanged itemQuantityChanged)
-	{
-		if (targetLanguage == LangCodeSelectableList.ENGLISH) {
-			return;
-		}
-		groundItemsTranslator.handleGroundItems();
-	}
-
-	@Subscribe
 	public void onMenuOpened(MenuOpened event)
 	{
 
@@ -309,7 +293,6 @@ public class RuneLingualPlugin extends Plugin
 		{
 			chatCapture.updateConfigs();
 		}
-
 	}
 
 	@Subscribe
@@ -411,33 +394,7 @@ public class RuneLingualPlugin extends Plugin
 		overlayManager.remove(deeplUsageOverlay);
 		overlayManager.remove(chatInputOverlay);
 		overlayManager.remove(chatInputCandidateOverlay);
-		//transcriptManager.saveTranscript();
 		log.info("RuneLingual plugin stopped!");
-	}
-	
-	public void pluginLog(String contents)
-	{
-		log.info(contents);
-	}
-	
-	private void initTranscripts()
-	{
-		dialogTranscriptManager.setLogger(this::pluginLog);
-		dialogTranscriptManager.setFilePrefix("npc_dialog");
-		actionTranscriptManager.setLogger(this::pluginLog);
-		actionTranscriptManager.setFilePrefix("actions");
-		objectTranscriptManager.setLogger(this::pluginLog);
-		objectTranscriptManager.setFilePrefix("objects");
-		itemTranscriptManager.setLogger(this::pluginLog);
-		itemTranscriptManager.setFilePrefix("items");
-	}
-	
-	private void loadTranscripts()
-	{
-		dialogTranscriptManager.loadTranscripts(targetLanguage.getLangCode());
-		actionTranscriptManager.loadTranscripts(targetLanguage.getLangCode());
-		objectTranscriptManager.loadTranscripts(targetLanguage.getLangCode());
-		itemTranscriptManager.loadTranscripts(targetLanguage.getLangCode());
 	}
 
 

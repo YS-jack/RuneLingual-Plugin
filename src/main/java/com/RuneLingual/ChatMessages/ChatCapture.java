@@ -39,25 +39,7 @@ public class ChatCapture
     @Inject
     private ChatColorManager chatColorManager;
 
-    // from here its old variables
-    
-    // transcript managers
-    @Setter
-    private TranscriptManager translatedDialog;
-    @Setter
-    private TranscriptManager originalDialog;
-    @Setter
-    private TranscriptManager onlineTranslator;
-    @Setter
-    private MessageReplacer overheadReplacer;
-    
-    // logging control
-    @Setter
-    private LogHandler logger;
-    private boolean logErrors;
-    private boolean logTranslations;
-    private boolean logCaptures;
-    
+
     // configs - translation control
     private boolean translateNames;
     private boolean translateGame;
