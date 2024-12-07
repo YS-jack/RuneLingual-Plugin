@@ -4,6 +4,7 @@ import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.nonLatin.GeneralFunctions;
+import lombok.Getter;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
 
@@ -19,6 +20,7 @@ public class WidgetsUtilRLingual
 	private RuneLingualPlugin plugin;
 	@Inject
 	private GeneralFunctions generalFunctions;
+	private List<String> stringTranslatingInThread = new ArrayList<>();
 
 	@Inject
 	public WidgetsUtilRLingual(Client client, RuneLingualPlugin plugin)
@@ -37,11 +39,36 @@ public class WidgetsUtilRLingual
 			setWidgetText_NiceBr_NoCharImages(widget, newText);
 	}
 
+	public void setWidgetText_NiceBr_apiTranslated(Widget widget, String newText) {
+
+		if (newText.equals(widget.getText())) // the texts will be the same if the widget has already been translated, or doesn't have a translation available
+			return;
+
+		if (plugin.getConfig().getSelectedLanguage().needsCharImages())
+			setWidgetText_NiceBr_CharImages(widget, newText);
+		else
+			setWidgetText_NiceBr_NoCharImages(widget, newText);
+	}
+
 	public void setWidgetText_ApiTranslation(Widget widget, String newText, Colors color){
-		newText = removeBrAndTags(newText);
-		String translatedText = plugin.getDeepl().translate(newText, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
-		String displayText = generalFunctions.StringToTags(translatedText, color);
-		setWidgetText_NiceBr(widget, displayText);
+		final String newText_withoutBrAndTags = removeBrAndTags(newText);
+		if(stringTranslatingInThread.contains(newText)) // skip if already translating with api
+			return;
+		stringTranslatingInThread.add(newText);
+		Thread thread = new Thread(() -> {
+			try {
+				String translatedText = plugin.getDeepl().translate(newText_withoutBrAndTags, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
+				if (plugin.getTargetLanguage().needsCharImages()) {
+					translatedText = generalFunctions.StringToTags(translatedText, color);
+				}
+				setWidgetText_NiceBr(widget, translatedText);
+				stringTranslatingInThread.remove(newText);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		thread.setDaemon(false);
+		thread.start();
 	}
 
 	public void setWidgetText_NiceBr_CharImages(Widget widget, String newText) { // todo: set to show overlay if the mouse is hovering and the widget is too small for the text to display

@@ -38,7 +38,7 @@ public class ChatBoxSection {
         addTab(tabbedPane, tabNameGIM);
 
         sidePanel.add(tabbedPane);
-        sidePanel.setSize(400, 800);
+        sidePanel.setSize(400, 500);
         sidePanel.setVisible(true);
     }
 

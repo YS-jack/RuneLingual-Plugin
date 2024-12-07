@@ -49,8 +49,6 @@ public class MenuCapture
 
 	private final Colors optionColor = Colors.white;
 
-	// TODO: right click menu title 'Chose Options' - seems to not be directly editable
-
 	public void handleOpenedMenu(MenuOpened event){
 		MenuEntry[] menus = event.getMenuEntries();
 		for (MenuEntry menu : menus) {
@@ -70,7 +68,6 @@ public class MenuCapture
 				}
 			}
 		}
-
 	}
 
 	public void handleMenuEvent(MenuEntry currentMenu) {
@@ -423,11 +420,13 @@ public class MenuCapture
 		Transformer transformer = new Transformer(this.plugin);
 
 		TransformOption option = getTransformOption(this.plugin.getConfig().getGameMessagesConfig());
-
+	//TODO: colours may need adjusting for () and level's digits
+		if(plugin.getConfig().getSelectedLanguage().needsCharImages()) // change color to simple color variants. eg: light green to green
+			color = color.getSimpleColor();
 		String levelTranslation = transformer.transform(levelQuery.getEnglish(), color, option, levelQuery, false);
 		String openBracket = transformer.transform("(", color, TransformOption.AS_IS, null, false);
 		String lvAndCloseBracket = transformer.transform(level+")", color, TransformOption.AS_IS, null, false);
-		return "  " + openBracket + levelTranslation + color.getColorTag() + lvAndCloseBracket;
+		return "  " + color.getColorTag() + openBracket  + levelTranslation + color.getColorTag() + lvAndCloseBracket;
 	}
 
 	public static TransformOption getTransformOption(ingameTranslationConfig conf) {
