@@ -50,7 +50,17 @@ public class UpdateChatInputJa {
         putWordToHash(wordsDir);
         log.info("created hashmap for transform dict, for type : " + wordsDir);
     }
+
     private void putWordToHash(String dirName) {
+        /*
+        * these files are in the format of "written,read,type,rank"
+        * written is the kanji or katakana.
+        * read is the hiragana.
+        * type is the type of word, eg. noun, verb, adj, etc.
+        * rank is the rank of the word, the smaller the number, the more common the word is.
+        *
+        * The file itself is downloaded by Downloader, so are not jar files
+        * */
         try (BufferedReader reader = new BufferedReader(new InputStreamReader
                 (new FileInputStream(dirName), StandardCharsets.UTF_8))) {
             String line;

@@ -26,7 +26,11 @@ public class DeeplUsageOverlay  extends Overlay {
         this.plugin = plugin;
         this.config = config;
     }
-
+    /**
+    * overlay for the number count by the DeepL API.
+     * will show the number of characters translated by the DeepL API and the limit of the API.
+     * if the API key is invalid, it will show a warning message.
+     */
     @Override
     public Dimension render(Graphics2D graphics) {
         if (!config.showUsageOverlayConfig())
@@ -37,10 +41,6 @@ public class DeeplUsageOverlay  extends Overlay {
         boolean deeplKeyValid = plugin.getDeepl().isKeyValid();
         String deeplCount = Long.toString(plugin.getDeepl().getDeeplCount());
         String deeplLimit = Long.toString(plugin.getDeepl().getDeeplLimit());
-//        String googleCount = Long.toString(plugin.getApiTranslate().googleCount);
-//        String googleLimit = Long.toString(plugin.getApiTranslate().googleLimit);
-//        String azureCount = Long.toString(plugin.getApiTranslate().azureCount);
-//        String azureLimit = Long.toString(plugin.getApiTranslate().azureLimit);
 
         Color bgColorCount = new Color(80, 148, 144);
         Color bgColorInvalid = new Color(194, 93, 93);
@@ -56,10 +56,10 @@ public class DeeplUsageOverlay  extends Overlay {
         } else {
             panelComponent.setBackgroundColor(bgColorInvalid);
             panelComponent.getChildren().add(LineComponent.builder()
-                    .left("APIキーが無効です。\n有効なキーが入力されるまでは\n簡易翻訳が行われます。APIキーが有効であることと\n上限に到達していないことを確認してください")
+                    .left("APIキーが無効です。APIキーが有効であることと\n上限に到達していないことを確認してください。")
                     .build());
-            len = ("簡易翻訳が行われます。APIキーが有効であることと".length()+2)*foreignCharSize;
-        }
+            len = ("APIキーが無効です。APIキーが有効であることと".length()+2)*foreignCharSize;
+        }//TODO: make it display in the configured language
         panelComponent.setPreferredSize(new Dimension(len,0));
         return panelComponent.render(graphics);
     }

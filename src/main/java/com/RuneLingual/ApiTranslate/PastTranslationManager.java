@@ -3,8 +3,8 @@ package com.RuneLingual.ApiTranslate;
 import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.commonFunctions.Colors;
-import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.RuneLingual.commonFunctions.FileActions;
+import com.RuneLingual.commonFunctions.FileNameAndPath;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.MenuEntry;
 
@@ -17,15 +17,15 @@ import java.util.HashMap;
 
 @Slf4j
 public class PastTranslationManager {
+    private final String pastTranslationFile;
     @Inject
     private Deepl deepl;
     private RuneLingualPlugin plugin;
     private HashMap<String, String> pastTranslations = new HashMap<>();
-    private final String pastTranslationFile;
 
 
     @Inject
-    public PastTranslationManager(Deepl deepl, RuneLingualPlugin plugin){
+    public PastTranslationManager(Deepl deepl, RuneLingualPlugin plugin) {
         this.plugin = plugin;
         this.deepl = deepl;
         pastTranslationFile = FileNameAndPath.getLocalBaseFolder().getPath() + File.separator +
@@ -58,7 +58,7 @@ public class PastTranslationManager {
                 log.error("Error reading file: " + e.getMessage(), e);
             }
         } else {
-            // Create an empty pastTranslationFile
+            // if pastTranslationFile doesn't exist, create an empty one
             try {
                 Files.createFile(Paths.get(pastTranslationFile));
                 log.info("Created empty file: " + pastTranslationFile);
@@ -68,12 +68,13 @@ public class PastTranslationManager {
         }
     }
 
-    public String getPastTranslation(String text){
-        /*
-        returns: String =
-            the translation of the text from sourceLang to targetLang
-            if failed, returns null
-         */
+    /**
+     * Get past translation from hashmap
+     *
+     * @param text the text to get past translation for
+     * @return the past translation if it exists, null otherwise
+     */
+    public String getPastTranslation(String text) {
         return pastTranslations.getOrDefault(text, null);
     }
 
@@ -91,38 +92,38 @@ public class PastTranslationManager {
         }
     }
 
-    public boolean haveTranslatedMenuBefore(String option, String target, MenuEntry menuEntry){
+    public boolean haveTranslatedMenuBefore(String option, String target, MenuEntry menuEntry) {
         String[] optionWordArray = Colors.getWordArray(option);
         String[] targetWordArray = Colors.getWordArray(target);
 
         // if option is set to be translated with API, check if all elements have been translated before
-        if(plugin.getConfig().getMenuOptionConfig().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)){
-            if(!checkAllElementExistInPastTranslation(optionWordArray)){
+        if (plugin.getConfig().getMenuOptionConfig().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)) {
+            if (!checkAllElementExistInPastTranslation(optionWordArray)) {
                 return false;
             }
         }
 
         // if target is item name and that is set to be translated with API,
         // check if all elements have been translated before
-        if(plugin.getConfig().getItemNamesConfig().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
+        if (plugin.getConfig().getItemNamesConfig().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
                 && (plugin.getMenuCapture().isItemInWidget(menuEntry) || plugin.getMenuCapture().isItemOnGround(menuEntry.getType()))) {
-            if(!checkAllElementExistInPastTranslation(targetWordArray)){
+            if (!checkAllElementExistInPastTranslation(targetWordArray)) {
                 return false;
             }
         }
 
         // if target is object name, check if all elements have been translated before
-        if(plugin.getConfig().getObjectNamesConfig().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
+        if (plugin.getConfig().getObjectNamesConfig().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
                 && plugin.getMenuCapture().isObjectMenu(menuEntry.getType())) {
-            if(!checkAllElementExistInPastTranslation(targetWordArray)){
+            if (!checkAllElementExistInPastTranslation(targetWordArray)) {
                 return false;
             }
         }
 
         // if target is npc name, check if all elements have been translated before
-        if(plugin.getConfig().getNPCNamesConfig().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
+        if (plugin.getConfig().getNPCNamesConfig().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
                 && plugin.getMenuCapture().isNpcMenu(menuEntry.getType())) {
-            if(!checkAllElementExistInPastTranslation(targetWordArray)){
+            if (!checkAllElementExistInPastTranslation(targetWordArray)) {
                 return false;
             }
         }
@@ -130,13 +131,13 @@ public class PastTranslationManager {
 
         // if other target (general menu, walk here, player, etc) is set to be translated with API,
         // check if all elements have been translated before
-        if(!target.isEmpty() &&
+        if (!target.isEmpty() &&
                 plugin.getConfig().getMenuOptionConfig().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)
                 && !plugin.getMenuCapture().isItemInWidget(menuEntry)
                 && !plugin.getMenuCapture().isItemOnGround(menuEntry.getType())
                 && !plugin.getMenuCapture().isObjectMenu(menuEntry.getType())
                 && !plugin.getMenuCapture().isNpcMenu(menuEntry.getType())) {
-            if(!checkAllElementExistInPastTranslation(targetWordArray)){
+            if (!checkAllElementExistInPastTranslation(targetWordArray)) {
                 return false;
             }
         }
@@ -144,9 +145,9 @@ public class PastTranslationManager {
         return true;
     }
 
-    private boolean checkAllElementExistInPastTranslation(String[] wordArray){
-        for (String word : wordArray){
-            if(plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(word) == null){
+    private boolean checkAllElementExistInPastTranslation(String[] wordArray) {
+        for (String word : wordArray) {
+            if (plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(word) == null) {
                 return false;
             }
         }

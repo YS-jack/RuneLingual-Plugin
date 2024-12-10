@@ -19,8 +19,13 @@ public class CharImageInit {
     @Inject
     RuneLingualPlugin runeLingualPlugin;
 
+    /*
+    * Load character images from the local folder, and register them to the chatIconManager
+    * The images are downloaded from the RuneLingual transcript website, which is done in the Downloader class.
+     */
     public void loadCharImages()
     {
+        //if the target language doesn't need character images, return
         if(!runeLingualPlugin.getTargetLanguage().needsCharImages()){
             return;
         }
@@ -28,13 +33,13 @@ public class CharImageInit {
         ChatIconManager chatIconManager = runeLingualPlugin.getChatIconManager();
         HashMap<String, Integer> charIds = runeLingualPlugin.getCharIds();
 
-        String[] charNameArray = getCharList(); //list of all characters e.g.　black--3021.png
-
         Downloader downloader = runeLingualPlugin.getDownloader();
         String langCode = downloader.getLangCode();
         final String pathToChar = downloader.getLocalLangFolder().toString() + File.separator + "char_" + langCode;
 
-        for (String imageName : charNameArray) {
+        String[] charNameArray = getCharList(pathToChar); //list of all characters e.g.　black--3021.png
+
+        for (String imageName : charNameArray) {//register all character images to chatIconManager
             try {
                 String fullPath = pathToChar + File.separator + imageName;
                 File externalCharImg = new File(fullPath);
@@ -48,11 +53,7 @@ public class CharImageInit {
     }
 
 
-    public String[] getCharList() {//get list of names of all characters of every colours)
-        Downloader downloader = runeLingualPlugin.getDownloader();
-        String langCode = downloader.getLangCode();
-        final String pathToChar = downloader.getLocalLangFolder().toString() + File.separator + "char_" + langCode;
-
+    public String[] getCharList(String pathToChar) {//get list of names of all characters of every colours)
         FilenameFilter pngFilter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -61,10 +62,11 @@ public class CharImageInit {
         };
         File colorDir = new File(pathToChar + "/");
         File[] files = colorDir.listFiles(pngFilter); //list of files that end with ".png"
-        if (files == null){return null;}
+
+        if (files == null){return new String[]{};}
+
         String[] charImageNames = new String[files.length];
         for (int j = 0; j < files.length; j++) {
-            //charImagesFullPath[j] = colorDir.getAbsolutePath() + File.separator + files[j].getName();
             charImageNames[j] = files[j].getName();
         }
         return charImageNames;
