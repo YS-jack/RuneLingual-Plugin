@@ -52,15 +52,16 @@ public class Deepl {
         deeplPastTranslationManager = new PastTranslationManager(this, plugin);
     }
 
-    // function to translate from and to specified language
+    /**
+     * Translates the given text from the source language to the target language.
+     * Sets deeplCount the number of characters translated using the API
+     *
+     * @param text the text to be translated
+     * @param sourceLang the source language
+     * @param targetLang the target language
+     * @return the translated text, or the original text if the translation fails
+     */
     public String translate(String text, LangCodeSelectableList sourceLang, LangCodeSelectableList targetLang) {
-        /*
-        returns: String =
-            the translation of the text from sourceLang to targetLang
-            if failed, returns the original text
-
-        sets: deeplCount = the number of characters translated using the API
-         */
 
         // if the text is already translated, return the past translation
         String pastTranslation = deeplPastTranslationManager.getPastTranslation(text);
