@@ -38,7 +38,7 @@ public class ChatBoxSection {
         addTab(tabbedPane, tabNameGIM);
 
         sidePanel.add(tabbedPane);
-        sidePanel.setSize(400, 800);
+        sidePanel.setSize(400, 500);
         sidePanel.setVisible(true);
     }
 
@@ -81,7 +81,7 @@ public void addSentenceToTab(String tabTitle, String sentence) {
             tabNameChannel = "Channel";
             tabNameClan = "Clan";
             tabNameGIM = "GIM";
-        } else if (targetLanguage == LangCodeSelectableList.PORTUGUÊS_BRASILEIRO) {
+        } /*else if (targetLanguage == LangCodeSelectableList.PORTUGUÊS_BRASILEIRO) {
             tabNameGame = "Jogo";
             tabNamePublic = "Público";
             tabNameChannel = "Canal";
@@ -93,7 +93,7 @@ public void addSentenceToTab(String tabTitle, String sentence) {
             tabNameChannel = "Kanal";
             tabNameClan = "Klan";
             tabNameGIM = "GIM";
-        } else if (targetLanguage == LangCodeSelectableList.日本語) {
+        } */else if (targetLanguage == LangCodeSelectableList.日本語) {
             tabNameGame = "ゲーム";
             tabNamePublic = "公共";
             tabNameChannel = "チャンネル";

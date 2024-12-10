@@ -146,7 +146,7 @@ public class SearchSection extends JPanel {
             textSearch = "Search";
             textResult = "Result";
             textType = "Type";
-        } else if (targetLanguage == LangCodeSelectableList.PORTUGUÊS_BRASILEIRO) {
+        } /*else if (targetLanguage == LangCodeSelectableList.PORTUGUÊS_BRASILEIRO) {
             textSearchEnglish = "Pesquisar com nome em inglês";
             textSearchForeign = "Pesquisar com nome estrangeiro";
             textSearch = "Pesquisa";
@@ -158,7 +158,7 @@ public class SearchSection extends JPanel {
             textSearch = "Søk";
             textResult = "Resultat";
             textType = "Type";
-        } else if (targetLanguage == LangCodeSelectableList.日本語) {
+        } */else if (targetLanguage == LangCodeSelectableList.日本語) {
             textSearchEnglish = "英語名で検索";
             textSearchForeign = "日本語名で検索";
             textSearch = "検索";

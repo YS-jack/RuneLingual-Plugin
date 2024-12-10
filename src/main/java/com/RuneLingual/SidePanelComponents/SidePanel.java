@@ -52,7 +52,7 @@ public class SidePanel extends PluginPanel{
             titleText = "RuneLingual";
             helpText = "Help with settings";
             discordText = "Ask for help on Discord";
-        } else if (targetLanguage == LangCodeSelectableList.PORTUGUÊS_BRASILEIRO) {
+        } /*else if (targetLanguage == LangCodeSelectableList.PORTUGUÊS_BRASILEIRO) {
             titleText = "RuneLíngual";
             helpText = "Ajuda nas configurações";
             discordText = "Peça ajuda no Discord";
@@ -60,7 +60,7 @@ public class SidePanel extends PluginPanel{
             titleText = "RuneLingval";
             helpText = "Hjelp med innstillinger";
             discordText = "Be om hjelp på Discord";
-        }else if (targetLanguage == LangCodeSelectableList.日本語) {
+        }*/else if (targetLanguage == LangCodeSelectableList.日本語) {
             titleText = "ルーンリンガル";
             helpText = "設定のヘルプ";
             discordText = "Discordでヘルプを求める";

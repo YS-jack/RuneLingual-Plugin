@@ -36,8 +36,8 @@ public class DeeplUsageOverlay  extends Overlay {
         if (!config.showUsageOverlayConfig())
             return null;
 
-        int enCharSize = LangCodeSelectableList.ENGLISH.getCharSize();
-        int foreignCharSize = config.getSelectedLanguage().getCharSize();
+        int enCharSize = LangCodeSelectableList.ENGLISH.getCharWidth();
+        int foreignCharSize = config.getSelectedLanguage().getCharWidth();
         boolean deeplKeyValid = plugin.getDeepl().isKeyValid();
         String deeplCount = Long.toString(plugin.getDeepl().getDeeplCount());
         String deeplLimit = Long.toString(plugin.getDeepl().getDeeplLimit());

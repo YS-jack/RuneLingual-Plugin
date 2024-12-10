@@ -64,12 +64,14 @@ public class Transformer {
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
                 log.info("No translation found for " + text);
-                log.info("query = " + sqlQuery.getSearchQuery());
-                translatedText = text;
+                //log.info("query = " + sqlQuery.getSearchQuery());
+                return text;
+                //translatedText = text;
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
-                    translatedText = text;
+                    //translatedText = text;
                     log.info("{} has not been translated yet", text);
+                    return text;
                 } else { // text has been translated
                     translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
                     for(int i = 0; i < colorTagsAsIs.size(); i++){
@@ -78,8 +80,9 @@ public class Transformer {
                 }
             }
             //translatedText = this.plugin.getTranscriptActions().getTranslation(text);
-        } else if(option == TransformOption.TRANSLATE_API){
-            translatedText = sqlQuery.getEnglish();
+        } else if(option == TransformOption.TRANSLATE_API){ // wont have any colors
+            translatedText = this.plugin.getDeepl().translate(Colors.removeAllTags(text),
+                    LangCodeSelectableList.ENGLISH ,this.plugin.getConfig().getSelectedLanguage());
         } else if(option == TransformOption.TRANSLITERATE){
             //return
         }
@@ -109,7 +112,8 @@ public class Transformer {
         String translatedText = "";
 
         if(option == TransformOption.AS_IS){
-            translatedText = text;
+            // translatedText = text;
+            return text;
         } else if(option == TransformOption.TRANSLATE_LOCAL){
             List<String> colorTagsAsIs = Colors.getColorTagsAsIs(sqlQuery.getEnglish());
             int trueColorTagCount = Colors.countColorTagsAfterReformat(sqlQuery.getEnglish());
@@ -117,13 +121,16 @@ public class Transformer {
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
-                log.info("No translation found for " + text);
-                log.info("query = " + sqlQuery.getSearchQuery());
-                translatedText = text;
+                log.info("the following text doesn't exist in the English column {}", text);
+                log.info("query = {}", sqlQuery.getSearchQuery());
+                // translatedText = text;
+                return text;
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
-                    translatedText = text;
+                    //translatedText = text;
                     log.info("{} has not been translated yet", text);
+                    return text;
+
                 } else { // text has been translated
                     translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
                 }
@@ -136,12 +143,6 @@ public class Transformer {
             //return
         }
         return stringToDisplayedString(translatedText, colors);
-
-//        if(needCharImage) {// needs char image but just 1 color
-//            return generalFunctions.StringToTags(Colors.removeColorTag(translatedText), colors);
-//        } else { // doesnt need char image and just 1 color
-//            return "<col=" + colors.getHex() + ">" + translatedText + "</col>";
-//        }
     }
 
     /*

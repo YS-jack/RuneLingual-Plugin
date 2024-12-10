@@ -64,7 +64,7 @@ public class OverheadCapture {
         }
         else if (option == TransformOption.TRANSLATE_LOCAL) {// todo: would need to test this
             SqlQuery dialogueQuery = new SqlQuery(plugin);
-            dialogueQuery.setDialogue(enMsg, name, name, Colors.yellow);
+            dialogueQuery.setDialogue(enMsg, name, false , Colors.yellow);
             String localTranslation = transformer.transform(enMsg, TransformOption.TRANSLATE_LOCAL, dialogueQuery,Colors.yellow, false);
             event.getActor().setOverheadText(localTranslation);
         }

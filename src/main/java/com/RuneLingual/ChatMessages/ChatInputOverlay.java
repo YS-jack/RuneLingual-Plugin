@@ -13,7 +13,6 @@ import net.runelite.client.ui.overlay.components.PanelComponent;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.inject.Inject;
 import java.awt.*;
-import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +45,7 @@ public class ChatInputOverlay extends Overlay //remove abstract when actually ma
             return null;
         }
 
-        foreignCharSize = plugin.getConfig().getSelectedLanguage().getCharSize() + 1;
+        foreignCharSize = plugin.getConfig().getSelectedLanguage().getCharWidth() + 1;
 
 
         int msgLength = playerMessage.getChatInputString().length();

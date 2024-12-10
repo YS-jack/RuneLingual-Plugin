@@ -10,14 +10,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.inject.Inject;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import javax.inject.Inject;
 
 @Slf4j
 public class Deepl {
@@ -25,19 +27,22 @@ public class Deepl {
     private RuneLingualPlugin plugin;
     @Inject
     private RuneLingualConfig config;
-    @Getter
-    @Setter
+    private String deeplKey;
+    @Getter @Setter
     private int deeplLimit = 500000;
-    @Getter
-    @Setter
+    @Getter @Setter
     private int deeplCount = deeplLimit;
-    @Getter
-    @Setter
+    @Getter @Setter
     private boolean keyValid = true;
 
-    @Getter
-    @Setter
+    @Getter @Setter
     private PastTranslationManager deeplPastTranslationManager;
+
+
+    // add texts that has already been attempted to be translated.
+    // this avoids translating same texts multiple times when ran in a thread, which will waste limited or paid word count
+    @Getter
+    private List<String> translationAttempt = new ArrayList<>();
 
     @Inject
     public Deepl(RuneLingualPlugin plugin) {
@@ -47,37 +52,44 @@ public class Deepl {
         deeplPastTranslationManager = new PastTranslationManager(this, plugin);
     }
 
-    /**
-     * Translates the given text from the source language to the target language.
-     * Also sets deeplCount to the number of characters translated using the API
-     *
-     * @param text the text to be translated
-     * @param sourceLang the source language
-     * @param targetLang the target language
-     * @return the translated text, or the original text if the translation fails
-     */
+    // function to translate from and to specified language
     public String translate(String text, LangCodeSelectableList sourceLang, LangCodeSelectableList targetLang) {
-        // if the text has been translated in the past, return the past translation
+        /*
+        returns: String =
+            the translation of the text from sourceLang to targetLang
+            if failed, returns the original text
+
+        sets: deeplCount = the number of characters translated using the API
+         */
+
+        // if the text is already translated, return the past translation
         String pastTranslation = deeplPastTranslationManager.getPastTranslation(text);
         if (pastTranslation != null) {
             return pastTranslation;
         }
 
-        //if the character count is close to the limit, return the original text
-        if (deeplCount > deeplLimit - text.length() - 1000) {
+        // don't translate if text is empty, or has been attempted to translate
+        if (text.isEmpty() || translationAttempt.contains(text)) {
             return text;
         }
 
+        //if the character count is close to the limit, return the original text
+        if(deeplCount > deeplLimit - text.length() - 1000){
+            return text;
+        }
+
+        // from here, attempt to translate the text
+        translationAttempt.add(text);
+        deeplKey = plugin.getConfig().getAPIKey();
+
         String url = getTranslatorUrl();
-        // if selected service is not deepl, return as is
-        if (url.isEmpty()) {
+        if(url.isEmpty()){// if selected service is not deepl, return as is
             return text;
         }
 
         String urlParameters = getUrlParameters(sourceLang, targetLang, text);
         String response = getResponse(url, urlParameters);
-        // if response is empty, return as is
-        if (response.isEmpty()) {
+        if (response.isEmpty()) { // if response is empty, return as is
             setKeyValid(false);
             return text;
         }
@@ -86,7 +98,7 @@ public class Deepl {
 
         setKeyValid(true);
         setUsageAndLimit();
-        // add the translation to the past translations' array and file
+        // add the new translation to the past translations and its file
         deeplPastTranslationManager.addToPastTranslations(text, translation);
 
         return translation;
@@ -102,7 +114,7 @@ public class Deepl {
 
     private String getTranslatorUrl() {
         String baseUrl = getBaseUrl();
-        if (baseUrl.isEmpty()) {
+        if(baseUrl.isEmpty()){
             return "";
         }
         return baseUrl + "translate";
@@ -164,7 +176,7 @@ public class Deepl {
         return "";
     }
 
-    private String getTranslationInResponse(String response) {
+    private String getTranslationInResponse(String response){
         JSONObject jsonObject = new JSONObject(response);
         JSONArray translationsArray = jsonObject.getJSONArray("translations");
         JSONObject firstTranslation = translationsArray.getJSONObject(0);
@@ -175,7 +187,7 @@ public class Deepl {
     private void setUsageAndLimit() {
         String usage = getUsage();
         //log.info("usage: " + usage);
-        if (usage.isEmpty()) {
+        if(usage.isEmpty()){
             return;
         }
         JSONObject jsonObject = new JSONObject(usage);
@@ -183,11 +195,10 @@ public class Deepl {
         deeplLimit = jsonObject.getInt("character_limit");
         //log.info("updated deepl count:" + deeplCount+"\nupdated deepl limit" + deeplLimit);
     }
-
     private String getUsage() {
         // URL of the DeepL API
         String url = getUsageUrl();
-        if (url.isEmpty()) {
+        if(url.isEmpty()){
             setKeyValid(false);
             return "";
         }
@@ -204,7 +215,7 @@ public class Deepl {
         return getBaseUrl() + "usage";
     }
 
-    private void setUsageAndLimitInThread() {
+    private void setUsageAndLimitInThread(){
         Thread thread = new Thread(this::setUsageAndLimit);
         thread.start();
     }

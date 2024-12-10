@@ -33,23 +33,13 @@ public class MenuCapture
 	private RuneLingualPlugin plugin;
 
 	@Setter
-	private TranscriptManager actionTranslator;
-	@Setter
-	private TranscriptManager npcTranslator;
-	@Setter
-	private TranscriptManager objectTranslator;
-	@Setter
-	private TranscriptManager itemTranslator;
-
-	@Setter
-	private LogHandler logger;
 	private boolean debugMessages = true;
 	private final Colors colorObj = Colors.black;
 	@Inject
 	private Transformer transformer;
 	@Inject
 	private OutputToFile outputToFile;
-	//private SqlVariables sqlVariables;
+
 	private TransformOption menuOptionTransformOption = TransformOption.TRANSLATE_LOCAL;
 
 	@Inject
@@ -58,8 +48,6 @@ public class MenuCapture
 	}
 
 	private final Colors optionColor = Colors.white;
-
-	// TODO: right click menu title 'Chose Options' - seems to not be directly editable
 
 	public void handleOpenedMenu(MenuOpened event){
 		MenuEntry[] menus = event.getMenuEntries();
@@ -80,7 +68,6 @@ public class MenuCapture
 				}
 			}
 		}
-
 	}
 
 	public void handleMenuEvent(MenuEntry currentMenu) {
@@ -433,14 +420,16 @@ public class MenuCapture
 		Transformer transformer = new Transformer(this.plugin);
 
 		TransformOption option = getTransformOption(this.plugin.getConfig().getGameMessagesConfig());
-
+	//TODO: colours may need adjusting for () and level's digits
+		if(plugin.getConfig().getSelectedLanguage().needsCharImages()) // change color to simple color variants. eg: light green to green
+			color = color.getSimpleColor();
 		String levelTranslation = transformer.transform(levelQuery.getEnglish(), color, option, levelQuery, false);
 		String openBracket = transformer.transform("(", color, TransformOption.AS_IS, null, false);
 		String lvAndCloseBracket = transformer.transform(level+")", color, TransformOption.AS_IS, null, false);
-		return "  " + openBracket + levelTranslation + color.getColorTag() + lvAndCloseBracket;
+		return "  " + color.getColorTag() + openBracket  + levelTranslation + color.getColorTag() + lvAndCloseBracket;
 	}
 
-	private TransformOption getTransformOption(ingameTranslationConfig conf) {
+	public static TransformOption getTransformOption(ingameTranslationConfig conf) {
 		TransformOption transformOption;
 		if(conf.equals(ingameTranslationConfig.USE_LOCAL_DATA)){
 			transformOption = TransformOption.TRANSLATE_LOCAL;

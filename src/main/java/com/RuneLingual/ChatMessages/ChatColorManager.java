@@ -1,19 +1,16 @@
 package com.RuneLingual.ChatMessages;
 
 
-import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.commonFunctions.Colors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
-import net.runelite.api.ChatMessageType.*;
 import net.runelite.api.Client;
 import net.runelite.api.VarPlayer;
 import net.runelite.api.Varbits;
 
 import javax.inject.Inject;
-import java.awt.*;
 
 @Slf4j
 public class ChatColorManager {
@@ -88,7 +85,7 @@ public class ChatColorManager {
         if(color==0)
             return Colors.black;
         color--;
-        return Colors.fromHex(Integer.toHexString(color));
+        return Colors.getColorFromHex(Integer.toHexString(color));
     }
 
     private Colors getTransparentBoxMessageColor(ChatMessageType type) {
@@ -136,6 +133,6 @@ public class ChatColorManager {
                 color = 0;
         }
         color--;
-        return Colors.fromHex(Integer.toHexString(color));
+        return Colors.getColorFromHex(Integer.toHexString(color));
     }
 }
