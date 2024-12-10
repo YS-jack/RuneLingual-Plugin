@@ -13,15 +13,12 @@ import javax.inject.Inject;
 
 import lombok.Setter;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.Transformer.TransformOption;
-import com.RuneLingual.ChatMessages.ChatColorManager;
 
 @Slf4j
 public class ChatCapture
@@ -42,25 +39,7 @@ public class ChatCapture
     @Inject
     private ChatColorManager chatColorManager;
 
-    // from here its old variables
-    
-    // transcript managers
-    @Setter
-    private TranscriptManager translatedDialog;
-    @Setter
-    private TranscriptManager originalDialog;
-    @Setter
-    private TranscriptManager onlineTranslator;
-    @Setter
-    private MessageReplacer overheadReplacer;
-    
-    // logging control
-    @Setter
-    private LogHandler logger;
-    private boolean logErrors;
-    private boolean logTranslations;
-    private boolean logCaptures;
-    
+
     // configs - translation control
     private boolean translateNames;
     private boolean translateGame;
@@ -377,8 +356,8 @@ public class ChatCapture
         int nameCharCount = replaceTagWithAA(name).length()+2; // swap out IM icons to make it easier to count. +2 because of ": " after name
         int chatNameCount = (chatName == null ? 0:chatName.length()+4); //+2 because of [] brackets
         int enCharCount = nameCharCount + chatNameCount + 8; //+8 because timestamp is probably on
-        double enWidth = LangCodeSelectableList.ENGLISH.getChatBoxCharSize(); //width of 1 en character
-        double foreignWidth = plugin.getConfig().getSelectedLanguage().getChatBoxCharSize(); //width of 1 <img=> character
+        double enWidth = LangCodeSelectableList.ENGLISH.getChatBoxCharWidth(); //width of 1 en character
+        double foreignWidth = plugin.getConfig().getSelectedLanguage().getChatBoxCharWidth(); //width of 1 <img=> character
         int chatWidth = 485;
         int width = chatWidth - (int) (enCharCount*enWidth+2); //-2 just to be safe
 

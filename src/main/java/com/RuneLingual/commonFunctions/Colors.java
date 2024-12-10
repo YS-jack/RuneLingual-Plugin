@@ -66,34 +66,34 @@ public enum Colors {
 
     public static Colors fromName(String colorName){
         if (colorName.equals(red.getName())){
-            return fromHex(red.getHex());
+            return getColorFromHex(red.getHex());
         }
         if (colorName.equals(black.getName())){
-            return fromHex(black.getHex());
+            return getColorFromHex(black.getHex());
         }
         if (colorName.equals(blue.getName())){
-            return fromHex(blue.getHex());
+            return getColorFromHex(blue.getHex());
         }
         if (colorName.equals(lightblue.getName())){
-            return fromHex(lightblue.getHex());
+            return getColorFromHex(lightblue.getHex());
         }
         if (colorName.equals(yellow.getName())){
-            return fromHex(yellow.getHex());
+            return getColorFromHex(yellow.getHex());
         }
         if (colorName.equals(orange.getName())){
-            return fromHex(orange.getHex());
+            return getColorFromHex(orange.getHex());
         }
         if (colorName.equals(white.getName())){
-            return fromHex(white.getHex());
+            return getColorFromHex(white.getHex());
         }
         if (colorName.equals(green.getName())){
-            return fromHex(green.getHex());
+            return getColorFromHex(green.getHex());
         }
         log.info("couldnt find color with the name : " + colorName);
-        return fromHex(white.getHex());
+        return getColorFromHex(white.getHex());
     }
 
-    public static Colors fromHex(String hex) {
+    public static Colors getColorFromHex(String hex) {
         int[] colorInts = new int[Colors.values().length];//number of colors
 
         for (int i = 0; i < Colors.values().length;i++) {
@@ -109,7 +109,7 @@ public enum Colors {
 
     public static Colors fromInt(int intColor) {
         String hexString = IntToHex(intColor);
-        return fromHex(hexString);
+        return getColorFromHex(hexString);
     }
 
     private static int findClosest(int target, int[] numbers) {
@@ -150,9 +150,35 @@ public enum Colors {
         return Integer.parseInt(hex, 16);
     }
 
-    public String colorsToColorTag() {
-        return "<col=" + this.getHex() + ">";
+    public Colors getSimpleColor(){
+        if (this.getName().equals(Colors.green.getName())){ //if the color is green
+            return Colors.green;
+        }
+        if (this.getName().equals(Colors.red.getName())){ //if the color is red
+            return Colors.red;
+        }
+        if (this.getName().equals(Colors.blue.getName())){ //if the color is blue
+            return Colors.blue;
+        }
+        if (this.getName().equals(Colors.orange.getName())){ //if the color is orange
+            return Colors.orange;
+        }
+        if (this.getName().equals(Colors.yellow.getName())){ //if the color is yellow
+            return Colors.yellow;
+        }
+        if (this.getName().equals(Colors.white.getName())){ //if the color is white
+            return Colors.white;
+        }
+        if (this.getName().equals(Colors.black.getName())){ //if the color is black
+            return Colors.black;
+        }
+        if (this.getName().equals(Colors.lightblue.getName())){ //if the color is lightblue
+            return Colors.lightblue;
+        }
+        return this;
     }
+
+
 
 
 
@@ -179,7 +205,7 @@ public enum Colors {
         eg: <col=ff0000>Nex<col=ffffff> (level-1) -> ["red", "white"]
          */
 
-        // if there are no color tags, return white
+        // if there are no color tags, return defaultColor
         if(countColorTagsAfterReformat(strWithColor) == 0){
             return new Colors[]{defaultColor};
         }
@@ -191,7 +217,7 @@ public enum Colors {
         Colors[] colorArray = new Colors[parts.length - 1];
         Pattern re = Pattern.compile("(?<=\\d)>|(?<=\\p{IsAlphabetic})>");
         for (int i = 0; i < parts.length - 1; i++) {
-            Colors c = Colors.fromHex(re.split(parts[i + 1])[0]);
+            Colors c = Colors.getColorFromHex(re.split(parts[i + 1])[0]);
             colorArray[i] = c;
             if (colorArray[i] == null || Objects.equals(colorArray[i], "")) {
                 colorArray[i] = defaultColor;
@@ -229,12 +255,12 @@ public enum Colors {
 
         // give words after </col> the default color
         // <col=ff0000>Nex</col> (level-1) -> <col=ff0000>Nex<col=ffffff> (level-1)
-        colWord = colWord.replace("</col>",defaultColor.colorsToColorTag());
+        colWord = colWord.replace("</col>",defaultColor.getColorTag());
 
         // give the beginning words without a color tag the default color
         // Nex <col=ffffff> (level-1) -> <col=ff0000>Nex <col=ffffff>(level-1)
         if (!colWord.startsWith("<col")) {
-            colWord = defaultColor.colorsToColorTag() + colWord;
+            colWord = defaultColor.getColorTag() + colWord;
         }
 
         // remove the color tag at the end of the word

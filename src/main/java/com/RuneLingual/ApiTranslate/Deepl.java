@@ -16,6 +16,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import javax.inject.Inject;
 
@@ -35,6 +37,12 @@ public class Deepl {
 
     @Getter @Setter
     private PastTranslationManager deeplPastTranslationManager;
+
+
+    // add texts that has already been attempted to be translated.
+    // this avoids translating same texts multiple times when ran in a thread, which will waste limited or paid word count
+    @Getter
+    private List<String> translationAttempt = new ArrayList<>();
 
     @Inject
     public Deepl(RuneLingualPlugin plugin) {
@@ -60,11 +68,18 @@ public class Deepl {
             return pastTranslation;
         }
 
+        // don't translate if text is empty, or has been attempted to translate
+        if (text.isEmpty() || translationAttempt.contains(text)) {
+            return text;
+        }
+
         //if the character count is close to the limit, return the original text
         if(deeplCount > deeplLimit - text.length() - 1000){
             return text;
         }
 
+        // from here, attempt to translate the text
+        translationAttempt.add(text);
         deeplKey = plugin.getConfig().getAPIKey();
 
         String url = getTranslatorUrl();

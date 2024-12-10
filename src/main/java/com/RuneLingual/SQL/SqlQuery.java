@@ -300,12 +300,16 @@ public class SqlQuery {
         this.translation = null;
     }
 
-    public void setDialogue(String en,String npcTalkingTo, String speakerName, Colors defaultColor){
+    public void setDialogue(String en, String npcTalkingTo, boolean speakerIsPlayer, Colors defaultColor){
         this.english = en;
         this.category = SqlVariables.dialogueInCategory.getValue();
         this.subCategory = npcTalkingTo;
         this.color = defaultColor;
-        this.source = speakerName;
+        if(speakerIsPlayer){
+            this.source = "Player";
+        } else {
+            this.source = npcTalkingTo;
+        }
         this.translation = null;
     }
 
