@@ -52,7 +52,7 @@ public class Downloader {//downloads translations and japanese char images to ex
 
         createDir(localLangFolder.getPath());
         String LOCAL_HASH_NAME = "hashListLocal_" + langCode + ".txt";
-        String remote_sub_folder = "draft"; //todo: this value is "draft" if reading from draft folder, "public" if reading from the public folder
+        String remote_sub_folder = "public"; //todo: this value is "draft" if reading from draft folder, "public" if reading from the public folder
         GITHUB_BASE_URL = "https://raw.githubusercontent.com/YS-jack/Runelingual-Transcripts/original-main/" +
                 remote_sub_folder + "/" + langCode + "/"; //todo: replace the string after .com/ with the correct username
 
