@@ -24,9 +24,13 @@ Contributions are welcome and greatly appreciated! If you would like to contribu
 ### How it would look
 Here's a glimpse into the ongoing development of RuneLingual, showcasing our latest features:
 
-| NPC dialog                                                  | Right click menus                                             | Mouse Hovers                                                   | Overheads                                                | Chat input, non latin!                                          |
-|-------------------------------------------------------------|---------------------------------------------------------------|----------------------------------------------------------------|----------------------------------------------------------|-----------------------------------------------------------------| 
-| ![d](src/main/resources/ReadmeImages/dialogue_exmaple.png)  | ![d](src/main/resources/ReadmeImages/menu_entry_example.png)  | ![d](src/main/resources/ReadmeImages/mouse_hover_example.png)  | ![d](src/main/resources/ReadmeImages/overhead_text.png)  | ![d](src/main/resources/ReadmeImages/japanese_chat_input.png)   |
+| Feature                | Example Image                                                                 |
+|------------------------|-------------------------------------------------------------------------------|
+| NPC dialog             | ![d](src/main/resources/ReadmeImages/dialogue_exmaple.png)                    |
+| Right click menus      | ![d](src/main/resources/ReadmeImages/menu_entry_example.png)                  |
+| Mouse Hovers           | ![d](src/main/resources/ReadmeImages/mouse_hover_example.png)                 |
+| Overheads              | ![d](src/main/resources/ReadmeImages/overhead_text.png)                       |
+| Chat input, non latin! | ![d](src/main/resources/ReadmeImages/japanese_chat_input.png)                 |
 <p style="text-align:right; font-style:italic;">Screenshot contents are Japanese, implemented as proof of concept.</p>
 
 ## Disclaimer
