@@ -21,7 +21,7 @@ Contributions are welcome and greatly appreciated! If you would like to contribu
 - Improve existing resources by [forking this repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) and submitting a pull request with your changes.
 - Leave your suggestions, reports and improvements under the issues tab, and one of the devs will review them.
 
-### How it would look
+## How it would look
 Here's a glimpse into the ongoing development of RuneLingual, showcasing our latest features:
 
 | Feature                                                   | Example Image                                                 |
