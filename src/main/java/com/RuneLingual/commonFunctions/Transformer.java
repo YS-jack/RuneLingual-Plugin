@@ -112,17 +112,14 @@ public class Transformer {
         String translatedText = "";
 
         if(option == TransformOption.AS_IS){
-            // translatedText = text;
             return text;
         } else if(option == TransformOption.TRANSLATE_LOCAL){
-            List<String> colorTagsAsIs = Colors.getColorTagsAsIs(sqlQuery.getEnglish());
-            int trueColorTagCount = Colors.countColorTagsAfterReformat(sqlQuery.getEnglish());
             sqlQuery.setEnglish(text);
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
-                log.info("the following text doesn't exist in the English column {}", text);
-                log.info("query = {}", sqlQuery.getSearchQuery());
+                log.info("the following text doesn't exist in the English column :{}", text);
+                log.info("   query = {}", sqlQuery.getSearchQuery());
                 // translatedText = text;
                 return text;
             } else {

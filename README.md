@@ -16,17 +16,18 @@ interface texts, button texts, probably few bugs that was missed.
 
 Contributions are welcome and greatly appreciated! If you would like to contribute to the development of RuneLingual, being by coding, language revision or just some translation lines, please consider these:
 - Feel free to reach out on [Discord](https://discord.gg/ehwKcVdBGS)
+- If you want to contribute to translation, by adding new languages or improving existing languages, talk to us on [Discord](https://discord.gg/ehwKcVdBGS). 
+  - If you are familiar with git, python and OmegaT, you can have a look in our [transcript repository](https://github.com/YS-jack/Runelingual-Transcripts).
 - Improve existing resources by [forking this repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) and submitting a pull request with your changes.
-- If you want to contribute to the translation, by adding new languages or improving existing languages, talk to us on [Discord](https://discord.gg/ehwKcVdBGS). If you are familiar with git, python and OmegaT, you can have a look in our [transcript repository](https://github.com/YS-jack/Runelingual-Transcripts).
 - Leave your suggestions, reports and improvements under the issues tab, and one of the devs will review them.
 
 ### How it would look
 Here's a glimpse into the ongoing development of RuneLingual, showcasing our latest features:
 
-| NPC dialog                            | Right click menus                     | NPC/Item/Object names                 | Some more menus                       |
-|---------------------------------------|---------------------------------------|---------------------------------------|---------------------------------------| 
-| ![a](https://i.imgur.com/Jt3oKVJ.jpg) | ![b](https://i.imgur.com/bodEbNj.jpg) | ![c](https://i.imgur.com/9ZEKzfN.jpg) | ![d](https://i.imgur.com/wN1A1Cv.jpg) |
-<p style="text-align:right; font-style:italic;">Screenshot contents are in Brazilian Portuguese, the first language implemented as a proof of concept.</p>
+| NPC dialog                                                   | Right click menus                                              | Mouse Hovers                                                    | Overheads                                                 | Chat input, non latin!                                          |
+|--------------------------------------------------------------|----------------------------------------------------------------|-----------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------------| 
+| ![d](.\src\main\resources\ReadmeImages\dialogue_exmaple.png) | ![d](.\src\main\resources\ReadmeImages\menu_entry_example.png) | ![d](.\src\main\resources\ReadmeImages\mouse_hover_example.png) | ![d](.\src\main\resources\ReadmeImages\overhead_text.png) | ![d](.\src\main\resources\ReadmeImages\japanese_chat_input.png) |
+<p style="text-align:right; font-style:italic;">Screenshot contents are Japanese, implemented as proof of concept.</p>
 
 ## Disclaimer
 

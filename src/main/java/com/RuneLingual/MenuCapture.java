@@ -233,7 +233,9 @@ public class MenuCapture
 		SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
 		SqlQuery actionSqlQuery = new SqlQuery(this.plugin);
 		TransformOption npcTransformOption = getTransformOption(this.plugin.getConfig().getNPCNamesConfig());
-		if(hasLevel(menuTarget)){
+		if(npcTransformOption.equals(TransformOption.AS_IS)){
+			newTarget = menuTarget;
+		} else if(hasLevel(menuTarget)){
 			// if npc has a level, translate the name and level separately
 			targetSqlQuery.setNpcName(targetWordArray[0], targetColorArray[0]);
 			String targetName = transformer.transform(targetWordArray[0], targetColorArray[0], npcTransformOption, targetSqlQuery, false);
@@ -261,7 +263,13 @@ public class MenuCapture
 		Colors[] targetColorArray = Colors.getColorArray(menuTarget, Colors.lightblue); //default color is not the same as initial definition
 
 		TransformOption	objectTransformOption = getTransformOption(this.plugin.getConfig().getObjectNamesConfig());
-		String newTarget = transformer.transform(targetWordArray, targetColorArray, objectTransformOption, targetSqlQuery, false);
+
+		String newTarget;
+		if(objectTransformOption.equals(TransformOption.AS_IS)){
+			newTarget = menuTarget;
+		} else {
+			newTarget = transformer.transform(targetWordArray, targetColorArray, objectTransformOption, targetSqlQuery, false);
+		}
 		String newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
 
 		return new String[] {newTarget, newOption};
@@ -276,7 +284,12 @@ public class MenuCapture
 		Colors[] targetColorArray = Colors.getColorArray(menuTarget, Colors.orange); //default color is not the same as initial definition
 
 		TransformOption itemTransformOption = getTransformOption(this.plugin.getConfig().getItemNamesConfig());
-		String newTarget = transformer.transform(targetWordArray, targetColorArray, itemTransformOption, targetSqlQuery, false);
+		String newTarget;
+		if (itemTransformOption.equals(TransformOption.AS_IS)){
+			newTarget = menuTarget;
+		} else {
+			newTarget = transformer.transform(targetWordArray, targetColorArray, itemTransformOption, targetSqlQuery, false);
+		}
 		String newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
 		return new String[] {newTarget, newOption};
 	}
