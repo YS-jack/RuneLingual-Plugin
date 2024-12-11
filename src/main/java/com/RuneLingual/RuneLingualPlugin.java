@@ -292,10 +292,6 @@ public class RuneLingualPlugin extends Plugin {
             restartPanel();
         }
 
-        // need this
-        if (chatCapture != null) {
-            chatCapture.updateConfigs();
-        }
     }
 
     @Subscribe

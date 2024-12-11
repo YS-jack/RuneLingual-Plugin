@@ -39,15 +39,6 @@ public class ChatCapture
     @Inject
     private ChatColorManager chatColorManager;
 
-
-    // configs - translation control
-    private boolean translateNames;
-    private boolean translateGame;
-    private boolean translatePublic;
-    private boolean translateClan;
-    private boolean translateFriends;
-    private boolean translateOverHeads;
-    private boolean dynamicTranslations;
     
     @Inject
     ChatCapture(RuneLingualConfig config, Client client, RuneLingualPlugin plugin)
@@ -127,18 +118,10 @@ public class ChatCapture
 
     }
     
-    public void updateConfigs()
-    {
-        this.translateNames = config.getAllowName();
-        this.translateGame = config.getAllowGame();
-        this.translateOverHeads = config.getAllowOverHead();
-    }
-    
     private void localTranslator(String message, MessageNode node, ChatMessage chatMessage)
     {
         // todo after adding transcripts for this type of message
-        String newMessage = message;
-        addMsgToSidePanel(chatMessage, newMessage);
+        addMsgToSidePanel(chatMessage, message);
     }
     
     private void onlineTranslator(String message, MessageNode node, ChatMessage chatMessage)
