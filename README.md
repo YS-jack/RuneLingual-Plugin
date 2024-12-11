@@ -7,9 +7,13 @@ RuneLingual is a plugin for Old School RuneScape (OSRS), powered by the official
 
 ## Features
 
-- **Language Selection:** Choose your preferred language from our pack and experience OSRS in your own language.
+- **Language Selection:** Choose your preferred language from our pack and experience OSRS in your own language. Currently only supports Japanese.
 - **Customization:** Tailor the translation of elements based on your preferences.
-- **Real-time Translation (early in development):** Translates player-sent messages and many other dynamic elements.
+- **Real-time Translation:** Translates player-sent messages and many other dynamic elements.
+- **Translates the following**
+right click texts, npc/object/item names, NPC dialogues, overhead texts, player messages
+- **Under development**
+interface texts, button texts, probably few bugs that was missed.
 
 ## Contributing
 
