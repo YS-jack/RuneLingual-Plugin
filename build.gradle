@@ -30,7 +30,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
 	//implementation 'com.google.cloud:google-cloud-translate:2.19.0'
-	implementation 'com.h2database:h2:2.1.212'
+	implementation 'com.h2database:h2:2.2.220'
 	implementation 'org.json:json:20231013'
 
 	testImplementation 'junit:junit:4.13.2'
