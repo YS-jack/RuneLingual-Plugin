@@ -12,7 +12,7 @@ import java.io.File;
 @ConfigGroup(RuneLingualConfig.GROUP)
 public interface RuneLingualConfig extends Config {
     final int offset_section1 = 0;
-    public String helpLink = "https://github.com/YS-jack/Runelingual-Transcripts/tree/original-main/draft/jp"; // todo: change this to the correct link
+    public String helpLink = "https://github.com/YS-jack/RuneLingual-Plugin/blob/master/Readmes/Settings_select_lang.md";
     @ConfigSection(
             name = "Language selection",
             description = "Select language",
