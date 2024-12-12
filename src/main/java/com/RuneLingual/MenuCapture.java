@@ -16,7 +16,6 @@ import javax.inject.Inject;
 import lombok.Setter;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetInfo;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.regex.Pattern;
@@ -462,46 +461,6 @@ public class MenuCapture
 		String option = menuEntry.getOption();
 		MenuAction type = menuEntry.getType();
 		log.info("option: " + option + ", target: " + target + ", type: " + type);
-	}
-
-	static void mapWidgetText(Widget[] childComponents) {
-		for (Widget component : childComponents) {
-			remapWidget(component);
-			String text = component.getText();
-			if (text.isEmpty())
-				continue;
-			RemapWidgetText(component, text);
-		}
-	}
-	static void remapWidget(Widget widget) {
-		final int groupId = WidgetInfo.TO_GROUP(widget.getId());
-		final int CHAT_MESSAGE = 162, PRIVATE_MESSAGE = 163, FRIENDS_LIST = 429;
-
-		if (groupId == CHAT_MESSAGE || groupId == PRIVATE_MESSAGE || groupId == FRIENDS_LIST)
-			return;
-
-		Widget[] children = widget.getDynamicChildren();
-		if (children == null)
-			return;
-
-		Widget[] childComponents = widget.getDynamicChildren();
-		if (childComponents != null)
-			mapWidgetText(childComponents);
-
-		childComponents = widget.getStaticChildren();
-		if (childComponents != null)
-			mapWidgetText(childComponents);
-
-		childComponents = widget.getNestedChildren();
-		if (childComponents != null)
-			mapWidgetText(childComponents);
-	}
-	static void RemapWidgetText(Widget component, String text)
-	{
-		if (component.getText().contains("Rapid"))
-		{
-			component.setText(text.replace("Rapid", "Hurtig"));
-		}
 	}
 
 	private Pair<String, String> convertWidgetOnSomething(MenuEntry entry)
