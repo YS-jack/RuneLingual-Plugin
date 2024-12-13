@@ -338,6 +338,8 @@ public interface RuneLingualConfig extends Config {
         return chatSelfConfig.TRANSFORM;
     }
 
+    String defaultText4ForcefulPlayerSettings = "enter player names here, separated by commas or new line";
+
     @ConfigItem(
             name = "Leave as is",
             description = "Specific players to not translate",
@@ -345,9 +347,7 @@ public interface RuneLingualConfig extends Config {
             keyName = "specificDontTranslate",
             section = SECTION_SPECIFIC_PLAYER_SETTINGS
     )
-    default String getSpecificDontTranslate() {
-        return "enter player names here, separated by commas";
-    }
+    default String getSpecificDontTranslate() {return defaultText4ForcefulPlayerSettings;}
 
     @ConfigItem(
             name = "Translate with APIs",
@@ -357,7 +357,7 @@ public interface RuneLingualConfig extends Config {
             section = SECTION_SPECIFIC_PLAYER_SETTINGS
     )
     default String getSpecificApiTranslate() {
-        return "enter player names here, separated by commas";
+        return defaultText4ForcefulPlayerSettings;
     }
 
     @ConfigItem(
@@ -368,7 +368,7 @@ public interface RuneLingualConfig extends Config {
             section = SECTION_SPECIFIC_PLAYER_SETTINGS
     )
     default String getSpecificTransform() {
-        return "enter player names here, separated by commas";
+        return defaultText4ForcefulPlayerSettings;
     }
 
     @ConfigItem(

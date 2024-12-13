@@ -283,7 +283,7 @@ public class ChatCapture
 
 
     public boolean isInConfigList(String item, String arrayInString) {
-        String[] array = arrayInString.split(",");
+        String[] array = arrayInString.split("[,、\n]");
         for (String s:array)
             if (item.equals(s.trim()))
                 return true;
