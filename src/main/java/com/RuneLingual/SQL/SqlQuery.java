@@ -240,7 +240,7 @@ public class SqlQuery {
 
     public void setInventoryItemActions(String en, Colors defaultColor){
         this.english = en;
-        this.category = SqlVariables.inventActionsInCategory.getValue();
+        this.category = SqlVariables.categoryValue4InventActions.getValue();
         this.subCategory = SqlVariables.subcategoryValue4Item.getValue();
         this.color = defaultColor;
         this.source = null;
