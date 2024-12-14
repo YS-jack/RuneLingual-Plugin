@@ -131,6 +131,7 @@ public class WidgetCapture {
             return "";
         }
         text = SqlQuery.replaceSpecialSpaces(text);
+        text = Colors.getEnumeratedColorWord(text);
         return text.replace("<br>", " ");
     }
 }
