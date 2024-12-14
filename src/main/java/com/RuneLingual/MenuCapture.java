@@ -362,8 +362,11 @@ public class MenuCapture
 		if(!targetWordArray[0].matches("^<img=.*>$")) { // doesn't have icons before their names
 			String playerName = targetWordArray[0];
 			String translatedName = transformer.transform(playerName, Colors.white, TransformOption.AS_IS, null, false);
-
-			return translatedName + getLevelTranslation(targetWordArray[1], targetColorArray[1]);
+			if (targetWordArray.length == 1) {
+				return translatedName;
+			} else {
+				return translatedName + getLevelTranslation(targetWordArray[1], targetColorArray[1]);
+			}
 		} else {
 			// contains icons before their names, such as clan rank symbols
 			StringBuilder newName = new StringBuilder();

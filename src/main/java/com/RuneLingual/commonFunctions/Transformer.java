@@ -56,10 +56,11 @@ public class Transformer {
         final translation: <col=0>translatedText2<col=ff>translatedText1
          */
             List<String> colorTagsAsIs = Colors.getColorTagsAsIs(sqlQuery.getEnglish());
-            int trueColorTagCount = Colors.countColorTagsAfterReformat(sqlQuery.getEnglish());
-            for(int i = 0; i < colorTagsAsIs.size(); i++){
-                sqlQuery.setEnglish(sqlQuery.getEnglish().replace(colorTagsAsIs.get(i), "<colNum" + i + ">")); // replace color tags with placeholders
-            }
+//            int trueColorTagCount = Colors.countColorTagsAfterReformat(sqlQuery.getEnglish());
+//            for(int i = 0; i < colorTagsAsIs.size(); i++){
+//                sqlQuery.setEnglish(sqlQuery.getEnglish().replace(colorTagsAsIs.get(i), "<colNum" + i + ">")); // replace color tags with placeholders
+//            }
+            sqlQuery.setEnglish(Colors.getEnumeratedColorWord(sqlQuery.getEnglish())); // replace color tags with placeholders
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
@@ -74,9 +75,10 @@ public class Transformer {
                     return text;
                 } else { // text has been translated
                     translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
-                    for(int i = 0; i < colorTagsAsIs.size(); i++){
-                        translatedText = translatedText.replace("<colNum" + i + ">", colorTagsAsIs.get(i)); // replace placeholders with original color tags
-                    }
+                    translatedText = Colors.getOriginalColorWord(translatedText, colorTagsAsIs); // replace placeholders with original color tags
+//                    for(int i = 0; i < colorTagsAsIs.size(); i++){
+//                        translatedText = translatedText.replace("<colNum" + i + ">", colorTagsAsIs.get(i)); // replace placeholders with original color tags
+//                    }
                 }
             }
             //translatedText = this.plugin.getTranscriptActions().getTranslation(text);

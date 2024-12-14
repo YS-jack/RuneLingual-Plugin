@@ -29,10 +29,11 @@ public enum SqlVariables {
     subcategoryValue4Menu("menu","sub_category"), // for widgets that are not buttons nor interface, such as one of the skills in skill list tab, name of tabs ("Combat Options", "Quest List")
     subcategoryValue4Player("player","sub_category"), // for player options, such as report, trade, follow, etc.
     subcategoryValue4Quest("quest","sub_category"),
+    subcategoryValue4GeneralUI("generalUI","sub_category"), // most if not all interfaces will have this subcategory value
 
     // possible source values
     sourceValue4Player("player","source"), // for player options, such as report, trade, follow, etc.
-    //for tabs
+    //  for tabs
     sourceValue4CombatOptionsTab("combatOptionsTab","source"), // for combat options, attack styles etc. query eg: Block	actions	menu	combatOption
     sourceValue4SkillsTab("skillsTab","source"), // for skills tab
     sourceValue4CharacterSummaryTab("characterSummaryTab","source"), // for character summary tab
@@ -52,6 +53,8 @@ public enum SqlVariables {
     sourceValue4EmotesTab("emotesTab","source"), // for emotes tab
     sourceValue4MusicTab("musicTab","source"), // for music tab
 
+    // for interfaces
+    sourceValue4SkillGuideInterface("skillGuide","source"), // for skill guide interface
     ;
 
 

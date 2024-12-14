@@ -237,7 +237,6 @@ public class SqlQuery {
 
 
 
-
     public void setInventoryItemActions(String en, Colors defaultColor){
         this.english = en;
         this.category = SqlVariables.categoryValue4InventActions.getValue();
@@ -312,7 +311,7 @@ public class SqlQuery {
         this.translation = null;
     }
 
-    private static String replaceSpecialSpaces(String input) {
+    public static String replaceSpecialSpaces(String input) {
         if(input == null){
             return null;
         }

@@ -303,4 +303,37 @@ public enum Colors {
         return matches;
     }
 
+    /*
+     * returns: text with color tags that are enumerated instead of actual colors
+     * eg: <col=ff0000>Nex<col=ffffff> (level-1) -> <colNum0>Nex<colNum1> (level-1)
+     */
+    public static String getEnumeratedColorWord(String colWord) {
+        Pattern re = Pattern.compile("<col[=a-zA-Z0-9]*?>");
+        String[] parts = re.split(colWord);
+        StringBuilder colorString = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            colorString.append(parts[i]);
+            if (i < parts.length - 1) {
+                colorString.append("<colNum").append(i).append(">");
+            }
+        }
+        return colorString.toString();
+    }
+
+    /*
+     * returns: text with color tags that were originally in place of the enumerated color tags
+     * eg: <colNum0>Nex<colNum1> (level-1) -> <col=ff0000>Nex<col=ffffff> (level-1)
+     */
+    public static String getOriginalColorWord(String colWord, List<String> originalColorTags) {
+        String[] parts = colWord.split("<colNum\\d+>");
+        StringBuilder colorString = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            colorString.append(parts[i]);
+            if (i < parts.length - 1) {
+                colorString.append(originalColorTags.get(i));
+            }
+        }
+        return colorString.toString();
+
+    }
 }
