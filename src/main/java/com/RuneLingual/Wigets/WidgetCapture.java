@@ -14,6 +14,7 @@ import net.runelite.api.widgets.WidgetUtil;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class WidgetCapture {
@@ -41,9 +42,9 @@ public class WidgetCapture {
     private void translateWidgetRecursive(Widget widget) {
         int widgetId = widget.getId();
 
-        int[] widgetIdsToIgnore = new int[]{ComponentID.CHATBOX_INPUT};
+        List<Integer> widgetIdsToIgnore = Arrays.asList(ComponentID.CHATBOX_INPUT);
         // stop the recursion if the widget is hidden or should be ignored
-        if (widget.isHidden() || arrayContainsInt(widgetIdsToIgnore, widgetId)) {
+        if (widget.isHidden() || widgetIdsToIgnore.contains(widgetId)) {
             return;
         }
 
@@ -74,16 +75,6 @@ public class WidgetCapture {
 
         }
     }
-
-    private static boolean arrayContainsInt(int[] array, int target) {
-        for (int element : array) {
-            if (element == target) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 
 }
 

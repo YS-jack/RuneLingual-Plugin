@@ -145,6 +145,8 @@ public class SqlQuery {
     }
 
     public String getSearchQuery() {
+        english = replaceSpecialSpaces(english);
+
         // creates query that matches all non-empty fields
         // returns null if no fields are filled
         String query = "SELECT * FROM " + SqlActions.tableName + " WHERE ";
@@ -313,4 +315,32 @@ public class SqlQuery {
         this.translation = null;
     }
 
+    private static String replaceSpecialSpaces(String input) {
+        if(input == null){
+            return null;
+        }
+
+        int[] specialSpaces = {32, 160, 8195, 8194, 8201, 8202, 8203, 12288};
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < input.length(); i++) {
+            int codePoint = input.codePointAt(i);
+            boolean isSpecialSpace = false;
+
+            for (int specialSpace : specialSpaces) {
+                if (codePoint == specialSpace) {
+                    isSpecialSpace = true;
+                    break;
+                }
+            }
+
+            if (isSpecialSpace) {
+                result.append(' ');
+            } else {
+                result.appendCodePoint(codePoint);
+            }
+        }
+
+        return result.toString();
+    }
 }
