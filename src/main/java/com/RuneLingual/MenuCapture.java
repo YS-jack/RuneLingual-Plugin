@@ -193,7 +193,7 @@ public class MenuCapture
 		SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
 		String newOption, newTarget;
 		actionSqlQuery.setEnglish(menuOption);
-		actionSqlQuery.setCategory(SqlVariables.actionsInCategory.getValue());
+		actionSqlQuery.setCategory(SqlVariables.categoryValue4Actions.getValue());
 
 		newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
 
@@ -207,8 +207,8 @@ public class MenuCapture
 			} else {
 				// this shouldnt happen but just in case
 				targetSqlQuery.setEnglish(targetWordArray[0]);
-				targetSqlQuery.setCategory(SqlVariables.nameInCategory.getValue());
-				targetSqlQuery.setSubCategory(SqlVariables.menuInSubCategory.getValue());
+				targetSqlQuery.setCategory(SqlVariables.categoryValue4Name.getValue());
+				targetSqlQuery.setSubCategory(SqlVariables.subcategoryValue4Menu.getValue());
 				// need to split into name and level if it has level
 				newTarget = transformer.transform(targetWordArray, targetColorArray, menuTransformOption, targetSqlQuery, false);
 			}
@@ -328,14 +328,14 @@ public class MenuCapture
 			newTarget = "";
 		} else {
 			// if it is in the quest tab, the values are in a different category/sub_category
-			if(source.equals(SqlVariables.questListTabInSource.getValue())) {
+			if(source.equals(SqlVariables.sourceValue4QuestListTab.getValue())) {
 				menuTarget = translateQuestName(targetWordArray[0]);
 				return new String[]{menuTarget, newOption};
 			}
 			SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
 			targetSqlQuery.setEnglish(targetWordArray[0]);
-			targetSqlQuery.setCategory(SqlVariables.nameInCategory.getValue());
-			targetSqlQuery.setSubCategory(SqlVariables.menuInSubCategory.getValue());
+			targetSqlQuery.setCategory(SqlVariables.categoryValue4Name.getValue());
+			targetSqlQuery.setSubCategory(SqlVariables.subcategoryValue4Menu.getValue());
 			targetSqlQuery.setSource(source);
 
 			TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
@@ -348,8 +348,8 @@ public class MenuCapture
 	private String translateQuestName(String questName) {
 		SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
 		targetSqlQuery.setEnglish(questName);
-		targetSqlQuery.setCategory(SqlVariables.manualInCategory.getValue());
-		targetSqlQuery.setSubCategory(SqlVariables.questInSubCategory.getValue());
+		targetSqlQuery.setCategory(SqlVariables.categoryValue4Manual.getValue());
+		targetSqlQuery.setSubCategory(SqlVariables.subcategoryValue4Quest.getValue());
 
 		TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
 		// color is not possible to obtain by simple means, so its just orange for now
@@ -384,41 +384,41 @@ public class MenuCapture
 		String source = "";
 		Ids ids = this.plugin.getIds();
 		if(isChildWidgetOf(ids.getCombatOptionParentWidgetId(), menu)){
-			source = SqlVariables.combatOptionsTabInSource.getValue();
+			source = SqlVariables.sourceValue4CombatOptionsTab.getValue();
 		} else if(isChildWidgetOf(ids.getSkillsTabParentWidgetId(),menu)){
-			source = SqlVariables.skillsTabInSource.getValue();
+			source = SqlVariables.sourceValue4SkillsTab.getValue();
 		} else if(isChildWidgetOf(ids.getCharacterSummaryTabWidgetId(),menu)){
-			source = SqlVariables.characterSummaryTabInSource.getValue();
+			source = SqlVariables.sourceValue4CharacterSummaryTab.getValue();
 		} else if(isChildWidgetOf(ids.getQuestTabParentWidgetId(), menu)){
-			source = SqlVariables.questListTabInSource.getValue();
+			source = SqlVariables.sourceValue4QuestListTab.getValue();
 		} else if(isChildWidgetOf(ids.getAchievementDiaryTabParentWidgetId(),menu)){
-			source = SqlVariables.achievementDiaryTabInSource.getValue();
+			source = SqlVariables.sourceValue4AchievementDiaryTab.getValue();
 		} else if(isChildWidgetOf(ids.getInventoryTabParentWidgetId(),menu)){
-			source = SqlVariables.inventTabInSource.getValue();
+			source = SqlVariables.sourceValue4InventTab.getValue();
 		}  else if(isChildWidgetOf(ids.getEquipmentTabParentWidgetId(),menu)){
-			source = SqlVariables.wornEquipmentTabInSource.getValue();
+			source = SqlVariables.sourceValue4WornEquipmentTab.getValue();
 		}else if(isChildWidgetOf(ids.getPrayerTabParentWidgetId(),menu)){
-			source = SqlVariables.prayerTabInSource.getValue();
+			source = SqlVariables.sourceValue4PrayerTab.getValue();
 		} else if(isChildWidgetOf(ids.getSpellBookTabParentWidgetId(), menu)){
-			source = SqlVariables.spellBookTabInSource.getValue();
+			source = SqlVariables.sourceValue4SpellBookTab.getValue();
 		} else if(isChildWidgetOf(ids.getGroupsTabParentWidgetId(), menu)){
-			source = SqlVariables.groupTabInSource.getValue();
+			source = SqlVariables.sourceValue4GroupTab.getValue();
 		} else if(isChildWidgetOf(ids.getFriendsTabParentWidgetId(), menu)){
-			source = SqlVariables.friendsTabInSource.getValue();
+			source = SqlVariables.sourceValue4FriendsTab.getValue();
 		} else if(isChildWidgetOf(ids.getIgnoreTabParentWidgetId(), menu)){
-			source = SqlVariables.ignoreTabInSource.getValue();
+			source = SqlVariables.sourceValue4IgnoreTab.getValue();
 		} else if(isChildWidgetOf(ids.getAccountManagementTabParentWidgetId(), menu)){
-			source = SqlVariables.accountManagementTabInSource.getValue();
+			source = SqlVariables.sourceValue4AccountManagementTab.getValue();
 		} else if(isChildWidgetOf(ids.getSettingsTabParentWidgetId(), menu)){
-			source = SqlVariables.settingsTabInSource.getValue();
+			source = SqlVariables.sourceValue4SettingsTab.getValue();
 		} else if(isChildWidgetOf(ids.getLogoutTabParentWidgetId(), menu)){
-			source = SqlVariables.logoutTabInSource.getValue();
+			source = SqlVariables.sourceValue4LogoutTab.getValue();
 		} else if(isChildWidgetOf(ids.getWorldSwitcherTabParentWidgetId(), menu)) {
-			source = SqlVariables.worldSwitcherTabInSource.getValue();
+			source = SqlVariables.sourceValue4WorldSwitcherTab.getValue();
 		} else if(isChildWidgetOf(ids.getEmotesTabParentWidgetId(), menu)){
-			source = SqlVariables.emotesTabInSource.getValue();
+			source = SqlVariables.sourceValue4EmotesTab.getValue();
 		} else if(isChildWidgetOf(ids.getMusicTabParentWidgetId(), menu)){
-			source = SqlVariables.musicTabInSource.getValue();
+			source = SqlVariables.sourceValue4MusicTab.getValue();
 		}
 		//log.info("source: " + source);
 		return source;

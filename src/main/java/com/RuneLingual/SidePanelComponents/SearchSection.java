@@ -13,7 +13,6 @@ import java.awt.event.ActionListener;
 import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.SQL.*;
 import com.RuneLingual.RuneLingualPlugin;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -176,7 +175,7 @@ public class SearchSection extends JPanel {
                 " WHERE LOWER(" + searchColumnName + ")" +
                 " = '" + searchText.toLowerCase().replace("'","''") + "'" +
                 " AND " + SqlVariables.columnCategory.getColumnName() +
-                " = '" + SqlVariables.nameInCategory.getValue() +"'";
+                " = '" + SqlVariables.categoryValue4Name.getValue() +"'";
     }
 
     private String getAlikeQuery(String searchText, String searchColumnName) {
@@ -188,7 +187,7 @@ public class SearchSection extends JPanel {
                 " WHERE LOWER(" + searchColumnName + ")" +
                 " LIKE '%" + searchText.toLowerCase().replace("'","''") + "%'" +
                 " AND " + SqlVariables.columnCategory.getColumnName() +
-                " = '" + SqlVariables.nameInCategory.getValue() +"'";
+                " = '" + SqlVariables.categoryValue4Name.getValue() +"'";
     }
 
     private JTable addEnResultTable(){

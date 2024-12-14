@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.RuneLingual.debug.OutputToFile.appendToFile;
+
 public class WidgetCapture {
     @Inject
     private RuneLingualPlugin plugin;
@@ -56,25 +58,41 @@ public class WidgetCapture {
         if (widgetGroup == InterfaceID.CHATBOX) {// skip all chatbox widgets for now TODO: chatbox buttons should be translated
             return;
         }
+
+        if (isDumpTarget(widget)){
+            return;
+        }
+
         if (widgetGroup == InterfaceID.DIALOG_NPC
                 || widgetGroup == InterfaceID.DIALOG_PLAYER
                 || widgetGroup == InterfaceID.DIALOG_OPTION) {
             dialogTranslator.handleDialogs(widget);
-        } else if (!widget.getText().isEmpty()
-                && !widget.getText().contains("<img=") // check if already translated to japanese. TODO: need something else after adding other languages
-                && plugin.getConfig().getInterfaceTextConfig().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)) {
+            return;
+        }
+        if (!widget.getText().isEmpty()
+            && !widget.getText().contains("<img=") // check if already translated to japanese. TODO: need something else after adding other languages
+            && plugin.getConfig().getInterfaceTextConfig().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)) {
 
-            // if its only numbers and symbols dont do anything
-            String re = "^[^\\p{Alpha}]+$";
-            if (widget.getText().matches(re))
-                return;
+        // if its only numbers and symbols dont do anything
+        String re = "^[^\\p{Alpha}]+$";
+        if (widget.getText().matches(re))
+            return;
 
-            Colors[] textColor = Colors.getColorArray(widget.getText(), Colors.black);
-            // for now only translate interfaces and buttons with API
-            widgetsUtilRLingual.setWidgetText_ApiTranslation(widget, widget.getText(), textColor[0]);
+        Colors[] textColor = Colors.getColorArray(widget.getText(), Colors.black);
+        // for now only translate interfaces and buttons with API
+        widgetsUtilRLingual.setWidgetText_ApiTranslation(widget, widget.getText(), textColor[0]);
 
         }
     }
 
+    private boolean isDumpTarget(Widget widget) {
+        if (widget.getParent().getId() == 14024705 || widget.getParent().getId() == 14024714) { //parent of skill guide, or parent of element in list
+            if (widget.getText().matches("\\d{1,2}"))
+                return true;
+            appendToFile(widget.getText() + "\t\t", "skillGuideDump.txt");
+            return true;
+        }
+        return false;
+    }
 }
 

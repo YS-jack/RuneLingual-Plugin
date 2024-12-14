@@ -5,9 +5,6 @@ import com.RuneLingual.commonFunctions.Colors;
 import lombok.Getter;
 import lombok.Setter;
 
-import com.RuneLingual.SQL.SqlActions;
-import com.RuneLingual.SQL.SqlVariables;
-
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -204,8 +201,8 @@ public class SqlQuery {
 
     public void setItemName(String en, Colors defaultColor){
         this.english = en;
-        this.category = SqlVariables.nameInCategory.getValue();
-        this.subCategory = SqlVariables.itemInSubCategory.getValue();
+        this.category = SqlVariables.categoryValue4Name.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Item.getValue();
         this.color = defaultColor;
         this.source = null;
         this.translation = null;
@@ -213,8 +210,8 @@ public class SqlQuery {
 
     public void setNpcName(String en, Colors defaultColor){
         this.english = en;
-        this.category = SqlVariables.nameInCategory.getValue();
-        this.subCategory = SqlVariables.npcInSubCategory.getValue();
+        this.category = SqlVariables.categoryValue4Name.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Npc.getValue();
         this.color = defaultColor;
         this.source = null;
         this.translation = null;
@@ -222,8 +219,8 @@ public class SqlQuery {
 
     public void setObjectName(String en, Colors defaultColor){
         this.english = en;
-        this.category = SqlVariables.nameInCategory.getValue();
-        this.subCategory = SqlVariables.objInSubCategory.getValue();
+        this.category = SqlVariables.categoryValue4Name.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Obj.getValue();
         this.color = defaultColor;
         this.source = null;
         this.translation = null;
@@ -231,8 +228,8 @@ public class SqlQuery {
 
     public void setMenuName(String en, Colors defaultColor){
         this.english = en;
-        this.category = SqlVariables.nameInCategory.getValue();
-        this.subCategory = SqlVariables.menuInSubCategory.getValue();
+        this.category = SqlVariables.categoryValue4Name.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Menu.getValue();
         this.color = defaultColor;
         this.source = null;
         this.translation = null;
@@ -244,7 +241,7 @@ public class SqlQuery {
     public void setInventoryItemActions(String en, Colors defaultColor){
         this.english = en;
         this.category = SqlVariables.inventActionsInCategory.getValue();
-        this.subCategory = SqlVariables.itemInSubCategory.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Item.getValue();
         this.color = defaultColor;
         this.source = null;
         this.translation = null;
@@ -252,8 +249,8 @@ public class SqlQuery {
 
     public void setGroundItemActions(String en, Colors defaultColor){
         this.english = en;
-        this.category = SqlVariables.actionsInCategory.getValue();
-        this.subCategory = SqlVariables.itemInSubCategory.getValue();
+        this.category = SqlVariables.categoryValue4Actions.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Item.getValue();
         this.color = defaultColor;
         this.source = null;
         this.translation = null;
@@ -261,8 +258,8 @@ public class SqlQuery {
 
     public void setNpcActions(String en, Colors defaultColor){
         this.english = en;
-        this.category = SqlVariables.actionsInCategory.getValue();
-        this.subCategory = SqlVariables.npcInSubCategory.getValue();
+        this.category = SqlVariables.categoryValue4Actions.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Npc.getValue();
         this.color = defaultColor;
         this.source = null;
         this.translation = null;
@@ -270,8 +267,8 @@ public class SqlQuery {
 
     public void setObjectActions(String en, Colors defaultColor){
         this.english = en;
-        this.category = SqlVariables.actionsInCategory.getValue();
-        this.subCategory = SqlVariables.objInSubCategory.getValue();
+        this.category = SqlVariables.categoryValue4Actions.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Obj.getValue();
         this.color = defaultColor;
         this.source = null;
         this.translation = null;
@@ -279,8 +276,8 @@ public class SqlQuery {
 
     public void setMenuAcitons(String en, Colors defaultColor){
         this.english = en;
-        this.category = SqlVariables.actionsInCategory.getValue();
-        this.subCategory = SqlVariables.menuInSubCategory.getValue();
+        this.category = SqlVariables.categoryValue4Actions.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Menu.getValue();
         this.color = defaultColor;
         this.source = null;
         this.translation = null;
@@ -288,23 +285,23 @@ public class SqlQuery {
 
     public void setPlayerActions(String en, Colors defualtColor){
         this.english = en;
-        this.category = SqlVariables.actionsInCategory.getValue();
-        this.subCategory = SqlVariables.playerInSubCategory.getValue();
+        this.category = SqlVariables.categoryValue4Actions.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Player.getValue();
         this.color = defualtColor;
         this.source = null;
         this.translation = null;
     }
     public void setPlayerLevel() {
         this.english = "level";
-        this.category = SqlVariables.nameInCategory.getValue();
-        this.subCategory = SqlVariables.levelInSubCategory.getValue();
+        this.category = SqlVariables.categoryValue4Name.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Level.getValue();
         this.source = null;
         this.translation = null;
     }
 
     public void setDialogue(String en, String npcTalkingTo, boolean speakerIsPlayer, Colors defaultColor){
         this.english = en;
-        this.category = SqlVariables.dialogueInCategory.getValue();
+        this.category = SqlVariables.categoryValue4Dialogue.getValue();
         this.subCategory = npcTalkingTo;
         this.color = defaultColor;
         if(speakerIsPlayer){
