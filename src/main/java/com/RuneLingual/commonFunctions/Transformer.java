@@ -146,7 +146,7 @@ public class Transformer {
         } else if(option == TransformOption.TRANSLITERATE){
             //return
         }
-        List<String> colorTags = Colors.getColorTagsAsIs(translatedText);
+        List<String> colorTags = Colors.getColorTagsAsIs(originalText);
         translatedText = Colors.getOriginalColorWord(translatedText, colorTags); // replace placeholders of color tags with original color tags
         translatedText = SqlQuery.replacePlaceholdersWithNumbers(originalText, translatedText); // replace placeholders of numbers with original numbers
 
