@@ -89,11 +89,74 @@ public class Transformer {
             //return
         }
 
-        int colorTagCount = Colors.countColorTagsAfterReformat(translatedText);
         if(needCharImage) {
             // needs char image and has multiple colors
             String[] words = Colors.getWordArray(translatedText);
             Colors[] colorsArray = Colors.getColorArray(translatedText, sqlQuery.getColor());
+            StringBuilder charImage = new StringBuilder();
+            //log.info("words length = " + words.length + ", colorsArray length =" + colorsArray.length);
+            for(int i = 0; i < words.length; i++){
+                //log.info("words[" + i + "] = " + words[i] + ", colorsArray[" + i + "] = " + colorsArray[i]);
+                charImage.append(generalFunctions.StringToTags(words[i], colorsArray[i]));
+            }
+            return charImage.toString();
+        } else {// doesnt need char image and already has color tags
+            return translatedText;
+        }
+    }
+
+    /*
+        * transform text with placeholders to translated text
+        * example: transformWithPlaceholders("Sand <col=ff>Crab</col> (level-15)", "Sand <colNum0>Crab</col> (level-<Num0>)", TransformOption.TRANSLATE_LOCAL, sqlQuery)
+        * matching translation will be "サンド <colNum0>クラブ</col> (レベル<Num0>)"
+        * return value will be "サンド <col=ff>クラブ</col> (レベル15)"
+     */
+    public String transformWithPlaceholders(String originalText, String textWithPlaceholders,TransformOption option , SqlQuery sqlQuery, Colors defaultColor){
+        if(textWithPlaceholders == null || textWithPlaceholders.isEmpty()){
+            return textWithPlaceholders;
+        }
+
+        String translatedText = "";
+
+        if(option == TransformOption.AS_IS){
+            return textWithPlaceholders;
+        } else if(option == TransformOption.TRANSLATE_LOCAL){
+            sqlQuery.setEnglish(textWithPlaceholders);
+
+            String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, false);
+            if(result.length == 0){
+                log.info("the following text doesn't exist in the English column :{}", textWithPlaceholders);
+                log.info("   query = {}", sqlQuery.getSearchQuery());
+                // translatedText = text;
+                return textWithPlaceholders;
+            } else {
+                if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
+                    //translatedText = text;
+                    log.info("{} has not been translated yet", textWithPlaceholders);
+                    return textWithPlaceholders;
+
+                } else { // text has been translated
+                    translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
+                }
+            }
+            //translatedText = this.plugin.getTranscriptActions().getTranslation(text);
+        } else if(option == TransformOption.TRANSLATE_API){
+            translatedText = this.plugin.getDeepl().translate(textWithPlaceholders,
+                    LangCodeSelectableList.ENGLISH ,this.plugin.getConfig().getSelectedLanguage());
+        } else if(option == TransformOption.TRANSLITERATE){
+            //return
+        }
+        List<String> colorTags = Colors.getColorTagsAsIs(translatedText);
+        translatedText = Colors.getOriginalColorWord(translatedText, colorTags); // replace placeholders of color tags with original color tags
+        translatedText = SqlQuery.replacePlaceholdersWithNumbers(originalText, translatedText); // replace placeholders of numbers with original numbers
+
+        // convert to displayed string
+        boolean needCharImage = plugin.getConfig().getSelectedLanguage().needsCharImages();
+        GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
+        if(needCharImage) {
+            // needs char image and has multiple colors
+            String[] words = Colors.getWordArray(translatedText);
+            Colors[] colorsArray = Colors.getColorArray(translatedText, defaultColor);
             StringBuilder charImage = new StringBuilder();
             //log.info("words length = " + words.length + ", colorsArray length =" + colorsArray.length);
             for(int i = 0; i < words.length; i++){

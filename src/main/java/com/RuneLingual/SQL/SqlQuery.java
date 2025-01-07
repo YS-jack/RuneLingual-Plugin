@@ -8,6 +8,7 @@ import lombok.Setter;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -339,4 +340,114 @@ public class SqlQuery {
 
         return result.toString();
     }
+
+    /*
+        * Replaces numbers in the input string with placeholders.
+        * Numbers are replaced with <Num0>, <Num1>, <Num2>, etc.
+        * For example, "Hello Asda123, how many 1s are there in 101?" becomes
+        *              "Hello Asda<Num0>, how many <Num1>s are there in <Num2>?"
+        * but if the number is between < and >, it is not replaced.
+     */
+    public static String replaceNumbersWithPlaceholders(String input) {
+        if(input == null){
+            return null;
+        }
+
+        StringBuilder result = new StringBuilder();
+        int numberCount = 0;
+        boolean lastCharWasNumber = false;
+        Set<Character> punctuationMarks = Set.of('.', ',', '?', '!');
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (c == '<'){// if its a start of a tag, find the end of the tag
+                for (int j = i + 1; j < input.length(); j++){
+                    if (input.charAt(j) == '>'){// if the end of the tag is found, append the tag and continue from the end of the tag
+                        result.append(input, i, j + 1);
+                        i = j;
+                        break;
+                    }
+                    // if the end of the string is reached, or letters between <> is longer than 15, or there is at least 1 punctuation,
+                    // consider '<' as a normal character
+                    if (j == input.length() - 1 || j-i > 15 || punctuationMarks.contains(input.charAt(j))){
+                        result.append(c);
+                        break;
+                    }
+                }
+            } else if (Character.isDigit(c)) {
+                if (!lastCharWasNumber) {
+                    result.append("<Num").append(numberCount).append(">");
+                    numberCount++;
+                }
+                lastCharWasNumber = true;
+            } else {
+                result.append(c);
+                lastCharWasNumber = false;
+            }
+        }
+
+        return result.toString();
+    }
+
+    /*
+        * Replaces placeholders in the original text with numbers from the translated text.
+        * Placeholders are <Num0>, <Num1>, <Num2>, etc.
+        * For example, if the original text is "Hello Asda123, how many 1s are there in 101?"
+        * and the translated text is "こんにちは、アスダ<Num0>さん、<Num2>の中に<Num1>はいくつありますか？",
+        * the result will be "こんにちは、アスダ123さん、101の中に1はいくつありますか？"
+        * but if the number is between < and >, it is not replaced.
+     */
+    public static String replacePlaceholdersWithNumbers(String originalText, String translatedText) {
+        if (originalText == null || translatedText == null) {
+            return null;
+        }
+        String[] numbers = getNumbers(originalText);
+        for (int i = 0; i < numbers.length; i++) {
+            translatedText = translatedText.replace("<Num" + i + ">", numbers[i]);
+        }
+        return translatedText;
+    }
+
+    /*
+     * Extracts numbers from the input string.
+     * Numbers are sequences of digits.
+     * For example, "Hello Asda123, how many 1s are there in 101?" returns ["123", "1", "101"]
+     */
+    private static String[] getNumbers(String input) {
+        if(input == null){
+            return null;
+        }
+
+        List<String> numbers = new ArrayList<>();
+        StringBuilder currentNumber = new StringBuilder();
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (c == '<') {
+                for (int j = i + 1; j < input.length(); j++) {
+                    if (input.charAt(j) == '>') {
+                        i = j;
+                        break;
+                    }
+                    // if the end of the string is reached, or letters between <> is longer than 15, consider '<' as a normal character
+                    if (j == input.length() - 1 || j-i > 15){
+                        break;
+                    }
+                }
+            } else
+            if (Character.isDigit(c)) {
+                currentNumber.append(c);
+            } else {
+                if (currentNumber.length() > 0) {
+                    numbers.add(currentNumber.toString());
+                    currentNumber = new StringBuilder();
+                }
+            }
+        }
+
+        if (currentNumber.length() > 0) {
+            numbers.add(currentNumber.toString());
+        }
+
+        return numbers.toArray(new String[0]);
+    }
+
 }

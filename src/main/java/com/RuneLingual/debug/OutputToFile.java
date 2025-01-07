@@ -40,23 +40,23 @@ public class OutputToFile {
         }
     }
 
-public static void appendIfNotExistToFile(String str, String fileName) {
-    try {
-        createDirectoryIfNotExists("output");
-        Path filePath = Paths.get("output" + File.separator + fileName);
-        createFileIfNotExists(filePath.toString());
+    public static void appendIfNotExistToFile(String str, String fileName) {
+        try {
+            createDirectoryIfNotExists("output");
+            Path filePath = Paths.get("output" + File.separator + fileName);
+            createFileIfNotExists(filePath.toString());
 
-        // Read all lines from the file
-        List<String> lines = Files.readAllLines(filePath, StandardCharsets.UTF_8);
+            // Read all lines from the file
+            List<String> lines = Files.readAllLines(filePath, StandardCharsets.UTF_8);
 
-        // Check if the string is already in the file
-        if (!lines.contains(str)) {
-            Files.write(filePath, (str + System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+            // Check if the string is already in the file
+            if (!lines.contains(str)) {
+                Files.write(filePath, (str + System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-    } catch (IOException e) {
-        e.printStackTrace();
     }
-}
 
     public static void createFileIfNotExists(String fileName) {
         Path path = Paths.get(fileName);
