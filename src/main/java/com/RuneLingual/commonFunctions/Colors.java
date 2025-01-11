@@ -22,6 +22,8 @@ public enum Colors {
     green2("ff00","green"),
     green3("c0ff00", "green"),
     green4("dc10d", "green"),
+    green5("40ff00", "green"),
+    green6("80ff00", "green"),
     lightblue("00ffff","lightblue"),
     lightblue2("ffff", "lightblue"),
     orange("ff7000","orange"),

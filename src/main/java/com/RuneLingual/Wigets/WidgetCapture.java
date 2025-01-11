@@ -115,11 +115,53 @@ public class WidgetCapture {
 
     private SqlQuery modifySqlQuery4Widget(Widget widget, SqlQuery sqlQuery) {
         sqlQuery.setColor(Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor())));
-        if (ids.getWidgetIdSkillGuide().contains(widget.getId())) { //Id for parent of skill guide, or parent of element in list
+        int widgetId = widget.getId();
+        if (widgetId == ids.getWidgetIdSkillGuide()) { //Id for parent of skill guide, or parent of element in list
             sqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
             sqlQuery.setSubCategory(SqlVariables.subcategoryValue4GeneralUI.getValue());
             sqlQuery.setSource(SqlVariables.sourceValue4SkillGuideInterface.getValue());
 
+        }
+        if (widgetId == ids.getWidgetIdMainTabs()) {
+            sqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
+            sqlQuery.setSubCategory(SqlVariables.subcategoryValue4MainTabs.getValue());
+            if (widgetId == ids.getWidgetIdAttackStyleTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4CombatOptionsTab.getValue());
+            } else if (widgetId == ids.getWidgetIdSkillsTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4SkillsTab.getValue());
+            } else if (widgetId == ids.getWidgetIdCharacterSummaryTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4CharacterSummaryTab.getValue());
+            } else if (widgetId == ids.getWidgetIdQuestTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4QuestListTab.getValue());
+            } else if (widgetId == ids.getWidgetIdAchievementDiaryTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4AchievementDiaryTab.getValue());
+//            } else if (widgetId == ids.getWidgetIdInventoryTab()) {
+//                sqlQuery.setSource(SqlVariables.sourceValue4InventTab.getValue());
+//            } else if (widgetId == ids.getWidgetIdEquipmentTab()) {
+//                sqlQuery.setSource(SqlVariables.sourceValue4WornEquipmentTab.getValue());
+            } else if (widgetId == ids.getWidgetIdPrayerTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4PrayerTab.getValue());
+            } else if (widgetId == ids.getWidgetIdSpellBookTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4SpellBookTab.getValue());
+            } else if (widgetId == ids.getWidgetIdGroupsTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4GroupTab.getValue());
+            } else if (widgetId == ids.getWidgetIdFriendsTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4FriendsTab.getValue());
+            } else if (widgetId == ids.getWidgetIdIgnoreTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4IgnoreTab.getValue());
+            } else if (widgetId == ids.getWidgetIdAccountManagementTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4AccountManagementTab.getValue());
+            } else if (widgetId == ids.getWidgetIdSettingsTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4SettingsTab.getValue());
+            } else if (widgetId == ids.getWidgetIdEmotesTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4EmotesTab.getValue());
+            } else if (widgetId == ids.getWidgetIdMusicTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4MusicTab.getValue());
+            } else if (widgetId == ids.getWidgetIdLogoutTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4LogoutTab.getValue());
+            } else if (widgetId == ids.getWidgetIdWorldSwitcherTab()) {
+                sqlQuery.setSource(SqlVariables.sourceValue4WorldSwitcherTab.getValue());
+            }
         }
         return sqlQuery;
     }

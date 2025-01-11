@@ -390,39 +390,39 @@ public class MenuCapture
 		Ids ids = this.plugin.getIds();
 		if(isChildWidgetOf(ids.getCombatOptionParentWidgetId(), menu)){
 			source = SqlVariables.sourceValue4CombatOptionsTab.getValue();
-		} else if(isChildWidgetOf(ids.getSkillsTabParentWidgetId(),menu)){
+		} else if(isChildWidgetOf(ids.getWidgetIdSkillsTab(),menu)){
 			source = SqlVariables.sourceValue4SkillsTab.getValue();
-		} else if(isChildWidgetOf(ids.getCharacterSummaryTabWidgetId(),menu)){
+		} else if(isChildWidgetOf(ids.getWidgetIdCharacterSummaryTab(),menu)){
 			source = SqlVariables.sourceValue4CharacterSummaryTab.getValue();
-		} else if(isChildWidgetOf(ids.getQuestTabParentWidgetId(), menu)){
+		} else if(isChildWidgetOf(ids.getWidgetIdQuestTab(), menu)){
 			source = SqlVariables.sourceValue4QuestListTab.getValue();
-		} else if(isChildWidgetOf(ids.getAchievementDiaryTabParentWidgetId(),menu)){
+		} else if(isChildWidgetOf(ids.getWidgetIdAchievementDiaryTab(),menu)){
 			source = SqlVariables.sourceValue4AchievementDiaryTab.getValue();
-		} else if(isChildWidgetOf(ids.getInventoryTabParentWidgetId(),menu)){
+		} else if(isChildWidgetOf(ids.getWidgetIdInventoryTab(),menu)){
 			source = SqlVariables.sourceValue4InventTab.getValue();
-		}  else if(isChildWidgetOf(ids.getEquipmentTabParentWidgetId(),menu)){
+		}  else if(isChildWidgetOf(ids.getWidgetIdEquipmentTab(),menu)){
 			source = SqlVariables.sourceValue4WornEquipmentTab.getValue();
-		}else if(isChildWidgetOf(ids.getPrayerTabParentWidgetId(),menu)){
+		}else if(isChildWidgetOf(ids.getWidgetIdPrayerTab(),menu)){
 			source = SqlVariables.sourceValue4PrayerTab.getValue();
-		} else if(isChildWidgetOf(ids.getSpellBookTabParentWidgetId(), menu)){
+		} else if(isChildWidgetOf(ids.getWidgetIdSpellBookTab(), menu)){
 			source = SqlVariables.sourceValue4SpellBookTab.getValue();
-		} else if(isChildWidgetOf(ids.getGroupsTabParentWidgetId(), menu)){
+		} else if(isChildWidgetOf(ids.getWidgetIdGroupsTab(), menu)){
 			source = SqlVariables.sourceValue4GroupTab.getValue();
 		} else if(isChildWidgetOf(ids.getFriendsTabParentWidgetId(), menu)){
 			source = SqlVariables.sourceValue4FriendsTab.getValue();
 		} else if(isChildWidgetOf(ids.getIgnoreTabParentWidgetId(), menu)){
 			source = SqlVariables.sourceValue4IgnoreTab.getValue();
-		} else if(isChildWidgetOf(ids.getAccountManagementTabParentWidgetId(), menu)){
+		} else if(isChildWidgetOf(ids.getWidgetIdAccountManagementTab(), menu)){
 			source = SqlVariables.sourceValue4AccountManagementTab.getValue();
-		} else if(isChildWidgetOf(ids.getSettingsTabParentWidgetId(), menu)){
+		} else if(isChildWidgetOf(ids.getWidgetIdSettingsTab(), menu)){
 			source = SqlVariables.sourceValue4SettingsTab.getValue();
-		} else if(isChildWidgetOf(ids.getLogoutTabParentWidgetId(), menu)){
+		} else if(isChildWidgetOf(ids.getWidgetIdLogoutTab(), menu)){
 			source = SqlVariables.sourceValue4LogoutTab.getValue();
-		} else if(isChildWidgetOf(ids.getWorldSwitcherTabParentWidgetId(), menu)) {
+		} else if(isChildWidgetOf(ids.getWidgetIdWorldSwitcherTab(), menu)) {
 			source = SqlVariables.sourceValue4WorldSwitcherTab.getValue();
-		} else if(isChildWidgetOf(ids.getEmotesTabParentWidgetId(), menu)){
+		} else if(isChildWidgetOf(ids.getWidgetIdEmotesTab(), menu)){
 			source = SqlVariables.sourceValue4EmotesTab.getValue();
-		} else if(isChildWidgetOf(ids.getMusicTabParentWidgetId(), menu)){
+		} else if(isChildWidgetOf(ids.getWidgetIdMusicTab(), menu)){
 			source = SqlVariables.sourceValue4MusicTab.getValue();
 		}
 		//log.info("source: " + source);

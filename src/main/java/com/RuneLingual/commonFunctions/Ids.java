@@ -24,39 +24,39 @@ public class Ids {
     @Inject
     Client client;
 
-    //widget IDs of tabs
-    //private final int combatOptionParentWidgetId = client.getWidget(ComponentID.COMBAT_LEVEL).getParentId();
-    private final int skillsTabParentWidgetId = ComponentID.SKILLS_CONTAINER;
-    //private final int characterSummaryTabWidgetId = ComponentID.CHARACTER_SUMMARY_CONTAINER;
-    private final int questTabParentWidgetId = ComponentID.QUEST_LIST_BOX;
-    private final int achievementDiaryTabParentWidgetId = ComponentID.ACHIEVEMENT_DIARY_CONTAINER;
-    private final int inventoryTabParentWidgetId = ComponentID.INVENTORY_CONTAINER;
-    private final int equipmentTabParentWidgetId = ComponentID.EQUIPMENT_INVENTORY_ITEM_CONTAINER;
-    private final int prayerTabParentWidgetId = 35454976;
-    private final int spellBookTabParentWidgetId = ComponentID.SPELLBOOK_PARENT;
-    private final int groupsTabParentWidgetId = 47644672;
-    //private final int friendsTabParentWidgetId = client.getWidget(ComponentID.FRIEND_LIST_TITLE).getParentId();
-    //private final int ignoreTabParentWidgetId = client.getWidget(ComponentID.IGNORE_LIST_TITLE).getParentId();
-    private final int accountManagementTabParentWidgetId = 7143424;
-    private final int settingsTabParentWidgetId = 7602176;
-    private final int logoutTabParentWidgetId = 11927552;
-    //private final int logOutTabParentWidgetId = 4521984;
-    private final int worldSwitcherTabParentWidgetId = 4521984;
-    private final int emotesTabParentWidgetId = ComponentID.EMOTES_WINDOW;
-    private final int musicTabParentWidgetId = ComponentID.MUSIC_CONTAINER;
-
+    // Ids of widgets
+    // main tabs
+    private final int widgetIdMainTabs = 10747976;
+    private final int widgetIdAttackStyleTab = 38862848;
+    private final int widgetIdSkillsTab = ComponentID.SKILLS_CONTAINER;
+    private final int widgetIdCharacterSummaryTab = ComponentID.CHARACTER_SUMMARY_CONTAINER;
+    private final int widgetIdQuestTab = ComponentID.QUEST_LIST_BOX;
+    private final int widgetIdAchievementDiaryTab = ComponentID.ACHIEVEMENT_DIARY_CONTAINER;
+    private final int widgetIdInventoryTab = ComponentID.INVENTORY_CONTAINER;
+    private final int widgetIdEquipmentTab = ComponentID.EQUIPMENT_INVENTORY_ITEM_CONTAINER;
+    private final int widgetIdPrayerTab = ComponentID.PRAYER_PARENT;
+    private final int widgetIdSpellBookTab = ComponentID.SPELLBOOK_PARENT;
+    private final int widgetIdGroupsTab = 47644672;
+    private final int widgetIdFriendsTab = 28114944;
+    private final int widgetIdIgnoreTab = 28311552;
+    private final int widgetIdAccountManagementTab = 7143424;
+    private final int widgetIdSettingsTab = 7602176;
+    private final int widgetIdEmotesTab = ComponentID.EMOTES_WINDOW;
+    private final int widgetIdMusicTab = ComponentID.MUSIC_CONTAINER;
+    private final int widgetIdLogoutTab = 11927552;
+    private final int widgetIdWorldSwitcherTab = 4521984;
 
     // dont translate at all, except menu option
-    private final int GimGroupNameWidgetId = 47579137;
-    private final int GimMemberListWidgetId = 47579140;
-    private final int ignoreNameListWidgetId = ComponentID.IGNORE_LIST_FULL_CONTAINER;
+    private final int widgetIdGimGroupName = 47579137;
+    private final int widgetIdGimMemberList = 47579140;
+    private final int widgetIdIgnoreNameList = ComponentID.IGNORE_LIST_FULL_CONTAINER;
 
     //dont translate names, but translate World ### and "Offline"
-    private final int friendsNameListWidgetId = ComponentID.FRIEND_LIST_FULL_CONTAINER;
+    private final int widgetIdFriendsNameList = ComponentID.FRIEND_LIST_FULL_CONTAINER;
 
-    // Ids of widgets
-    private final Set<Integer> widgetIdSkillGuide = Set.of(14024705);
-    private final Set<Integer> widgetIdMainTabs = Set.of(10747976);
+    //general interface
+    private final int widgetIdSkillGuide = 14024705;
+
     private final Set<Integer> widgetIdPlayerName = Set.of(
             46661633,//character summary player name
             28311561,//ignore list
@@ -73,7 +73,7 @@ public class Ids {
         return -1;
     }
 
-    public int getAchievementDiaryTabParentWidgetId() {
+    public int getWidgetIdAchievementDiaryTab() {
         Widget w = client.getWidget(ComponentID.ACHIEVEMENT_DIARY_CONTAINER);
         if(w != null) {
             return w.getParent().getParent().getParentId();
@@ -100,7 +100,7 @@ public class Ids {
         return -1;
     }
 
-    public int getCharacterSummaryTabWidgetId(){
+    public int getWidgetIdCharacterSummaryTab(){
         Widget w = client.getWidget(ComponentID.CHARACTER_SUMMARY_CONTAINER);
         if(w != null) {
             return w.getParentId();

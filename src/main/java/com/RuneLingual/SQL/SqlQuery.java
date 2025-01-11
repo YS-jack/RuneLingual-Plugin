@@ -379,6 +379,9 @@ public class SqlQuery {
                     numberCount++;
                 }
                 lastCharWasNumber = true;
+            } else // if the number is a decimal number, append the decimal point
+                if (c == '.' && lastCharWasNumber && i < input.length() - 1 && Character.isDigit(input.charAt(i + 1))) {
+                result.append(c);
             } else {
                 result.append(c);
                 lastCharWasNumber = false;
