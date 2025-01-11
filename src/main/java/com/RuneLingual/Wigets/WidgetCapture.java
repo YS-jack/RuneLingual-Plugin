@@ -5,6 +5,7 @@ import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.SQL.SqlQuery;
 import com.RuneLingual.SQL.SqlVariables;
 import com.RuneLingual.commonFunctions.Colors;
+import com.RuneLingual.commonFunctions.Ids;
 import com.RuneLingual.commonFunctions.Transformer;
 import lombok.Getter;
 import net.runelite.api.Client;
@@ -35,11 +36,14 @@ public class WidgetCapture {
     private WidgetsUtilRLingual widgetsUtilRLingual;
     @Inject
     private DialogTranslator dialogTranslator;
+    @Inject
+    private Ids ids;
 
 
     @Inject
     public WidgetCapture(RuneLingualPlugin plugin) {
         this.plugin = plugin;
+        ids = this.plugin.getIds();
     }
 
     public void translateWidget() {
@@ -78,7 +82,7 @@ public class WidgetCapture {
             return;
         }
 
-//        if (isDumpTarget(widget)) {
+//        if (isDumpTarget_dump(widget)) {
 //        }
 
         if (widgetGroup == InterfaceID.DIALOG_NPC
@@ -110,10 +114,12 @@ public class WidgetCapture {
     }
 
     private SqlQuery modifySqlQuery4Widget(Widget widget, SqlQuery sqlQuery) {
-        if (widget.getId() == 14024705 || widget.getId() == 14024714) { //Id for parent of skill guide, or parent of element in list
+        sqlQuery.setColor(Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor())));
+        if (ids.getWidgetIdSkillGuide().contains(widget.getId())) { //Id for parent of skill guide, or parent of element in list
             sqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
             sqlQuery.setSubCategory(SqlVariables.subcategoryValue4GeneralUI.getValue());
             sqlQuery.setSource(SqlVariables.sourceValue4SkillGuideInterface.getValue());
+
         }
         return sqlQuery;
     }
@@ -123,16 +129,13 @@ public class WidgetCapture {
             String textToTranslate = getEnglishColValFromWidget(widget);
             sqlQuery.setEnglish(textToTranslate);
             Transformer.TransformOption option = Transformer.TransformOption.TRANSLATE_LOCAL;
-            Colors defaultTextColor = Colors.black;
-            String translatedText = transformer.transformWithPlaceholders(widget.getText(), textToTranslate, option, sqlQuery, defaultTextColor);
-            if(Objects.equals(translatedText, textToTranslate)){
-                return;
-            }
+            String translatedText = transformer.transformWithPlaceholders(widget.getText(), textToTranslate, option, sqlQuery);
+
 
 
             //below is for debugging
 //            int widgetId = widget.getId();
-//            if(widgetId == 42663938){
+//            if(widgetId == 25034758){
 //                int widgetId2;
 //                for(int j = 0; j < 100; j++){
 //                    widget = widget.getParent();
@@ -145,6 +148,9 @@ public class WidgetCapture {
 //            }
 //            // debug end
 
+            if(Objects.equals(translatedText, textToTranslate)){
+                return;
+            }
             widgetsUtilRLingual.setWidgetText_NiceBr_CharImages(widget, translatedText);
         }
     }
@@ -185,7 +191,7 @@ public class WidgetCapture {
     }
 
     // used for creating the English transcript used for manual translation
-    private boolean isDumpTarget(Widget widget) {
+    private boolean isDumpTarget_dump(Widget widget) {
         if (widget.getParent() != null && (widget.getParent().getId() == 14024705 || widget.getParent().getId() == 14024714)) { //parent of skill guide, or parent of element in list
             if (widget.getText() == null || !shouldTranslateWidget(widget)) {
                 return true;

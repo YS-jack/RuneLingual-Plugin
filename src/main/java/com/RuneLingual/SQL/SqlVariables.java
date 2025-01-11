@@ -30,6 +30,7 @@ public enum SqlVariables {
     subcategoryValue4Player("player","sub_category"), // for player options, such as report, trade, follow, etc.
     subcategoryValue4Quest("quest","sub_category"),
     subcategoryValue4GeneralUI("generalUI","sub_category"), // most if not all interfaces will have this subcategory value
+    subcategoryValue4Tab("genActions","sub_category"), // for general actions such as deposit all, sell-5, etc.
 
     // possible source values
     sourceValue4Player("player","source"), // for player options, such as report, trade, follow, etc.

@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 public enum Colors {
     black("000000","black"),
     black2("0","black"),
+    black3("46320a","black"),//dark brown
     blue("0000ff","blue"),
     blue2("ff","blue"),
     green("00ff00","green"),

@@ -10,6 +10,7 @@ import net.runelite.api.widgets.Widget;
 import com.RuneLingual.RuneLingualPlugin;
 
 import javax.inject.Inject;
+import java.util.Set;
 
 @Getter @Slf4j
 public class Ids {
@@ -53,6 +54,14 @@ public class Ids {
     //dont translate names, but translate World ### and "Offline"
     private final int friendsNameListWidgetId = ComponentID.FRIEND_LIST_FULL_CONTAINER;
 
+    // Ids of widgets
+    private final Set<Integer> widgetIdSkillGuide = Set.of(14024705);
+    private final Set<Integer> widgetIdMainTabs = Set.of(10747976);
+    private final Set<Integer> widgetIdPlayerName = Set.of(
+            46661633,//character summary player name
+            28311561,//ignore list
+            458764//friends chat list
+    );
 
 
     public int getCombatOptionParentWidgetId() {

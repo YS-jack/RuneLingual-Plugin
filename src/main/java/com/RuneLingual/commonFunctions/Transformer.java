@@ -111,7 +111,7 @@ public class Transformer {
         * matching translation will be "サンド <colNum0>クラブ</col> (レベル<Num0>)"
         * return value will be "サンド <col=ff>クラブ</col> (レベル15)"
      */
-    public String transformWithPlaceholders(String originalText, String textWithPlaceholders,TransformOption option , SqlQuery sqlQuery, Colors defaultColor){
+    public String transformWithPlaceholders(String originalText, String textWithPlaceholders,TransformOption option , SqlQuery sqlQuery){
         if(textWithPlaceholders == null || textWithPlaceholders.isEmpty()){
             return textWithPlaceholders;
         }
@@ -156,7 +156,7 @@ public class Transformer {
         if(needCharImage) {
             // needs char image and has multiple colors
             String[] words = Colors.getWordArray(translatedText);
-            Colors[] colorsArray = Colors.getColorArray(translatedText, defaultColor);
+            Colors[] colorsArray = Colors.getColorArray(translatedText, sqlQuery.getColor());
             StringBuilder charImage = new StringBuilder();
             //log.info("words length = " + words.length + ", colorsArray length =" + colorsArray.length);
             for(int i = 0; i < words.length; i++){
