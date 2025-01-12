@@ -76,6 +76,7 @@ public class Ids {
     );
 
     private final Set<Integer> widgetIdDontRemoveBr = Set.of(
+            38862892, // attack style tab's combat category/style display
             20971548, // skill tab's xp display
             7995417 // xp display on top right
     );

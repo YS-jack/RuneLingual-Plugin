@@ -84,7 +84,7 @@ public class WidgetCapture {
             return;
         }
 
-        //ifIsDumpTarget_thenDump(widget, sqlQuery);
+        ifIsDumpTarget_thenDump(widget, sqlQuery);
 
         if (widgetGroup == InterfaceID.DIALOG_NPC
                 || widgetGroup == InterfaceID.DIALOG_PLAYER
@@ -177,11 +177,40 @@ public class WidgetCapture {
     private void translateWidgetText(Widget widget, SqlQuery sqlQuery) {
         if (shouldTranslateWidget(widget)) {
             String textToTranslate = getEnglishColValFromWidget(widget);
-            sqlQuery.setEnglish(textToTranslate);
-            Transformer.TransformOption option = Transformer.TransformOption.TRANSLATE_LOCAL;
-            String translatedText = transformer.transformWithPlaceholders(widget.getText(), textToTranslate, option, sqlQuery);
+            String translatedText;
+            // for most cases
+            if (!ids.getWidgetIdDontRemoveBr().contains(widget.getId())) {
+                translatedText = getTranslationFromQuery(sqlQuery, widget.getText(), textToTranslate);
+                pastTranslationResults.add(translatedText);
+                // translation was not available
+                if(Objects.equals(translatedText, textToTranslate)){
+                    return;
+                }
+            } else {// for widgets that have <br> in the text and should be kept where they are, translate each line separately
+                String[] textList = textToTranslate.split("<br>");
+                String[] originalTextList = widget.getText().split("<br>");
+                StringBuilder translatedTextBuilder = new StringBuilder();
+                for (int i = 0; i < textList.length; i++) {
+                    String text = textList[i];
+                    String originalText = originalTextList[i];
+                    String translatedTextPart = getTranslationFromQuery(sqlQuery, originalText, text);
+                    translatedTextBuilder.append(translatedTextPart);
+                    if (i != textList.length - 1) { // if it's not the last line, add <br>
+                        translatedTextBuilder.append("<br>");
+                    }
+                }
+                translatedText = translatedTextBuilder.toString();
+            }
             pastTranslationResults.add(translatedText);
-
+            if(Objects.equals(translatedText, textToTranslate)){
+                return;
+            }
+            if (ids.getWidgetIdDontRemoveBr().contains(widget.getId())) {
+                widgetsUtilRLingual.setWidgetText_BrAsIs(widget, translatedText);
+                return;
+            } else {
+                widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
+            }
             //below is for debugging
 //            int widgetId = widget.getId();
 //            if(widgetId == 25034758){
@@ -197,17 +226,13 @@ public class WidgetCapture {
 //            }
 //            // debug end
 
-            // translation was not available
-            if(Objects.equals(translatedText, textToTranslate)){
-                return;
-            }
-
-            if (ids.getWidgetIdDontRemoveBr().contains(widget.getId())) {
-                widgetsUtilRLingual.setWidgetText_BrAsIs(widget, translatedText);
-            } else {
-                widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
-            }
         }
+    }
+
+    private String getTranslationFromQuery(SqlQuery sqlQuery, String originalText, String textToTranslate) {
+        sqlQuery.setEnglish(textToTranslate);
+        Transformer.TransformOption option = Transformer.TransformOption.TRANSLATE_LOCAL;
+        return transformer.transformWithPlaceholders(originalText, textToTranslate, option, sqlQuery);
     }
 
 
@@ -252,33 +277,29 @@ public class WidgetCapture {
 
     // used for creating the English transcript used for manual translation
     private void ifIsDumpTarget_thenDump(Widget widget, SqlQuery sqlQuery) {
-        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4CombatOptionsTab.getValue())) { //attack tab
+        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4SkillsTab.getValue())) { //attack tab
             if (widget.getText() == null || !shouldTranslateWidget(widget)) {
                 return;
             }
+            String fileName = "skillsTab.txt";
             String textToDump = getEnglishColValFromWidget(widget);
 
             //pastTranslationResults.add(widget.getText());
-            appendIfNotExistToFile(textToDump + "\t\t" + sqlQuery.getCategory() +
-                    "\t" + sqlQuery.getSubCategory() +
-                    "\t" + sqlQuery.getSource(), "mainTabs.txt");
-
+            if (ids.getWidgetIdDontRemoveBr().contains(widget.getId())) {
+                String[] textList = textToDump.split("<br>");
+                for (String text : textList) {
+                    appendIfNotExistToFile(text + "\t\t" + sqlQuery.getCategory() +
+                            "\t" + sqlQuery.getSubCategory() +
+                            "\t" + sqlQuery.getSource(), fileName);
+                }
+            } else {
+                appendIfNotExistToFile(textToDump + "\t\t" + sqlQuery.getCategory() +
+                        "\t" + sqlQuery.getSubCategory() +
+                        "\t" + sqlQuery.getSource(), fileName);
+            }
             return;
         }
 
-//        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4SkillGuideInterface.getValue())) { //attack tab
-//            if (widget.getText() == null || !shouldTranslateWidget(widget)) {
-//                return;
-//            }
-//            String textToDump = getEnglishColValFromWidget(widget);
-//
-//            //pastTranslationResults.add(widget.getText());
-//            appendIfNotExistToFile(textToDump + "\t\t" + sqlQuery.getCategory() +
-//                    "\t" + sqlQuery.getSubCategory() +
-//                    "\t" + sqlQuery.getSource(), "skillGuideDump.txt");
-//
-//            return;
-//        }
     }
 }
 
