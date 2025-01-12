@@ -13,7 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Getter @Setter
-public class SqlQuery {
+public class SqlQuery implements Cloneable{
     private String english; // the whole text, not a part of Colors.wordArray
     private String translation;
     private String category;
@@ -35,6 +35,17 @@ public class SqlQuery {
         this.subCategory = null;
         this.source = null;
         this.color = null;
+    }
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+    public SqlQuery copy() {
+        try {
+            return (SqlQuery) this.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException("Clone not supported", e);
+        }
     }
 
     public String[] getMatching(SqlVariables column, boolean searchAlike) {
@@ -379,9 +390,9 @@ public class SqlQuery {
                     numberCount++;
                 }
                 lastCharWasNumber = true;
-            } else // if the number is a decimal number, append the decimal point
+            } else // if the number is a decimal number, continue appending the number
                 if (c == '.' && lastCharWasNumber && i < input.length() - 1 && Character.isDigit(input.charAt(i + 1))) {
-                result.append(c);
+                continue;
             } else {
                 result.append(c);
                 lastCharWasNumber = false;
@@ -437,6 +448,9 @@ public class SqlQuery {
                 }
             } else
             if (Character.isDigit(c)) {
+                currentNumber.append(c);
+            } else if (c == '.' && currentNumber.length() > 0 && i < input.length() - 1 && Character.isDigit(input.charAt(i + 1))) {
+                // Append the decimal point if the number is a decimal number
                 currentNumber.append(c);
             } else {
                 if (currentNumber.length() > 0) {

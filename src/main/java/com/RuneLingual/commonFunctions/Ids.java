@@ -63,6 +63,23 @@ public class Ids {
             458764//friends chat list
     );
 
+    private final Set<Integer> widgetIdItemName = Set.of(
+            ComponentID.COMBAT_WEAPON_NAME // combat weapon name in combat options
+    );
+
+    private final Set<Integer> widgetIdNpcName = Set.of(
+
+    );
+
+    private final Set<Integer> widgetIdObjectName = Set.of(
+
+    );
+
+    private final Set<Integer> widgetIdDontRemoveBr = Set.of(
+            20971548, // skill tab's xp display
+            7995417 // xp display on top right
+    );
+
 
     public int getCombatOptionParentWidgetId() {
         Widget w = client.getWidget(ComponentID.COMBAT_LEVEL);

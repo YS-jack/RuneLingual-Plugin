@@ -154,7 +154,7 @@ public class Transformer {
         boolean needCharImage = plugin.getConfig().getSelectedLanguage().needsCharImages();
         GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
         if(needCharImage) {
-            // needs char image and has multiple colors
+            // needs char image and could have multiple colors
             String[] words = Colors.getWordArray(translatedText);
             Colors[] colorsArray = Colors.getColorArray(translatedText, sqlQuery.getColor());
             StringBuilder charImage = new StringBuilder();

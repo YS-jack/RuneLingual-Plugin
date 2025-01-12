@@ -8,6 +8,7 @@ import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.Ids;
 import com.RuneLingual.commonFunctions.Transformer;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.InterfaceID;
@@ -22,6 +23,7 @@ import java.util.Objects;
 
 import static com.RuneLingual.debug.OutputToFile.appendIfNotExistToFile;
 
+@Slf4j
 public class WidgetCapture {
     @Inject
     private RuneLingualPlugin plugin;
@@ -30,7 +32,7 @@ public class WidgetCapture {
     @Inject
     private Transformer transformer;
     @Getter
-    List<String> translationResults = new ArrayList<>(); //TODO: add translated text to this list
+    List<String> pastTranslationResults = new ArrayList<>(); //TODO: add translated text to this list
 
     @Inject
     private WidgetsUtilRLingual widgetsUtilRLingual;
@@ -63,7 +65,7 @@ public class WidgetCapture {
             return;
         }
 
-        sqlQuery = modifySqlQuery4Widget(widget, sqlQuery);
+        modifySqlQuery4Widget(widget, sqlQuery);
 
         // recursive call
         for (Widget dynamicChild : widget.getDynamicChildren()) {
@@ -82,8 +84,7 @@ public class WidgetCapture {
             return;
         }
 
-//        if (isDumpTarget_dump(widget)) {
-//        }
+        //ifIsDumpTarget_thenDump(widget, sqlQuery);
 
         if (widgetGroup == InterfaceID.DIALOG_NPC
                 || widgetGroup == InterfaceID.DIALOG_PLAYER
@@ -93,27 +94,30 @@ public class WidgetCapture {
         }
 
         if(shouldTranslateWidget(widget)) {
-            translateWidgetText(widget, sqlQuery);
+            SqlQuery queryToPass = sqlQuery.copy();
+            // replace sqlQuery if they are defined as item, npc, or object names
+            Colors textColor = Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor()));
+            if (ids.getWidgetIdItemName().contains(widget.getId())) {
+                String itemName = Colors.removeColorTag(widget.getText());
+                queryToPass.setItemName(itemName, textColor);
+            }
+            if (ids.getWidgetIdNpcName().contains(widget.getId())) {
+                String npcName = Colors.removeColorTag(widget.getText());
+                queryToPass.setNpcName(npcName, textColor);
+            }
+            if (ids.getWidgetIdObjectName().contains(widget.getId())) {
+                String objectName = Colors.removeColorTag(widget.getText());
+                queryToPass.setObjectName(objectName, textColor);
+            }
+
+            // translate the widget text
+            translateWidgetText(widget, queryToPass);
             return;
         }
 
-//        if (!widget.getText().isEmpty()
-//                && !widget.getText().contains("<img=") // check if already translated to japanese. TODO: need something else after adding other languages
-//                && plugin.getConfig().getInterfaceTextConfig().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)) {
-//
-//            // if its only numbers and symbols dont do anything
-//            String re = "^[^\\p{Alpha}]+$";
-//            if (widget.getText().matches(re))
-//                return;
-//
-//            Colors[] textColor = Colors.getColorArray(widget.getText(), Colors.black);
-//            // for now only translate interfaces and buttons with API
-//            widgetsUtilRLingual.setWidgetText_ApiTranslation(widget, widget.getText(), textColor[0]);
-//
-//        }
     }
 
-    private SqlQuery modifySqlQuery4Widget(Widget widget, SqlQuery sqlQuery) {
+    private void modifySqlQuery4Widget(Widget widget, SqlQuery sqlQuery) {
         sqlQuery.setColor(Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor())));
         int widgetId = widget.getId();
         if (widgetId == ids.getWidgetIdSkillGuide()) { //Id for parent of skill guide, or parent of element in list
@@ -122,9 +126,14 @@ public class WidgetCapture {
             sqlQuery.setSource(SqlVariables.sourceValue4SkillGuideInterface.getValue());
 
         }
+        // if one of the main tabs, set the category and subcategory. main tabs = combat options, skills tab, etc.
         if (widgetId == ids.getWidgetIdMainTabs()) {
             sqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
             sqlQuery.setSubCategory(SqlVariables.subcategoryValue4MainTabs.getValue());
+        }
+        // if one of the main tabs, set the source as the tab name
+        if (sqlQuery.getCategory() != null && sqlQuery.getCategory().equals(SqlVariables.categoryValue4Interface.getValue())
+                && sqlQuery.getSubCategory() != null && sqlQuery.getSubCategory().equals(SqlVariables.subcategoryValue4MainTabs.getValue())) {
             if (widgetId == ids.getWidgetIdAttackStyleTab()) {
                 sqlQuery.setSource(SqlVariables.sourceValue4CombatOptionsTab.getValue());
             } else if (widgetId == ids.getWidgetIdSkillsTab()) {
@@ -163,7 +172,6 @@ public class WidgetCapture {
                 sqlQuery.setSource(SqlVariables.sourceValue4WorldSwitcherTab.getValue());
             }
         }
-        return sqlQuery;
     }
 
     private void translateWidgetText(Widget widget, SqlQuery sqlQuery) {
@@ -172,8 +180,7 @@ public class WidgetCapture {
             sqlQuery.setEnglish(textToTranslate);
             Transformer.TransformOption option = Transformer.TransformOption.TRANSLATE_LOCAL;
             String translatedText = transformer.transformWithPlaceholders(widget.getText(), textToTranslate, option, sqlQuery);
-
-
+            pastTranslationResults.add(translatedText);
 
             //below is for debugging
 //            int widgetId = widget.getId();
@@ -190,17 +197,24 @@ public class WidgetCapture {
 //            }
 //            // debug end
 
+            // translation was not available
             if(Objects.equals(translatedText, textToTranslate)){
                 return;
             }
-            widgetsUtilRLingual.setWidgetText_NiceBr_CharImages(widget, translatedText);
+
+            if (ids.getWidgetIdDontRemoveBr().contains(widget.getId())) {
+                widgetsUtilRLingual.setWidgetText_BrAsIs(widget, translatedText);
+            } else {
+                widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
+            }
         }
     }
 
 
     private boolean shouldTranslateWidget(Widget widget) {
         return shouldTranslateText(widget.getText())
-                && widget.getFontId() != -1; // if font id is -1 it's probably not shown
+                && widget.getFontId() != -1 // if font id is -1 it's probably not shown
+                && !ids.getWidgetIdPlayerName().contains(widget.getId()); // player name should not be translated
     }
 
     /* check if the text should be translated
@@ -210,7 +224,7 @@ public class WidgetCapture {
         String modifiedText = text.trim();
         modifiedText = Colors.removeAllTags(modifiedText);
         return !modifiedText.isEmpty()
-                && !translationResults.contains(text)
+                && !pastTranslationResults.contains(text)
                 && modifiedText.matches(".*[a-zA-Z].*")
                 && !plugin.getConfig().getInterfaceTextConfig().equals(RuneLingualConfig.ingameTranslationConfig.DONT_TRANSLATE);
     }
@@ -228,25 +242,43 @@ public class WidgetCapture {
         text = SqlQuery.replaceSpecialSpaces(text);
         text = Colors.getEnumeratedColorWord(text);
         text = SqlQuery.replaceNumbersWithPlaceholders(text);
-
-        return text.replace("<br>", " ");
+        if (!ids.getWidgetIdDontRemoveBr().contains(widget.getId())) {
+            text = text.replace(" <br>", " ");
+            text = text.replace("<br> ", " ");
+            text = text.replace("<br>", " ");
+        }
+        return text;
     }
 
     // used for creating the English transcript used for manual translation
-    private boolean isDumpTarget_dump(Widget widget) {
-        if (widget.getParent() != null && (widget.getParent().getId() == 14024705 || widget.getParent().getId() == 14024714)) { //parent of skill guide, or parent of element in list
+    private void ifIsDumpTarget_thenDump(Widget widget, SqlQuery sqlQuery) {
+        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4CombatOptionsTab.getValue())) { //attack tab
             if (widget.getText() == null || !shouldTranslateWidget(widget)) {
-                return true;
+                return;
             }
             String textToDump = getEnglishColValFromWidget(widget);
-            translationResults.add(widget.getText());
-            appendIfNotExistToFile(textToDump + "\t\t" + SqlVariables.categoryValue4Interface.getValue() +
-                    "\t" + SqlVariables.subcategoryValue4GeneralUI.getValue() +
-                    "\t" + SqlVariables.sourceValue4SkillGuideInterface.getValue(), "skillGuideDump.txt");
 
-            return true;
+            //pastTranslationResults.add(widget.getText());
+            appendIfNotExistToFile(textToDump + "\t\t" + sqlQuery.getCategory() +
+                    "\t" + sqlQuery.getSubCategory() +
+                    "\t" + sqlQuery.getSource(), "mainTabs.txt");
+
+            return;
         }
-        return false;
+
+//        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4SkillGuideInterface.getValue())) { //attack tab
+//            if (widget.getText() == null || !shouldTranslateWidget(widget)) {
+//                return;
+//            }
+//            String textToDump = getEnglishColValFromWidget(widget);
+//
+//            //pastTranslationResults.add(widget.getText());
+//            appendIfNotExistToFile(textToDump + "\t\t" + sqlQuery.getCategory() +
+//                    "\t" + sqlQuery.getSubCategory() +
+//                    "\t" + sqlQuery.getSource(), "skillGuideDump.txt");
+//
+//            return;
+//        }
     }
 }
 

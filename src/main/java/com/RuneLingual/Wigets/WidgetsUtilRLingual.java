@@ -29,6 +29,14 @@ public class WidgetsUtilRLingual
 		this.plugin = plugin;
 	}
 
+	public void setWidgetText_BrAsIs(Widget widget, String newText)
+	{
+		if (newText.equals(widget.getText())) // the texts will be the same if the widget has already been translated, or doesn't have a translation available
+			return;
+		// Set the text of the widget, but keep br as is
+		widget.setText(newText);
+	}
+
 	public void setWidgetText_NiceBr(Widget widget, String newText) {
 		if (newText.equals(widget.getText())) // the texts will be the same if the widget has already been translated, or doesn't have a translation available
 			return;
@@ -71,7 +79,7 @@ public class WidgetsUtilRLingual
 		thread.start();
 	}
 
-	public void setWidgetText_NiceBr_CharImages(Widget widget, String newText) { // todo: set to show overlay if the mouse is hovering and the widget is too small for the text to display
+	private void setWidgetText_NiceBr_CharImages(Widget widget, String newText) { // todo: set to show overlay if the mouse is hovering and the widget is too small for the text to display
 		// Set the text of the widget, but insert br considering the width of the widget
 		int widgetWidth = widget.getWidth();
 		int foreignWidth = plugin.getConfig().getSelectedLanguage().getCharWidth();
@@ -108,7 +116,7 @@ public class WidgetsUtilRLingual
 		widget.setText(newText);
 	}
 
-	public void setWidgetText_NiceBr_NoCharImages(Widget widget, String newText) {
+	private void setWidgetText_NiceBr_NoCharImages(Widget widget, String newText) {
 		// Set the text of the widget, but insert br considering the width of the widget
 		int widgetWidth = widget.getWidth();
 		int foreignWidth = plugin.getConfig().getSelectedLanguage().getCharWidth();
