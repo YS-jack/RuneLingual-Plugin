@@ -243,10 +243,11 @@ public class WidgetsUtilRLingual
 
 	public void changeWidgetSize_ifNeeded(Widget widget, String translatedText) {
 		int widgetId = widget.getId();
-//
-//		//	resize widget if needed. for
-//		ids.getWidget2ResizeDict().resizeWidgetIfNeeded(widget, translatedText);
 
+		//	resize widget if needed, dynamically depending on text length
+		ids.getWidget2ResizeDict().resizeWidgetIfNeeded(widget, translatedText);
+
+		// resize widget to fixed size, as defined in ids.getWidgetId2ChangeSize()
 		if (ids.getWidgetId2ChangeSize().containsKey(widgetId)) {// if is set to change to fixed size
 			if (ids.getWidgetId2ChangeSize().get(widgetId).getLeft() != null) {
 				widget.setWidthMode(WidgetSizeMode.ABSOLUTE)
