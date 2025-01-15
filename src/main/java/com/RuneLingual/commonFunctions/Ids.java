@@ -124,7 +124,7 @@ public class Ids {
     // widget ids to resize to match the text inside it, mostly for hover displays like prayer's hover descriptions
     private void initWidget2ResizeDict() {
         widget2ResizeDict.add(35455015, true, false, true, false, 3, 3, 3, 3); // prayer hover text
-        widget2ResizeDict.add(14287050, false, true, true, true, 2, 3, 2, 2); // spellbook tab's hover text
+        widget2ResizeDict.add(14287050, false, true, true, false, 2, 3, 2, 2); // spellbook tab's hover text
     }
 
 

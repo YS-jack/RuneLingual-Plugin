@@ -25,19 +25,19 @@ public class Widget2ResizeDict {
         private int widgetId;
         private boolean fixedTop;
         private boolean fixedBottom;
-        private boolean fixedRight;
         private boolean fixedLeft;
+        private boolean fixedRight;
         private int topPadding;
         private int bottomPadding;
         private int leftPadding;
         private int rightPadding;
 
-        public Widget2Resize(int widgetId, boolean fixedTop, boolean fixedBottom, boolean fixedRight, boolean fixedLeft, int topPadding, int bottomPadding, int leftPadding, int rightPadding){
+        public Widget2Resize(int widgetId, boolean fixedTop, boolean fixedBottom, boolean fixedLeft, boolean fixedRight, int topPadding, int bottomPadding, int leftPadding, int rightPadding){
             this.widgetId = widgetId;
             this.fixedTop = fixedTop;
             this.fixedBottom = fixedBottom;
-            this.fixedRight = fixedRight;
             this.fixedLeft = fixedLeft;
+            this.fixedRight = fixedRight;
             this.topPadding = topPadding;
             this.bottomPadding = bottomPadding;
             this.leftPadding = leftPadding;
@@ -46,8 +46,8 @@ public class Widget2ResizeDict {
 
     }
 
-    public void add(int widgetId, boolean fixedTop, boolean fixedBottom, boolean fixedRight, boolean fixedLeft, int topPadding, int bottomPadding, int leftPadding, int rightPadding) {
-        Widget2Resize widget2Resize = new Widget2Resize(widgetId, fixedTop, fixedBottom, fixedRight, fixedLeft, topPadding, bottomPadding, leftPadding, rightPadding);
+    public void add(int widgetId, boolean fixedTop, boolean fixedBottom, boolean fixedLeft, boolean fixedRight, int topPadding, int bottomPadding, int leftPadding, int rightPadding) {
+        Widget2Resize widget2Resize = new Widget2Resize(widgetId, fixedTop, fixedBottom, fixedLeft, fixedRight, topPadding, bottomPadding, leftPadding, rightPadding);
         widgets2Resize.add(widget2Resize);
     }
     private boolean contains(int widgetId) {
@@ -86,7 +86,7 @@ public class Widget2ResizeDict {
         }
 
         // resize widget width
-        if (!widget2Resize.fixedRight || !widget2Resize.fixedLeft) {
+        if (!widget2Resize.fixedLeft || !widget2Resize.fixedRight) {
             this.plugin.getWidgetsUtilRLingual().changeWidgetWidth(widget, newText, widget2Resize.leftPadding, widget2Resize.rightPadding);
         }
 
