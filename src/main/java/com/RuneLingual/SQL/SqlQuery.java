@@ -323,6 +323,15 @@ public class SqlQuery implements Cloneable{
         this.translation = null;
     }
 
+    public void setQuestName(String en, Colors defaultColor){
+        this.english = en;
+        this.category = SqlVariables.categoryValue4Manual.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Quest.getValue();
+        this.color = defaultColor;
+        this.source = null;
+        this.translation = null;
+    }
+
     public static String replaceSpecialSpaces(String input) {
         if(input == null){
             return null;
@@ -390,8 +399,8 @@ public class SqlQuery implements Cloneable{
                     numberCount++;
                 }
                 lastCharWasNumber = true;
-            } else // if the number is a decimal number, continue appending the number
-                if (c == '.' && lastCharWasNumber && i < input.length() - 1 && Character.isDigit(input.charAt(i + 1))) {
+            } else // if the number is a decimal number or a large number, continue appending the number
+                if ((c == '.' || c == ',') && lastCharWasNumber && i < input.length() - 1 && Character.isDigit(input.charAt(i + 1))) {
                 continue;
             } else {
                 result.append(c);
@@ -449,8 +458,8 @@ public class SqlQuery implements Cloneable{
             } else
             if (Character.isDigit(c)) {
                 currentNumber.append(c);
-            } else if (c == '.' && currentNumber.length() > 0 && i < input.length() - 1 && Character.isDigit(input.charAt(i + 1))) {
-                // Append the decimal point if the number is a decimal number
+            } else if ((c == '.' || c == ',') && currentNumber.length() > 0 && i < input.length() - 1 && Character.isDigit(input.charAt(i + 1))) {
+                // Append the decimal point if the number is a decimal number or a large number
                 currentNumber.append(c);
             } else {
                 if (currentNumber.length() > 0) {

@@ -6,7 +6,9 @@ import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
 import com.RuneLingual.Wigets.DialogTranslator;
+import com.RuneLingual.Wigets.Widget2ResizeDict;
 import com.RuneLingual.Wigets.WidgetCapture;
+import com.RuneLingual.Wigets.WidgetsUtilRLingual;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.RuneLingual.nonLatin.*;
 import com.google.inject.Provides;
@@ -124,6 +126,12 @@ public class RuneLingualPlugin extends Plugin {
     @Getter
     private Ids ids;
     @Inject
+    @Getter
+    private Widget2ResizeDict widget2ResizeDict;
+    @Inject
+    @Getter
+    private WidgetsUtilRLingual widgetsUtilRLingual;
+    @Inject
     private MouseTooltipOverlay mouseTooltipOverlay;
     @Inject
     @Getter
@@ -180,7 +188,6 @@ public class RuneLingualPlugin extends Plugin {
 
         // side panel
         startPanel();
-
         log.info("RuneLingual started!");
     }
 

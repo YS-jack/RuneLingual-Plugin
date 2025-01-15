@@ -20,7 +20,8 @@ public class GeneralFunctions {
     public String StringToTags(String string, Colors colors) {
         /*
         This function takes a string + color and returns emojis that looks like letters
-        But leave <img=??> tags as they are (they are already emojis)
+        But leave <img=??> tags as they are (they are already emojis).
+        Also leave <asis> tags as they are. This tag can be specified by the translator.
         eg: こんにちは,<img=43>Lukyさん -> <img=43><img=1><img=2><img=3><img=4><img=5><img=6>
 
         order of conversion : String -> (for each char) -> char to codepoint -> get image name (eg: black--3021.png) ->
@@ -29,12 +30,23 @@ public class GeneralFunctions {
         -> create a tag with the image Id (eg: <img=1>)
         -> repeat to all characters in the string -> append all tags -> return
          */
-        String pattern = "<img=[0-9]*>";
-        String[] parts = string.split("(?=" + pattern + ")|(?<=" + pattern + ")");
+        String lookBehindPattern = "<img=[0-9]*>|</asis>";
+        String lookForwardPattern = "<img=[0-9]*>";
+        String asIsPattern = "<asis>.*?</asis>";
+        String[] parts = string.split("(?=" + lookForwardPattern + "|"+ asIsPattern +")|(?<=" + lookBehindPattern + ")");
         StringBuilder imgTagSb = new StringBuilder();
         for (String part : parts) {//check for img tags, such as the ironman icon
-            if (part.matches(pattern)) {//if the part is an img tag, just append it
+            if (part.matches(lookForwardPattern)) {//if the part is an img tag, just append it
                 imgTagSb.append(part);
+                continue;
+            }
+            if (part.matches(asIsPattern)) {//if the part is an asis tag, append the inside with color tag
+                String asIsContent = part.substring(6, part.length() - 7);
+                imgTagSb.append("<col=");
+                imgTagSb.append(colors.getHex());
+                imgTagSb.append(">");
+                imgTagSb.append(asIsContent);
+                imgTagSb.append("</col>");
                 continue;
             }
             StringBuilder imgTagStrings = new StringBuilder();

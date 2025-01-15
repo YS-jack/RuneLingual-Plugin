@@ -149,7 +149,7 @@ public class Transformer {
         List<String> colorTags = Colors.getColorTagsAsIs(originalText);
         translatedText = Colors.getOriginalColorWord(translatedText, colorTags); // replace placeholders of color tags with original color tags
         translatedText = SqlQuery.replacePlaceholdersWithNumbers(originalText, translatedText); // replace placeholders of numbers with original numbers
-
+        translatedText = translatedText.replace("<br>", "<asis><br></asis>"); // keep <br> tags
         // convert to displayed string
         boolean needCharImage = plugin.getConfig().getSelectedLanguage().needsCharImages();
         GeneralFunctions generalFunctions = plugin.getGeneralFunctions();

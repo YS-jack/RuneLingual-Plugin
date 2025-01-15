@@ -1,5 +1,6 @@
 package com.RuneLingual.commonFunctions;
 
+import com.RuneLingual.Wigets.Widget2ResizeDict;
 import lombok.Getter;
 
 import lombok.extern.slf4j.Slf4j;
@@ -8,21 +9,29 @@ import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.Widget;
 
 import com.RuneLingual.RuneLingualPlugin;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.inject.Inject;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Getter @Slf4j
 public class Ids {
     @Inject
-    public Ids(RuneLingualPlugin plugin) {
-        this.plugin = plugin;
-        this.client = plugin.getClient();
-    }
-    @Inject
     private RuneLingualPlugin plugin;
     @Inject
     Client client;
+    @Getter
+    private Widget2ResizeDict widget2ResizeDict;
+
+    @Inject
+    public Ids(RuneLingualPlugin plugin, Widget2ResizeDict widget2ResizeDict) {
+        this.plugin = plugin;
+        this.client = plugin.getClient();
+        this.widget2ResizeDict = widget2ResizeDict;
+        initWidget2ResizeDict();
+    }
 
     // Ids of widgets
     // main tabs
@@ -75,11 +84,48 @@ public class Ids {
 
     );
 
-    private final Set<Integer> widgetIdDontRemoveBr = Set.of(
-            38862892, // attack style tab's combat category/style display
-            20971548, // skill tab's xp display
-            7995417 // xp display on top right
+    private final Set<Integer> widgetIdQuestName = Set.of(
+            26148871 // quest name in quest list
     );
+
+    // for English transcript to be split at <br> tags and added to the transcript
+    // will reduce the number of translations needed
+    // (below, "Next level at:" and "Remaining XP:" are only translated once instead of for every skill)
+    // e.g
+    // (original text) "Agility Xp:<br>Next level at:<br>Remaining XP:"
+    // ->(split into) "Agility Xp:", "Next level at:", "Remaining XP:"
+    // -> (translated to) "運動神経XP", "次レベル開始：", "残りXP："
+    // -> (combine and set widget text as) "運動神経XP:<br>次レベル開始：<br>残りXP："
+    private final Set<Integer> widgetId2SplitTextAtBr = Set.of(
+            20971548, // skill tab's xp hover display
+            7995417 // hover display of xp bar top right
+    );
+
+    // for English transcript to be kept as is
+    // useful for widgets that have multiple variables in one widget
+    // e.g (first line is level, second line is prayer name, third line is description, all in one widget)
+    // (original text) "Level 22<br>Rapid Heal<br>2x restore rate for<br>Hitpoints stat."
+    // -> (translated to) "レベル22<br>急激な回復<br>体力の回復速度を<br>２倍にする"
+    // -> (set widget text as above)
+    private final Set<Integer> widgetId2KeepBr = Set.of(
+            35455015 // prayer hover text
+    );
+
+    private final Set<Integer> widgetId2SetLineHeight = Set.of(
+            46661634 // character summary tab's category texts
+    );
+
+    // widget ids to change the width of, because some widget have room and also needs more
+    // each value's meaning: Map<widgetId, Pair<newWidth, newHeight>>
+    private final Map<Integer, Pair<Integer, Integer>> widgetId2ChangeSize = Map.ofEntries(
+        Map.entry(16973826, Pair.of(110, null)) // the achievement diary tab's location names
+    );
+
+    // widget ids to resize to match the text inside it, mostly for hover displays like prayer's hover descriptions
+    private void initWidget2ResizeDict() {
+        widget2ResizeDict.add(35455015, true, false, true, false, 3, 3, 3, 3); // prayer hover text
+        widget2ResizeDict.add(14287050, false, true, true, true, 2, 3, 2, 2); // spellbook tab's hover text
+    }
 
 
     public int getCombatOptionParentWidgetId() {
@@ -126,4 +172,5 @@ public class Ids {
         //log.info("parent of ComponentID.CHARACTER_SUMMARY_CONTAINER is null");
         return -1;
     }
+
 }

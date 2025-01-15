@@ -79,7 +79,7 @@ public class WidgetCapture {
         }
 
         // translate the widget text////////////////
-        int widgetGroup = WidgetUtil.componentToInterface(widget.getId());
+        int widgetGroup = WidgetUtil.componentToInterface(widgetId);
         if (widgetGroup == InterfaceID.CHATBOX) {// skip all chatbox widgets for now TODO: chatbox buttons should be translated
             return;
         }
@@ -95,23 +95,28 @@ public class WidgetCapture {
 
         if(shouldTranslateWidget(widget)) {
             SqlQuery queryToPass = sqlQuery.copy();
-            // replace sqlQuery if they are defined as item, npc, or object names
+            // replace sqlQuery if they are defined as item, npc, object, quest names
             Colors textColor = Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor()));
-            if (ids.getWidgetIdItemName().contains(widget.getId())) {
+            if (ids.getWidgetIdItemName().contains(widgetId)) {
                 String itemName = Colors.removeColorTag(widget.getText());
                 queryToPass.setItemName(itemName, textColor);
             }
-            if (ids.getWidgetIdNpcName().contains(widget.getId())) {
+            if (ids.getWidgetIdNpcName().contains(widgetId)) {
                 String npcName = Colors.removeColorTag(widget.getText());
                 queryToPass.setNpcName(npcName, textColor);
             }
-            if (ids.getWidgetIdObjectName().contains(widget.getId())) {
+            if (ids.getWidgetIdObjectName().contains(widgetId)) {
                 String objectName = Colors.removeColorTag(widget.getText());
                 queryToPass.setObjectName(objectName, textColor);
+            }
+            if (ids.getWidgetIdQuestName().contains(widgetId)) {
+                String questName = Colors.removeColorTag(widget.getText());
+                queryToPass.setQuestName(questName, textColor);
             }
 
             // translate the widget text
             translateWidgetText(widget, queryToPass);
+
             return;
         }
 
@@ -175,44 +180,53 @@ public class WidgetCapture {
     }
 
     private void translateWidgetText(Widget widget, SqlQuery sqlQuery) {
-        if (shouldTranslateWidget(widget)) {
-            String textToTranslate = getEnglishColValFromWidget(widget);
-            String translatedText;
-            // for most cases
-            if (!ids.getWidgetIdDontRemoveBr().contains(widget.getId())) {
-                translatedText = getTranslationFromQuery(sqlQuery, widget.getText(), textToTranslate);
-                pastTranslationResults.add(translatedText);
-                // translation was not available
-                if(Objects.equals(translatedText, textToTranslate)){
-                    return;
-                }
-            } else {// for widgets that have <br> in the text and should be kept where they are, translate each line separately
-                String[] textList = textToTranslate.split("<br>");
-                String[] originalTextList = widget.getText().split("<br>");
-                StringBuilder translatedTextBuilder = new StringBuilder();
-                for (int i = 0; i < textList.length; i++) {
-                    String text = textList[i];
-                    String originalText = originalTextList[i];
-                    String translatedTextPart = getTranslationFromQuery(sqlQuery, originalText, text);
-                    translatedTextBuilder.append(translatedTextPart);
-                    if (i != textList.length - 1) { // if it's not the last line, add <br>
-                        translatedTextBuilder.append("<br>");
-                    }
-                }
-                translatedText = translatedTextBuilder.toString();
-            }
-            pastTranslationResults.add(translatedText);
+        int widgetId = widget.getId();
+        String textToTranslate = getEnglishColValFromWidget(widget);
+        String translatedText;
+        // for most cases
+        if (!ids.getWidgetId2SplitTextAtBr().contains(widgetId)
+            && !ids.getWidgetId2KeepBr().contains(widgetId)) {
+            translatedText = getTranslationFromQuery(sqlQuery, widget.getText(), textToTranslate);
+            // translation was not available
             if(Objects.equals(translatedText, textToTranslate)){
                 return;
             }
-            if (ids.getWidgetIdDontRemoveBr().contains(widget.getId())) {
-                widgetsUtilRLingual.setWidgetText_BrAsIs(widget, translatedText);
-                return;
-            } else {
-                widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
+        } else if (ids.getWidgetId2SplitTextAtBr().contains(widgetId)){// for widgets that have <br> in the text and should be kept where they are, translate each line separately
+            String[] textList = textToTranslate.split("<br>");
+            String[] originalTextList = widget.getText().split("<br>");
+            StringBuilder translatedTextBuilder = new StringBuilder();
+            for (int i = 0; i < textList.length; i++) {
+                String text = textList[i];
+                String originalText = originalTextList[i];
+                String translatedTextPart = getTranslationFromQuery(sqlQuery, originalText, text);
+                translatedTextBuilder.append(translatedTextPart);
+                if (i != textList.length - 1) { // if it's not the last line, add <br>
+                    translatedTextBuilder.append("<br>");
+                }
             }
-            //below is for debugging
-//            int widgetId = widget.getId();
+            translatedText = translatedTextBuilder.toString();
+        } else { // if(ids.getWidgetId2KeepBr().contains(widgetId))
+            // for widgets that have <br> in the text and should be kept where they are, translate the whole text
+            translatedText = getTranslationFromQuery(sqlQuery, widget.getText(), textToTranslate);
+        }
+        pastTranslationResults.add(translatedText);
+        if(Objects.equals(translatedText, textToTranslate)){
+            return;
+        }
+
+        widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget, translatedText);
+        widgetsUtilRLingual.changeLineSize_ifNeeded(widget);
+
+        if (ids.getWidgetId2SplitTextAtBr().contains(widgetId)
+                || ids.getWidgetId2KeepBr().contains(widgetId)) {
+            widgetsUtilRLingual.setWidgetText_BrAsIs(widget, translatedText);
+        } else {
+            widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
+        }
+
+
+        //below is for debugging
+//            int widgetId = widgetId;
 //            if(widgetId == 25034758){
 //                int widgetId2;
 //                for(int j = 0; j < 100; j++){
@@ -220,13 +234,12 @@ public class WidgetCapture {
 //                    if (widget == null) {
 //                        break;
 //                    }
-//                    widgetId2 = widget.getId();
+//                    widgetId2 = widgetId;
 //                }
 //                return;
 //            }
 //            // debug end
 
-        }
     }
 
     private String getTranslationFromQuery(SqlQuery sqlQuery, String originalText, String textToTranslate) {
@@ -267,7 +280,8 @@ public class WidgetCapture {
         text = SqlQuery.replaceSpecialSpaces(text);
         text = Colors.getEnumeratedColorWord(text);
         text = SqlQuery.replaceNumbersWithPlaceholders(text);
-        if (!ids.getWidgetIdDontRemoveBr().contains(widget.getId())) {
+        if (!ids.getWidgetId2SplitTextAtBr().contains(widget.getId())
+                && !ids.getWidgetId2KeepBr().contains(widget.getId())) {
             text = text.replace(" <br>", " ");
             text = text.replace("<br> ", " ");
             text = text.replace("<br>", " ");
@@ -275,17 +289,19 @@ public class WidgetCapture {
         return text;
     }
 
+
+
     // used for creating the English transcript used for manual translation
     private void ifIsDumpTarget_thenDump(Widget widget, SqlQuery sqlQuery) {
-        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4SkillsTab.getValue())) { //attack tab
+        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4SpellBookTab.getValue())){ //attack tab
             if (widget.getText() == null || !shouldTranslateWidget(widget)) {
                 return;
             }
-            String fileName = "skillsTab.txt";
+            String fileName = "magicTab.txt";
             String textToDump = getEnglishColValFromWidget(widget);
 
             //pastTranslationResults.add(widget.getText());
-            if (ids.getWidgetIdDontRemoveBr().contains(widget.getId())) {
+            if (ids.getWidgetId2SplitTextAtBr().contains(widget.getId())) {
                 String[] textList = textToDump.split("<br>");
                 for (String text : textList) {
                     appendIfNotExistToFile(text + "\t\t" + sqlQuery.getCategory() +

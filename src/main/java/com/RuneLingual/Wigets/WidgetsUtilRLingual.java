@@ -3,10 +3,13 @@ package com.RuneLingual.Wigets;
 import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.commonFunctions.Colors;
+import com.RuneLingual.commonFunctions.Ids;
 import com.RuneLingual.nonLatin.GeneralFunctions;
 import lombok.Getter;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetPositionMode;
+import net.runelite.api.widgets.WidgetSizeMode;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -21,12 +24,15 @@ public class WidgetsUtilRLingual
 	@Inject
 	private GeneralFunctions generalFunctions;
 	private List<String> stringTranslatingInThread = new ArrayList<>();
+	@Inject
+	private Ids ids;
 
 	@Inject
 	public WidgetsUtilRLingual(Client client, RuneLingualPlugin plugin)
 	{
 		this.client = client;
 		this.plugin = plugin;
+		this.ids = plugin.getIds();
 	}
 
 	public void setWidgetText_BrAsIs(Widget widget, String newText)
@@ -84,7 +90,6 @@ public class WidgetsUtilRLingual
 		int widgetWidth = widget.getWidth();
 		int foreignWidth = plugin.getConfig().getSelectedLanguage().getCharWidth();
 		int maxChars = widgetWidth / foreignWidth;
-
 		// if language uses charImages and needs space between words
 		if(plugin.getConfig().getSelectedLanguage().needsSpaceBetweenWords()) { // todo: test this when such language is added
 			String[] words = newText.split(" ");
@@ -157,68 +162,110 @@ public class WidgetsUtilRLingual
 		return Colors.removeColorTag(tmp);
 	}
 
-	public Widget[] getAllChildren()
-	{
-		// Create a list to store widgets
-		List<Widget> widgetList = new ArrayList<>();
-
-		Widget[] roots = client.getWidgetRoots();
-		for (Widget root : roots) {
-			iterateWidgetsRecursive(root, widgetList);
-		}
-
-		// Convert the list to an array and return
-		return widgetList.toArray(new Widget[0]);
-	}
-
-
-	public static List<Widget> getAllChildren(Widget widget)
-	{
-		// Create a list to store widgets
-		List<Widget> widgetList = new ArrayList<>();
-		
-		// Call the recursive method to populate the list
-		iterateWidgetsRecursive(widget, widgetList);
-		
-		// Convert the list to an array and return
-		return widgetList;
-	}
-	
-	private static void iterateWidgetsRecursive(Widget widget, List<Widget> widgetList)
-	{
-		// Check if the widget is not null and not hidden
-		if(widget != null && !widget.isHidden())
-		{
-			// Add the widget to the list
-			if(!widget.getText().isBlank() || !widget.getName().isBlank())
-			{
-				widgetList.add(widget);
-			}
-			
-			Widget[] staticChildren = widget.getStaticChildren();
-			if (staticChildren != null)
-			{
-				for (Widget child : staticChildren)
-				{
-					iterateWidgetsRecursive(child, widgetList);
+	public void changeWidgetWidth(Widget widget, String newText, int leftPadding, int rightPadding) {
+		// get the longest line, multiply by the width of selected language's character
+		int longestLine = 0;
+		String[] lines = newText.split("<br>");
+		// count the number of characters, but if its char images, count the number of <img> tags, else
+		if (!plugin.getConfig().getSelectedLanguage().needsCharImages()) {
+			for (String line : lines) {
+				if (line.length() > longestLine) {
+					longestLine = line.length();
 				}
 			}
-			Widget[] dynamicChildren = widget.getDynamicChildren();
-			if (dynamicChildren != null)
-			{
-				for (Widget child : dynamicChildren)
-				{
-					iterateWidgetsRecursive(child, widgetList);
-				}
-			}
-			Widget[] nestedChildren = widget.getNestedChildren();
-			if (nestedChildren != null)
-			{
-				for (Widget child : nestedChildren)
-				{
-					iterateWidgetsRecursive(child, widgetList);
+		} else {
+			for (String line : lines) {
+				int imgCount = line.split("<img=").length - 1;
+				if (imgCount > longestLine) {
+					longestLine = imgCount;
 				}
 			}
 		}
+		int newWidth = longestLine * plugin.getConfig().getSelectedLanguage().getCharWidth();
+
+
+		// set parent + sibling widget's width
+		if (widget.getParent() != null) {
+			int newFamilyWidth = newWidth + leftPadding + rightPadding;
+			Widget parentWidget = widget.getParent();
+			parentWidget.setWidthMode(WidgetSizeMode.ABSOLUTE)
+					.setOriginalWidth(newFamilyWidth)
+					.revalidate();
+			// also set the sibling widget's width to the new width + padding
+			Widget[] siblings = parentWidget.getDynamicChildren();
+			for (Widget sibling : siblings) {
+				if (sibling != widget && sibling.getType() == 3) { // 3 seems to be the type for background widgets
+					sibling.setWidthMode(WidgetSizeMode.ABSOLUTE)
+							.setOriginalWidth(newFamilyWidth)
+							.revalidate();
+				}
+			}
+		}
+		// set the width
+		widget.setWidthMode(WidgetSizeMode.ABSOLUTE)
+				.setOriginalWidth(newWidth)
+				.setXPositionMode(WidgetPositionMode.ABSOLUTE_LEFT)
+				.setOriginalX(leftPadding)
+				.revalidate();
 	}
+
+
+	public void changeWidgetHeight(Widget widget, String newText, int topPadding, int bottomPadding) {
+		// get the number of <br> tags, multiply by the height of selected language's character
+		int newHeight = newText.split("<br>").length
+				* plugin.getConfig().getSelectedLanguage().getCharHeight();
+
+		// set parent + sibling widget's height
+		if (widget.getParent() != null) {
+			int newFamilyHeight = newHeight + topPadding + bottomPadding;
+			Widget parentWidget = widget.getParent();
+			parentWidget.setHeightMode(WidgetSizeMode.ABSOLUTE)
+					.setOriginalHeight(newFamilyHeight)
+					.revalidate();
+
+			// also set the sibling widget's height to the new height + padding
+			Widget[] siblings = parentWidget.getDynamicChildren();
+			for (Widget sibling : siblings) {
+				if (sibling != widget && sibling.getType() == 3) { // 3 seems to be the type for background widgets
+					sibling.setHeightMode(WidgetSizeMode.ABSOLUTE)
+							.setOriginalHeight(newFamilyHeight)
+							.revalidate();
+				}
+			}
+		}
+		// set the height
+		widget.setHeightMode(WidgetSizeMode.ABSOLUTE)
+				.setOriginalHeight(newHeight)
+				.setYPositionMode(WidgetPositionMode.ABSOLUTE_TOP)
+				.setOriginalY(topPadding)
+				.revalidate();
+	}
+
+	public void changeWidgetSize_ifNeeded(Widget widget, String translatedText) {
+		int widgetId = widget.getId();
+//
+//		//	resize widget if needed. for
+//		ids.getWidget2ResizeDict().resizeWidgetIfNeeded(widget, translatedText);
+
+		if (ids.getWidgetId2ChangeSize().containsKey(widgetId)) {// if is set to change to fixed size
+			if (ids.getWidgetId2ChangeSize().get(widgetId).getLeft() != null) {
+				widget.setWidthMode(WidgetSizeMode.ABSOLUTE)
+						.setOriginalWidth(ids.getWidgetId2ChangeSize().get(widgetId).getLeft());
+			}
+			if (ids.getWidgetId2ChangeSize().get(widgetId).getRight() != null) {
+				widget.setHeightMode(WidgetSizeMode.ABSOLUTE)
+						.setOriginalHeight(ids.getWidgetId2ChangeSize().get(widgetId).getRight());
+			}
+			widget.revalidate();
+		}
+	}
+
+	// set height of line for specified widgets, because they can be too small
+	public void changeLineSize_ifNeeded(Widget widget) {
+		if (ids.getWidgetId2SetLineHeight().contains(widget.getId())) {
+			int lineHeight = plugin.getConfig().getSelectedLanguage().getCharHeight();
+			widget.setLineHeight(lineHeight);
+		}
+	}
+
 }

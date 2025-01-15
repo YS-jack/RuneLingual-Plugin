@@ -8,16 +8,17 @@ import javax.inject.Inject;
 @Getter
 public enum LangCodeSelectableList
 {
-    ENGLISH ("en", "EN","EN", 8, 6, false, false, false, false, true),
-    //PORTUGUÊS_BRASILEIRO ("pt_br", "PT","PT-BR", 8, 6, false, false, false, false, true),
-    //NORSK("no", "NB", "NB", 8, 6, false, false, false, false, true),
-    日本語("ja", "JA", "JA", 12, 12, true, true, true, true, false);
+    ENGLISH ("en", "EN","EN", 8, 11, 6, false, false, false, false, true),
+    //PORTUGUÊS_BRASILEIRO ("pt_br", "PT","PT-BR", 8, 11, 6, false, false, false, false, true),
+    //NORSK("no", "NB", "NB", 8, 11, 6, false, false, false, false, true),
+    日本語("ja", "JA", "JA", 12, 12, 12, true, true, true, true, false);
     // todo: add languages here
 
     private final String langCode;
     private final String deeplLangCodeSource;
     private final String deeplLangCodeTarget;
     private final int charWidth;
+    private final int charHeight;
     private final int chatBoxCharWidth;
 
     @Getter(AccessLevel.NONE)
@@ -32,7 +33,8 @@ public enum LangCodeSelectableList
     private final boolean needSpaceBetweenWords;
 
     @Inject
-    LangCodeSelectableList(String langCode, String deeplCodeSrc, String deeplCodeTgt, int charWidth, int chatBoxCharWidth,
+    LangCodeSelectableList(String langCode, String deeplCodeSrc, String deeplCodeTgt,
+                           int charWidth, int charHeight, int chatBoxCharWidth,
                            boolean needCharImages, boolean swapMenuOptionAndTarget,
                            boolean needInputOverlay, boolean needInputCandidateOverlay,
                            boolean needSpaceBetweenWords){
@@ -40,6 +42,7 @@ public enum LangCodeSelectableList
         this.deeplLangCodeSource = deeplCodeSrc;
         this.deeplLangCodeTarget = deeplCodeTgt;
         this.charWidth = charWidth;
+        this.charHeight = charHeight;
         this.chatBoxCharWidth = chatBoxCharWidth;
         this.needCharImages = needCharImages;
         this.swapMenuOptionAndTarget = swapMenuOptionAndTarget;
