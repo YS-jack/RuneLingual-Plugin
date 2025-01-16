@@ -5,7 +5,6 @@ import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.Ids;
 import com.RuneLingual.nonLatin.GeneralFunctions;
-import lombok.Getter;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetPositionMode;
@@ -54,7 +53,6 @@ public class WidgetsUtilRLingual
 	}
 
 	public void setWidgetText_NiceBr_apiTranslated(Widget widget, String newText) {
-
 		if (newText.equals(widget.getText())) // the texts will be the same if the widget has already been translated, or doesn't have a translation available
 			return;
 
@@ -161,33 +159,79 @@ public class WidgetsUtilRLingual
 		String tmp = str.replaceAll("(?<=\\S)<br>(?=\\S)", " ");
 		return Colors.removeColorTag(tmp);
 	}
+	public boolean isTranslatedWidget(String text) {
+		return plugin.getWidgetCapture().pastTranslationResults.contains(text);
+	}
+	public boolean isWidgetToFitText(Widget widget) {
+		return ids.getWidget2FitTextDict().getWidgets2FitText(widget.getId()) != null;
+	}
+	public void changeWidgetSize_ifNeeded(Widget widget, String translatedText) {
+		int widgetId = widget.getId();
+
+		//	resize widget if needed, dynamically depending on text length
+		ids.getWidget2FitTextDict().resizeWidgetIfNeeded(widget, translatedText);
+
+		// resize widget to fixed size, as defined in ids.getWidgetId2ChangeSize()
+		if (ids.getWidgetId2FixedSize().containsKey(widgetId)) {// if is set to change to fixed size
+			if (ids.getWidgetId2FixedSize().get(widgetId).getLeft() != null) {
+				widget.setWidthMode(WidgetSizeMode.ABSOLUTE)
+						.setOriginalWidth(ids.getWidgetId2FixedSize().get(widgetId).getLeft());
+			}
+			if (ids.getWidgetId2FixedSize().get(widgetId).getRight() != null) {
+				widget.setHeightMode(WidgetSizeMode.ABSOLUTE)
+						.setOriginalHeight(ids.getWidgetId2FixedSize().get(widgetId).getRight());
+			}
+			widget.revalidate();
+		}
+	}
+
+
+	// set the width of the widget to fit the text
+	// if the widget is the last type 4 widget among sibling widgets (=A), start the process below:
+	// 		for every widget ( = X) under the same parent widget that: 1.needs resizing, 2. has been translated,
+	// 			resize X to fit the text(1)
+	//     		move all child widget of X  (2),
+	// 			move all siblings in the direction it resized (3)
+	// 			move all children of siblings that moved in (2) in the same direction(4),
+	//     		then resize the parent in the same direction(5),
+	//     		then repeat (1~5) for X = parent widget, recursively, until x is the parent of the widget A
 
 	public void changeWidgetWidth(Widget widget, String newText, int leftPadding, int rightPadding) {
-		// get the longest line, multiply by the width of selected language's character
-		int longestLine = 0;
-		String[] lines = newText.split("<br>");
-		// count the number of characters, but if its char images, count the number of <img> tags, else
-		if (!plugin.getConfig().getSelectedLanguage().needsCharImages()) {
-			for (String line : lines) {
-				if (line.length() > longestLine) {
-					longestLine = line.length();
-				}
-			}
-		} else {
-			for (String line : lines) {
-				int imgCount = line.split("<img=").length - 1;
-				if (imgCount > longestLine) {
-					longestLine = imgCount;
-				}
-			}
-		}
-		int newWidth = longestLine * plugin.getConfig().getSelectedLanguage().getCharWidth();
+		Widget parentWidget = widget.getParent();
+//		// if this widget is not the last type 4 widget among sibling widgets end here
+//		if (!isLastType4Widget(widget) || parentWidget == null) {
+//			return;
+//		}
+//
+//		Widget parentWidget = widget.getParent();
+//		for (Widget w: parentWidget.getDynamicChildren()){
+//			if (isWidgetToFitText(w) && isTranslatedWidget(w.getText())) {
+//				resizeAndReposition(w, parentWidget);
+//			}
+//		}
+//		for (Widget w: parentWidget.getStaticChildren()){
+//			if (isWidgetToFitText(w) && isTranslatedWidget(w.getText())) {
+//				resizeAndReposition(w, parentWidget);
+//			}
+//		}
+//		for (Widget w: parentWidget.getNestedChildren()){
+//			if (isWidgetToFitText(w) && isTranslatedWidget(w.getText())) {
+//				resizeAndReposition(w, parentWidget);
+//			}
+//		}
 
+		// set the width of the widget to fit the text
+		int newWidth = getWidgetNewWidth(newText);
+		setWidgetWidthAbsolute(widget, newWidth);
+
+
+
+		// else, set the width of the parent widget to fits all the children widgets
 
 		// set parent + sibling widget's width
 		if (widget.getParent() != null) {
 			int newFamilyWidth = newWidth + leftPadding + rightPadding;
-			Widget parentWidget = widget.getParent();
+			parentWidget = widget.getParent();
 			parentWidget.setWidthMode(WidgetSizeMode.ABSOLUTE)
 					.setOriginalWidth(newFamilyWidth)
 					.revalidate();
@@ -201,12 +245,74 @@ public class WidgetsUtilRLingual
 				}
 			}
 		}
-		// set the width
-		widget.setWidthMode(WidgetSizeMode.ABSOLUTE)
-				.setOriginalWidth(newWidth)
-				.setXPositionMode(WidgetPositionMode.ABSOLUTE_LEFT)
+		// set the position
+		widget.setXPositionMode(WidgetPositionMode.ABSOLUTE_LEFT)
 				.setOriginalX(leftPadding)
 				.revalidate();
+	}
+
+	private void resizeAndReposition(Widget widget, Widget parentWidget) {
+		// save the original position and boundary of the widget
+
+		// resize X to fit the text
+		changeWidgetWidth(widget, widget.getText(),
+				ids.getWidget2FitTextDict().getWidgets2FitText(widget.getId()).getLeftPadding(),
+				ids.getWidget2FitTextDict().getWidgets2FitText(widget.getId()).getRightPadding());
+
+		// get the new position and boundary of the widget
+
+		// calculate how much it has moved in which direction
+
+		// move all child widget of X
+		// move all siblings in the direction it resized
+		// move all children of siblings that moved in the same direction
+		// then resize the parent in the same direction
+		// then repeat for X = parent widget, recursively, until x is the parent of the widget A
+		if (widget.getParent() != null && !widget.getParent().equals(parentWidget)) {
+			resizeAndReposition(widget.getParent(), parentWidget);
+		}
+
+	}
+
+	private int getWidgetNewWidth(String newText) {
+		// get the longest line, multiply by the width of selected language's character
+		int longestLine = 0;
+		String[] lines = newText.split("<br>");
+		// count the number of characters, but if its char images, count the number of <img> tags, else
+		if (!plugin.getConfig().getSelectedLanguage().needsCharImages()) {
+			for (String line : lines) {
+				if (line.length() > longestLine) {
+					longestLine = line.length() * LangCodeSelectableList.ENGLISH.getCharWidth();
+				}
+			}
+		} else {
+			for (String line : lines) {
+				int imgCount = line.split("<img=").length - 1;
+				int nonImgCount = line.replaceAll("<img=.*?>", "").length();
+				if (imgCount > longestLine) {
+					longestLine = imgCount * plugin.getConfig().getSelectedLanguage().getCharWidth() +
+							nonImgCount * LangCodeSelectableList.ENGLISH.getCharWidth();
+				}
+			}
+		}
+		return longestLine;
+	}
+
+	private void setWidgetWidthAbsolute(Widget widget, int width) {
+		widget.setWidthMode(WidgetSizeMode.ABSOLUTE)
+				.setOriginalWidth(width)
+				.revalidate();
+	}
+
+	private boolean isLastType4Widget(Widget widget) {
+		Widget[] siblings = widget.getParent().getDynamicChildren();
+		Widget lastType4Widget = null;
+		for (Widget sibling: siblings){
+			if (sibling.getType() == 4){
+				lastType4Widget = sibling;
+			}
+		}
+		return lastType4Widget == widget;
 	}
 
 
@@ -241,25 +347,7 @@ public class WidgetsUtilRLingual
 				.revalidate();
 	}
 
-	public void changeWidgetSize_ifNeeded(Widget widget, String translatedText) {
-		int widgetId = widget.getId();
 
-		//	resize widget if needed, dynamically depending on text length
-		ids.getWidget2ResizeDict().resizeWidgetIfNeeded(widget, translatedText);
-
-		// resize widget to fixed size, as defined in ids.getWidgetId2ChangeSize()
-		if (ids.getWidgetId2ChangeSize().containsKey(widgetId)) {// if is set to change to fixed size
-			if (ids.getWidgetId2ChangeSize().get(widgetId).getLeft() != null) {
-				widget.setWidthMode(WidgetSizeMode.ABSOLUTE)
-						.setOriginalWidth(ids.getWidgetId2ChangeSize().get(widgetId).getLeft());
-			}
-			if (ids.getWidgetId2ChangeSize().get(widgetId).getRight() != null) {
-				widget.setHeightMode(WidgetSizeMode.ABSOLUTE)
-						.setOriginalHeight(ids.getWidgetId2ChangeSize().get(widgetId).getRight());
-			}
-			widget.revalidate();
-		}
-	}
 
 	// set height of line for specified widgets, because they can be too small
 	public void changeLineSize_ifNeeded(Widget widget) {

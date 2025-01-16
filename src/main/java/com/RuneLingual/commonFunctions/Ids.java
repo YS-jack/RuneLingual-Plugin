@@ -1,6 +1,6 @@
 package com.RuneLingual.commonFunctions;
 
-import com.RuneLingual.Wigets.Widget2ResizeDict;
+import com.RuneLingual.Wigets.Widget2FitTextDict;
 import lombok.Getter;
 
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +12,6 @@ import com.RuneLingual.RuneLingualPlugin;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.inject.Inject;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,14 +22,14 @@ public class Ids {
     @Inject
     Client client;
     @Getter
-    private Widget2ResizeDict widget2ResizeDict;
+    private Widget2FitTextDict widget2FitTextDict;
 
     @Inject
-    public Ids(RuneLingualPlugin plugin, Widget2ResizeDict widget2ResizeDict) {
+    public Ids(RuneLingualPlugin plugin, Widget2FitTextDict widget2FitTextDict) {
         this.plugin = plugin;
         this.client = plugin.getClient();
-        this.widget2ResizeDict = widget2ResizeDict;
-        initWidget2ResizeDict();
+        this.widget2FitTextDict = widget2FitTextDict;
+        initWidget2FitTextDict();
     }
 
     // Ids of widgets
@@ -119,17 +118,17 @@ public class Ids {
 
     // widget ids to change the width of, because some widget have room and also needs more
     // each value's meaning: Map<widgetId, Pair<newWidth, newHeight>>
-    private final Map<Integer, Pair<Integer, Integer>> widgetId2ChangeSize = Map.ofEntries(
+    private final Map<Integer, Pair<Integer, Integer>> widgetId2FixedSize = Map.ofEntries(
         Map.entry(16973826, Pair.of(110, null)) // the achievement diary tab's location names
     );
 
     // widget ids to resize to match the text inside it, mostly for hover displays like prayer's hover descriptions
-    private void initWidget2ResizeDict() {
+    private void initWidget2FitTextDict() {
         // prayer hover text
-        widget2ResizeDict.add(35455015, true, false, true, false, 3, 3, 3, 3);
+        widget2FitTextDict.add(35455015, true, false, true, false, 3, 3, 3, 3);
 
         // spellbook tab's hover text
-        widget2ResizeDict.add(14287050, false, true, true, true, 2, 3, 2, 2);
+        widget2FitTextDict.add(14287050, false, true, true, true, 2, 3, 2, 2);
     }
 
 

@@ -10,18 +10,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter @Setter
-public class Widget2ResizeDict {
-    private List<Widget2Resize> widgets2Resize = new ArrayList<>();
+public class Widget2FitTextDict {
+    private List<Widget2FitText> widgets2FitText = new ArrayList<>();
     @Inject
     private RuneLingualPlugin plugin;
 
     @Inject
-    public Widget2ResizeDict(RuneLingualPlugin plugin) {
+    public Widget2FitTextDict(RuneLingualPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Getter @Setter
-    public static class Widget2Resize{
+    public static class Widget2FitText {
         private int widgetId;
         private boolean fixedTop;
         private boolean fixedBottom;
@@ -32,7 +32,7 @@ public class Widget2ResizeDict {
         private int leftPadding;
         private int rightPadding;
 
-        public Widget2Resize(int widgetId, boolean fixedTop, boolean fixedBottom, boolean fixedLeft, boolean fixedRight, int topPadding, int bottomPadding, int leftPadding, int rightPadding){
+        public Widget2FitText(int widgetId, boolean fixedTop, boolean fixedBottom, boolean fixedLeft, boolean fixedRight, int topPadding, int bottomPadding, int leftPadding, int rightPadding){
             this.widgetId = widgetId;
             this.fixedTop = fixedTop;
             this.fixedBottom = fixedBottom;
@@ -47,22 +47,22 @@ public class Widget2ResizeDict {
     }
 
     public void add(int widgetId, boolean fixedTop, boolean fixedBottom, boolean fixedLeft, boolean fixedRight, int topPadding, int bottomPadding, int leftPadding, int rightPadding) {
-        Widget2Resize widget2Resize = new Widget2Resize(widgetId, fixedTop, fixedBottom, fixedLeft, fixedRight, topPadding, bottomPadding, leftPadding, rightPadding);
-        widgets2Resize.add(widget2Resize);
+        Widget2FitText widget2FitText = new Widget2FitText(widgetId, fixedTop, fixedBottom, fixedLeft, fixedRight, topPadding, bottomPadding, leftPadding, rightPadding);
+        widgets2FitText.add(widget2FitText);
     }
     private boolean contains(int widgetId) {
-        for (Widget2Resize widget2Resize : widgets2Resize) {
-            if (widget2Resize.getWidgetId() == widgetId) {
+        for (Widget2FitText widget2FitText : widgets2FitText) {
+            if (widget2FitText.getWidgetId() == widgetId) {
                 return true;
             }
         }
         return false;
     }
 
-    public Widget2Resize getWidgets2Resize(int widgetId) {
-        for (Widget2Resize widget2Resize : widgets2Resize) {
-            if (widget2Resize.getWidgetId() == widgetId) {
-                return widget2Resize;
+    public Widget2FitText getWidgets2FitText(int widgetId) {
+        for (Widget2FitText widget2FitText : widgets2FitText) {
+            if (widget2FitText.getWidgetId() == widgetId) {
+                return widget2FitText;
             }
         }
         return null;
@@ -80,19 +80,19 @@ public class Widget2ResizeDict {
     public void resizeWidget(Widget widget, String newText) {
         int widgetId = widget.getId();
 
-        Widget2Resize widget2Resize = getWidgets2Resize(widgetId);
-        if (widget2Resize == null) {
+        Widget2FitText widget2FitText = getWidgets2FitText(widgetId);
+        if (widget2FitText == null) {
             return;
         }
 
         // resize widget width
-        if (!widget2Resize.fixedLeft || !widget2Resize.fixedRight) {
-            this.plugin.getWidgetsUtilRLingual().changeWidgetWidth(widget, newText, widget2Resize.leftPadding, widget2Resize.rightPadding);
+        if (!widget2FitText.fixedLeft || !widget2FitText.fixedRight) {
+            this.plugin.getWidgetsUtilRLingual().changeWidgetWidth(widget, newText, widget2FitText.leftPadding, widget2FitText.rightPadding);
         }
 
         // resize widget height
-        if (!widget2Resize.fixedTop || !widget2Resize.fixedBottom) {
-            this.plugin.getWidgetsUtilRLingual().changeWidgetHeight(widget, newText, widget2Resize.topPadding, widget2Resize.bottomPadding);
+        if (!widget2FitText.fixedTop || !widget2FitText.fixedBottom) {
+            this.plugin.getWidgetsUtilRLingual().changeWidgetHeight(widget, newText, widget2FitText.topPadding, widget2FitText.bottomPadding);
         }
     }
 

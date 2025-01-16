@@ -214,7 +214,7 @@ public class WidgetCapture {
             return;
         }
 
-        widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget, translatedText);
+
         widgetsUtilRLingual.changeLineSize_ifNeeded(widget);
 
         if (ids.getWidgetId2SplitTextAtBr().contains(widgetId)
@@ -223,7 +223,7 @@ public class WidgetCapture {
         } else {
             widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
         }
-
+        widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget, translatedText);
 
         //below is for debugging
 //            int widgetId = widgetId;
@@ -262,7 +262,7 @@ public class WidgetCapture {
         String modifiedText = text.trim();
         modifiedText = Colors.removeAllTags(modifiedText);
         return !modifiedText.isEmpty()
-                && !pastTranslationResults.contains(text)
+                && !widgetsUtilRLingual.isTranslatedWidget(text)
                 && modifiedText.matches(".*[a-zA-Z].*")
                 && !plugin.getConfig().getInterfaceTextConfig().equals(RuneLingualConfig.ingameTranslationConfig.DONT_TRANSLATE);
     }

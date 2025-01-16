@@ -5,8 +5,7 @@ import com.RuneLingual.ChatMessages.*;
 import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
-import com.RuneLingual.Wigets.DialogTranslator;
-import com.RuneLingual.Wigets.Widget2ResizeDict;
+import com.RuneLingual.Wigets.Widget2FitTextDict;
 import com.RuneLingual.Wigets.WidgetCapture;
 import com.RuneLingual.Wigets.WidgetsUtilRLingual;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
@@ -16,7 +15,6 @@ import com.google.inject.Provides;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -127,7 +125,7 @@ public class RuneLingualPlugin extends Plugin {
     private Ids ids;
     @Inject
     @Getter
-    private Widget2ResizeDict widget2ResizeDict;
+    private Widget2FitTextDict widget2FitTextDict;
     @Inject
     @Getter
     private WidgetsUtilRLingual widgetsUtilRLingual;
@@ -148,7 +146,7 @@ public class RuneLingualPlugin extends Plugin {
     private ChatInputCandidateOverlay chatInputCandidateOverlay;
     @Inject
     private OverheadCapture overheadCapture;
-    @Inject
+    @Inject @Getter
     private WidgetCapture widgetCapture;
 
     @Getter
