@@ -87,6 +87,9 @@ public class Ids {
             26148871 // quest name in quest list
     );
 
+    private final int prayerTabHoverTextId = 35455015;
+    private final int spellbookTabHoverTextId = 14287050;
+
     // for English transcript to be split at <br> tags and added to the transcript
     // will reduce the number of translations needed
     // (below, "Next level at:" and "Remaining XP:" are only translated once instead of for every skill)
@@ -107,7 +110,7 @@ public class Ids {
     // -> (translated to) "レベル22<br>急激な回復<br>体力の回復速度を<br>２倍にする"
     // -> (set widget text as above)
     private final Set<Integer> widgetId2KeepBr = Set.of(
-            35455015 // prayer hover text
+            prayerTabHoverTextId
     );
 
     private final Set<Integer> widgetId2SetLineHeight = Set.of(
@@ -125,10 +128,10 @@ public class Ids {
     // widget ids to resize to match the text inside it, mostly for hover displays like prayer's hover descriptions
     private void initWidget2FitTextDict() {
         // prayer hover text
-        widget2FitTextDict.add(35455015, true, false, true, false, 3, 3, 3, 3);
+        widget2FitTextDict.add(prayerTabHoverTextId, false, true, false, true, false, 3, 3, 3, 3);
 
         // spellbook tab's hover text
-        widget2FitTextDict.add(14287050, false, true, true, true, 2, 3, 2, 2);
+        widget2FitTextDict.add(spellbookTabHoverTextId, true, false, false, true, true, 2, 3, 2, 2);
     }
 
 

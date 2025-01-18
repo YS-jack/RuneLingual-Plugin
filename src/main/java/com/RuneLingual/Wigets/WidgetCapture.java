@@ -10,10 +10,7 @@ import com.RuneLingual.commonFunctions.Transformer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.widgets.ComponentID;
-import net.runelite.api.widgets.InterfaceID;
-import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetUtil;
+import net.runelite.api.widgets.*;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -65,6 +62,12 @@ public class WidgetCapture {
             return;
         }
 
+        // skip all chatbox widgets for now TODO: chatbox buttons should be translated
+        int widgetGroup = WidgetUtil.componentToInterface(widgetId);
+        if (widgetGroup == InterfaceID.CHATBOX) {
+            return;
+        }
+
         modifySqlQuery4Widget(widget, sqlQuery);
 
         // recursive call
@@ -78,20 +81,29 @@ public class WidgetCapture {
             translateWidgetRecursive(staticChild, sqlQuery);
         }
 
-        // translate the widget text////////////////
-        int widgetGroup = WidgetUtil.componentToInterface(widgetId);
-        if (widgetGroup == InterfaceID.CHATBOX) {// skip all chatbox widgets for now TODO: chatbox buttons should be translated
-            return;
-        }
-
+        // debug: if the widget is the target for dumping
         ifIsDumpTarget_thenDump(widget, sqlQuery);
 
+        // translate the widget text////////////////
+        // dialogues are handled separately
         if (widgetGroup == InterfaceID.DIALOG_NPC
                 || widgetGroup == InterfaceID.DIALOG_PLAYER
                 || widgetGroup == InterfaceID.DIALOG_OPTION) {
             dialogTranslator.handleDialogs(widget);
             return;
         }
+
+//        if (widgetId == 14287050 && shouldTranslateWidget(widget)) {
+//            log.info("original height: " + widget.getOriginalHeight());
+//            log.info("height mode: " + widget.getHeightMode());
+//            log.info("position mode: " + widget.getYPositionMode());
+//            widget.getXTextAlignment();
+//            log.info("text: " + widget.getText() + "\n\n");
+//            widget.setHeightMode(WidgetSizeMode.ABSOLUTE)
+//                    .setOriginalHeight(widget.getOriginalHeight() + 25)
+//                    .revalidate();
+//            return;
+//        }
 
         if(shouldTranslateWidget(widget)) {
             SqlQuery queryToPass = sqlQuery.copy();
@@ -215,7 +227,7 @@ public class WidgetCapture {
         }
 
 
-        widgetsUtilRLingual.changeLineSize_ifNeeded(widget);
+
 
         if (ids.getWidgetId2SplitTextAtBr().contains(widgetId)
                 || ids.getWidgetId2KeepBr().contains(widgetId)) {
@@ -223,7 +235,8 @@ public class WidgetCapture {
         } else {
             widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
         }
-        widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget, translatedText);
+        widgetsUtilRLingual.changeLineSize_ifNeeded(widget);
+        widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget);
 
         //below is for debugging
 //            int widgetId = widgetId;
