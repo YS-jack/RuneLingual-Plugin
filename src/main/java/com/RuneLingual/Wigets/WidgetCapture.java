@@ -203,7 +203,15 @@ public class WidgetCapture {
             if(Objects.equals(translatedText, textToTranslate)){
                 return;
             }
-        } else if (ids.getWidgetId2SplitTextAtBr().contains(widgetId)){// for widgets that have <br> in the text and should be kept where they are, translate each line separately
+        } else if (widgetsUtilRLingual.shouldPartiallyTranslate(widget)) {
+            // for widgets like "Name: <playerName>" (found in accounts management tab), where only the part of the text should be translated
+            // order:
+            // textToTranslate = "Name: <playerName>" -> translatedText = "名前: <playerName>" -> translatedText = "名前: Durial321"
+            //todo: complete this
+            translatedText = getTranslationFromQuery(sqlQuery, widget.getText(), textToTranslate);
+        }
+
+        else if (ids.getWidgetId2SplitTextAtBr().contains(widgetId)){// for widgets that have <br> in the text and should be kept where they are, translate each line separately
             String[] textList = textToTranslate.split("<br>");
             String[] originalTextList = widget.getText().split("<br>");
             StringBuilder translatedTextBuilder = new StringBuilder();
@@ -265,9 +273,13 @@ public class WidgetCapture {
 
 
     private boolean shouldTranslateWidget(Widget widget) {
+        int widgetId = widget.getId();
+        boolean isFriendsListNames = ids.getFriendsTabPlayerNameTextId() == widgetId
+                && widget.getXTextAlignment() == WidgetTextAlignment.LEFT;
         return shouldTranslateText(widget.getText())
                 && widget.getFontId() != -1 // if font id is -1 it's probably not shown
-                && !ids.getWidgetIdPlayerName().contains(widget.getId()); // player name should not be translated
+                && !ids.getWidgetIdPlayerName().contains(widgetId) // player name should not be translated
+                && !isFriendsListNames;
     }
 
     /* check if the text should be translated
@@ -292,6 +304,12 @@ public class WidgetCapture {
         if (text == null) {
             return "";
         }
+        // special case: if the text should only be partially translated
+        if (widgetsUtilRLingual.shouldPartiallyTranslate(widget)) {
+            return widgetsUtilRLingual.getEnColVal4PartialTranslation(widget);
+        }
+
+
         text = SqlQuery.replaceSpecialSpaces(text);
         text = Colors.getEnumeratedColorWord(text);
         text = SqlQuery.replaceNumbersWithPlaceholders(text);
@@ -308,11 +326,14 @@ public class WidgetCapture {
 
     // used for creating the English transcript used for manual translation
     private void ifIsDumpTarget_thenDump(Widget widget, SqlQuery sqlQuery) {
-        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4SpellBookTab.getValue())){ //attack tab
+//        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4FriendsTab.getValue())
+//        || sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4IgnoreTab.getValue())
+//        || sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4AccountManagementTab.getValue())) {
+        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4SkillsTab.getValue())){
             if (widget.getText() == null || !shouldTranslateWidget(widget)) {
                 return;
             }
-            String fileName = "magicTab.txt";
+            String fileName = "skillsTab.txt";
             String textToDump = getEnglishColValFromWidget(widget);
 
             //pastTranslationResults.add(widget.getText());

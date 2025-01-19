@@ -12,6 +12,7 @@ import com.RuneLingual.RuneLingualPlugin;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,7 +48,7 @@ public class Ids {
     private final int widgetIdGroupsTab = 47644672;
     private final int widgetIdFriendsTab = 28114944;
     private final int widgetIdIgnoreTab = 28311552;
-    private final int widgetIdAccountManagementTab = 7143424;
+    private final int widgetIdAccountManagementTab = 7143445;
     private final int widgetIdSettingsTab = 7602176;
     private final int widgetIdEmotesTab = ComponentID.EMOTES_WINDOW;
     private final int widgetIdMusicTab = ComponentID.MUSIC_CONTAINER;
@@ -89,6 +90,10 @@ public class Ids {
 
     private final int prayerTabHoverTextId = 35455015;
     private final int spellbookTabHoverTextId = 14287050;
+    private final int friendsTabPlayerNameTextId = 28114955;
+    private final int playerNameInAccManTab = 7143468;
+    private final int addFriendButtonId = 28114959;
+    private final int removeFriendButtonId = 28114961;
 
     // for English transcript to be split at <br> tags and added to the transcript
     // will reduce the number of translations needed
@@ -111,13 +116,15 @@ public class Ids {
     // -> (set widget text as above)
     private final Set<Integer> widgetId2KeepBr = Set.of(
             prayerTabHoverTextId,
-            spellbookTabHoverTextId
+            spellbookTabHoverTextId,
+            addFriendButtonId, removeFriendButtonId
     );
 
     private final Set<Integer> widgetId2SetLineHeight = Set.of(
             46661634, // character summary tab's category texts
             35455018, // prayer tab's filter texts
-            14287046 // spellbook tab filter texts
+            14287046, // spellbook tab filter texts
+            addFriendButtonId, removeFriendButtonId // friends tab's add friend and remove friend button texts
     );
 
     // widget ids to change the width of, because some widget have room and also needs more
@@ -134,6 +141,13 @@ public class Ids {
         // spellbook tab's hover text
         widget2FitTextDict.add(spellbookTabHoverTextId, true, false, false, true, true, 2, 2, 2, 2);
     }
+
+    // widget containing player name in sentence, so cant be completely ignored
+    // must specify which part of text to translate and which not to
+    // each value's meaning: Pair<widgetId, text to replace with>
+    private final List<Pair<Integer, String>> widgetId2TranslatePartially = List.of(
+            Pair.of(playerNameInAccManTab, "Name: <playerName>") // friends tab's player name
+    );
 
 
     public int getCombatOptionParentWidgetId() {

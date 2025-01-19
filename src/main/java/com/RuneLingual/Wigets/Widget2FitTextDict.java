@@ -1,5 +1,6 @@
 package com.RuneLingual.Wigets;
 
+import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,6 +60,10 @@ public class Widget2FitTextDict {
         INSIDE,
         OUTSIDE,
         DIAGONAL, // won't need to shift, nor is it inside or outside
+
+    }
+
+    private enum notFixedDir {
         HORIZONTAL,
         VERTICAL,
     }
@@ -102,76 +107,103 @@ public class Widget2FitTextDict {
         }
         widget2FitText.setWidget(widget);
 
-        // change width/height of widget
-        // if the widget doesn't have adjacent sibling widgets, make parent + sibling widgets larger/smaller by the same amount
-        // else (if the widget has adjacent sibling widgets):
-        // reposition depending on what side is fixed
-        // shift sibling widgets in that direction
-        // change parent width/height if needed
-        // revalidate widgets
-
         if (!widget2FitText.fixedLeft || !widget2FitText.fixedRight) {
-            //this.plugin.getWidgetsUtilRLingual().changeWidgetWidth(widget, newText, widget2FitText.leftPadding, widget2FitText.rightPadding);
+            fitWidgetInDirection(widget2FitText, newText, notFixedDir.HORIZONTAL);
         }
-
         if (!widget2FitText.fixedTop || !widget2FitText.fixedBottom) {
-            int originalHeight = widget.getHeight();
-            int newHeight = getHeightToFit(widget2FitText, newText);
-            int heightDiff = newHeight - originalHeight;
-            if (originalHeight == newHeight) {
-                return;
+            fitWidgetInDirection(widget2FitText, newText, notFixedDir.VERTICAL);
+        }
+    }
+
+    // change width/height of widget
+    // if the widget doesn't have adjacent sibling widgets, make parent + sibling widgets larger/smaller by the same amount
+    // else (if the widget has adjacent sibling widgets):
+    // reposition depending on what side is fixed
+    // shift sibling widgets in that direction
+    // change parent width/height if needed
+    // revalidate widgets
+    private void fitWidgetInDirection(Widget2FitText widget2FitText, String newText, notFixedDir dirNotFixed) {
+        Widget widget = widget2FitText.getWidget();
+        int originalSize = (dirNotFixed == notFixedDir.HORIZONTAL) ? widget.getWidth() : widget.getHeight();
+        int newSize = (dirNotFixed == notFixedDir.HORIZONTAL) ? getWidthToFit(widget2FitText, newText) :getHeightToFit(widget2FitText, newText);
+        int sizeDiff = newSize - originalSize;
+        if (originalSize == newSize) {
+            return;
+        }
+        Widget parentWidget = widget.getParent();
+
+        // if the widget doesn't have adjacent sibling widgets, make parent + sibling widgets larger/smaller by the same amount
+        if (!widget2FitText.hasAdjacentSiblingWidget && widget.getParent() != null) {
+            sizeDiff = newSize - originalSize;
+
+            // set new size for parent
+            if ((dirNotFixed == notFixedDir.HORIZONTAL)) {
+                int newParentSize = parentWidget.getWidth() + sizeDiff;
+                setWidgetWidthAbsolute(parentWidget, newParentSize);
+            } else {
+                int newParentSize = parentWidget.getHeight() + sizeDiff;
+                setWidgetHeightAbsolute(parentWidget, newParentSize);
             }
-            Widget parentWidget = widget.getParent();
 
-            // if the widget doesn't have adjacent sibling widgets, make parent + sibling widgets larger/smaller by the same amount
-            if (!widget2FitText.hasAdjacentSiblingWidget && widget.getParent() != null) {
-                heightDiff = newHeight - originalHeight;
-
-                // set new height for parent
-                int newParentHeight = parentWidget.getHeight() + heightDiff;
-                setWidgetHeightAbsolute(parentWidget, newParentHeight);
-
-                // set new height for sibling widgets
-                List<Widget> childWidgets = getAllChildWidget(parentWidget);
-                for (Widget sibling : childWidgets) {
-                    if (sibling != widget && sibling.getType() != 3) { // 3 seems to be the type for background widgets
+            // set new size for sibling widgets
+            List<Widget> childWidgets = getAllChildWidget(parentWidget);
+            for (Widget sibling : childWidgets) {
+                if (sibling != widget && sibling.getType() == 3) { // 3 seems to be the type for background widgets
+                    if (dirNotFixed == notFixedDir.HORIZONTAL) {
+                        int originalSiblingWidth = sibling.getWidth();
+                        int newSiblingWidth = originalSiblingWidth + sizeDiff;
+                        setWidgetWidthAbsolute(sibling, newSiblingWidth);
+                    } else {
                         int originalSiblingHeight = sibling.getHeight();
-                        int newSiblingHeight = originalSiblingHeight + heightDiff;
+                        int newSiblingHeight = originalSiblingHeight + sizeDiff;
                         setWidgetHeightAbsolute(sibling, newSiblingHeight);
                     }
                 }
-            } else {
-                // reposition depending on what side is fixed, and resize
-                Direction dirToShift = getVerticalDirToShift(widget2FitText);
+            }
+        } else {
+            // reposition depending on what side is fixed, and resize
+            Direction dirToShift = getVerticalDirToShift(widget2FitText);
 
-
-                // shift sibling widgets in that direction
-                List<Widget> childWidgets = getAllChildWidget(widget.getParent());
-                for (Widget sibling : childWidgets) {
-                    if (sibling.equals(widget)) {
-                        continue;
-                    }
-                    Direction dir = getDirTowards(widget, sibling);
-                    if (dir == dirToShift || dir == Direction.INSIDE) {
-                        shiftWidgetY(sibling, heightDiff, dirToShift);
-                    } else if (dir == Direction.OUTSIDE) {
-                        expandWidget(sibling, dirToShift, heightDiff);
-                    }
+            // shift sibling widgets in that direction
+            List<Widget> childWidgets = getAllChildWidget(widget.getParent());
+            for (Widget sibling : childWidgets) {
+                if (sibling.equals(widget)) {
+                    continue;
                 }
-                // set new height for widget
-                setWidgetHeightAbsolute(widget, newHeight);
+                Direction dir = getDirTowards(widget, sibling);
+                if (dir == dirToShift || dir == Direction.INSIDE) {
+                    shiftWidgetY(sibling, sizeDiff, dirToShift);
+                } else if (dir == Direction.OUTSIDE) {
+                    expandWidget(sibling, dirToShift, sizeDiff);
+                }
+            }
+
+            // set new height for widget
+            if (dirNotFixed == notFixedDir.HORIZONTAL) {
+                setWidgetWidthAbsolute(widget, newSize);
+                if (dirToShift == Direction.LEFT) { // if shifting upwards, shift the widget itself by the height difference
+                    int newX = getNewShiftedX(widget, dirToShift, sizeDiff); // relative position
+                    setWidgetRelativeXPos(widget, newX);
+                }
+            } else {
+                setWidgetHeightAbsolute(widget, newSize);
                 if (dirToShift == Direction.ABOVE) { // if shifting upwards, shift the widget itself by the height difference
-                    int newY = getNewShiftedY(widget, dirToShift, heightDiff); // relative position
+                    int newY = getNewShiftedY(widget, dirToShift, sizeDiff); // relative position
                     setWidgetRelativeYPos(widget, newY);
                 }
-
-                // change parent width/height if needed
-                int siblingYCoverage = getSiblingsYCoverage(childWidgets);
-                if (parentWidget.getHeight() < siblingYCoverage) {
-                    setWidgetHeightAbsolute(parentWidget, siblingYCoverage);
-                }
-
             }
+
+            // change parent width/height if needed
+            int siblingCoverage = getSiblingsCoverage(childWidgets, dirNotFixed);
+            int parentCoverage = (dirNotFixed == notFixedDir.HORIZONTAL) ? parentWidget.getWidth() : parentWidget.getHeight();
+            if (parentCoverage < siblingCoverage) {
+                if (dirNotFixed == notFixedDir.HORIZONTAL) {
+                    setWidgetWidthAbsolute(parentWidget, siblingCoverage);
+                } else {
+                    setWidgetHeightAbsolute(parentWidget, siblingCoverage);
+                }
+            }
+
         }
     }
 
@@ -180,6 +212,31 @@ public class Widget2FitTextDict {
         int lineHeight = plugin.getConfig().getSelectedLanguage().getCharHeight();
         int numLines = newText.split("<br>").length;
         return lineHeight * numLines + widget2FitText.topPadding + widget2FitText.bottomPadding;
+    }
+
+    private int getWidthToFit(Widget2FitText widget2FitText, String newText) {
+        // get the longest line, multiply by the width of selected language's character
+        int longestLine = 0;
+        String[] lines = newText.split("<br>");
+        // count the number of characters, but if its char images, count the number of <img> tags, else
+        if (!plugin.getConfig().getSelectedLanguage().needsCharImages()) {
+            for (String line : lines) {
+                if (line.length() > longestLine) {
+                    longestLine = line.length() * plugin.getConfig().getSelectedLanguage().getCharWidth();
+                }
+            }
+        } else {
+            for (String line : lines) {
+                int imgCount = line.split("<img=").length - 1;
+                int nonImgCount = line.replaceAll("<.*>", "").length();
+                int lineLength = imgCount * plugin.getConfig().getSelectedLanguage().getCharWidth() +
+                        nonImgCount * LangCodeSelectableList.ENGLISH.getCharWidth();
+                if (lineLength > longestLine) {
+                    longestLine = lineLength;
+                }
+            }
+        }
+        return longestLine + widget2FitText.leftPadding + widget2FitText.rightPadding;
     }
 
     private void setWidgetWidthAbsolute(Widget widget, int width) {
@@ -227,6 +284,10 @@ public class Widget2FitTextDict {
             return Direction.BELOW;
         } else if (!widget2FitText.fixedTop) {
             return Direction.ABOVE;
+        } else if (!widget2FitText.fixedLeft) {
+            return Direction.LEFT;
+        } else if (!widget2FitText.fixedRight) {
+            return Direction.RIGHT;
         }
         return Direction.OUTSIDE;
     }
@@ -242,7 +303,7 @@ public class Widget2FitTextDict {
     }
 
     // returns relative position
-    private int getNewX(Widget widget, Direction dirToShift, int widthDiff) {
+    private int getNewShiftedX(Widget widget, Direction dirToShift, int widthDiff) {
         int newX = getNewPos(widget, dirToShift, widthDiff);
         if (newX == -1) {
             int originalX = widget.getRelativeX();
@@ -357,20 +418,39 @@ public class Widget2FitTextDict {
             || (w2Top > w1Top && w2Top < w1Bottom) || (w2Bottom > w1Top && w2Bottom < w1Bottom) || (w2Top < w1Top && w2Bottom > w1Bottom);
     }
 
-    private int getSiblingsYCoverage(List<Widget> siblings) {
-        int minY = 999999;
-        int maxY = 0;
+    private int getSiblingsCoverage(List<Widget> siblings, notFixedDir dirNotFixed) {
+        int min = 999999;
+        int max = 0;
         for (Widget sibling : siblings) {
+            if (dirNotFixed == notFixedDir.HORIZONTAL) {
+                int siblingLeft = sibling.getRelativeX();
+                int siblingRight = sibling.getRelativeX() + sibling.getWidth();
+                if (siblingLeft < min) {
+                    min = siblingLeft;
+                }
+                if (siblingRight > max) {
+                    max = siblingRight;
+                }
+            } else {
+                int siblingTop = sibling.getRelativeY();
+                int siblingBottom = sibling.getRelativeY() + sibling.getHeight();
+                if (siblingTop < min) {
+                    min = siblingTop;
+                }
+                if (siblingBottom > max) {
+                    max = siblingBottom;
+                }
+            }
             int siblingTop = sibling.getRelativeY();
             int siblingBottom = sibling.getRelativeY() + sibling.getHeight();
-            if (siblingTop < minY) {
-                minY = siblingTop;
+            if (siblingTop < min) {
+                min = siblingTop;
             }
-            if (siblingBottom > maxY) {
-                maxY = siblingBottom;
+            if (siblingBottom > max) {
+                max = siblingBottom;
             }
         }
-        return maxY - minY;
+        return max - min;
     }
 
     private void expandWidget(Widget widget, Direction dir, int diff) {

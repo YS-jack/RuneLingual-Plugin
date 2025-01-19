@@ -7,12 +7,13 @@ import com.RuneLingual.commonFunctions.Ids;
 import com.RuneLingual.nonLatin.GeneralFunctions;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetPositionMode;
 import net.runelite.api.widgets.WidgetSizeMode;
 
 import javax.inject.Inject;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class WidgetsUtilRLingual
 {
@@ -184,10 +185,56 @@ public class WidgetsUtilRLingual
 		}
 	}
 
+	public boolean shouldPartiallyTranslate(Widget widget) {
+		return ids.getWidgetId2TranslatePartially().stream().anyMatch(pair -> pair.getLeft() == widget.getId());
+	}
+	public String getEnColVal4PartialTranslation(Widget widget) {
+		int widgetId = widget.getId();
+		for (var pair : ids.getWidgetId2TranslatePartially()) {
+			if (pair.getLeft() == widgetId) {
+				return pair.getRight(); // returns the text to translate, such as "Name: <playerName>"
+			}
+		}
+		return null;
+	}
+	public String translatePartialTranslation(Widget widget, String translatedText, String originalText) {
+		// for widgets like "Name: <playerName>" (found in accounts management tab), where only the part of the text should be translated
+		// order:
+		// originalText = "Name: Durial321", enColVal = "Name: <playerName>"
+		// translatedText = "名前: <playerName>"
+		// get : translatedText = "名前: Durial321"
+		int widgetId = widget.getId();
+		String enColVal = getEnColVal4PartialTranslation(widget);
+		if (enColVal == null) {
+			return translatedText;
+		}
+		// from the originalText and enColVal, get text replaced by tags like <playerName>
+		String replacedText = getReplacedText(originalText, enColVal);
+		if (replacedText.isEmpty()) {
+			return translatedText;
+		}
+		// replace the translation's tag with the replaced text
+		return translatedText.replaceAll("<.*?>", replacedText);
+	}
 
+	public String getReplacedText(String originalText, String enColVal) {
+		// Regular expression to find text within <>
+		Pattern pattern = Pattern.compile("<(.*?)>");
+		Matcher matcher = pattern.matcher(enColVal);
+		String replacedText = "";
+		if (matcher.find()) {
+			String tag = matcher.group(1); // Extract the text within <>
+			String regex = enColVal.replace("<" + tag + ">", "(.*?)");
+			Pattern pattern2 = Pattern.compile(regex);
+			Matcher matcher2 = pattern2.matcher(originalText);
 
-
-
+			if (matcher2.find()) {
+				replacedText = matcher2.group(1); // Extract the replaced text
+				System.out.println("Replaced Text: " + replacedText);
+			}
+		}
+		return replacedText;
+	}
 
 	// set height of line for specified widgets, because they can be too small
 	public void changeLineSize_ifNeeded(Widget widget) {

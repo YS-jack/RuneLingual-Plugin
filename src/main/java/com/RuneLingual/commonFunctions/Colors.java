@@ -34,6 +34,7 @@ public enum Colors {
     red3("6800bf","red"),
     white("ffffff","white"),
     white2("9f9f9f","white"),
+    white3("af6a1a","white"),
     yellow("ffff00", "yellow"),
 
     ;
@@ -97,7 +98,7 @@ public enum Colors {
     }
 
     public static Colors getColorFromHex(String hex) {
-        int[] colorInts = new int[Colors.values().length];//number of colors
+        int[] colorInts = new int[Colors.values().length]; // array of color's value in int instead of string hex
 
         for (int i = 0; i < Colors.values().length;i++) {
             String colName = Colors.values()[i].hex;
@@ -115,18 +116,25 @@ public enum Colors {
         return getColorFromHex(hexString);
     }
 
-    private static int findClosest(int target, int[] numbers) {
+    private static int findClosest(int target, int[] colInInt) {
         if (target == hexToInt("f9f9f9")) {//int for hex 9f9f9f, grey text in settings
             int i;
-            for (i = 1; i < numbers.length; i++)
+            for (i = 1; i < colInInt.length; i++)
                 if (Colors.values()[i] == Colors.white)
                     return i;
             return i;
         } else {
-            int smallestDifference = Math.abs(numbers[0] - target);
             int closestI = 0;
-            for (int i = 1; i < numbers.length; i++) {
-                int currentDifference = Math.abs(numbers[i] - target);
+            int smallestDifference = 256*3;
+            int rValue = (target / 65536) % 256;
+            int gValue = (target / 256) % 256;
+            int bValue = target % 256;
+            for (int i = 1; i < colInInt.length; i++) {
+                int rDif = Math.abs((colInInt[i] / 65536) % 256 - rValue);
+                int gDif = Math.abs((colInInt[i] / 256) % 256 - gValue);
+                int bDif = Math.abs(colInInt[i] % 256 - bValue);
+                int currentDifference = rDif + gDif + bDif;
+
                 if (currentDifference < smallestDifference) {
                     smallestDifference = currentDifference;
                     closestI = i;
@@ -135,6 +143,7 @@ public enum Colors {
             return closestI;
         }
     }
+
     public static String IntToHex(int intColor) {
         String hexString = String.format("%06x",intColor);
 
