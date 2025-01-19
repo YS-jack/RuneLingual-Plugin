@@ -230,13 +230,15 @@ public class WidgetCapture {
 
 
         if (ids.getWidgetId2SplitTextAtBr().contains(widgetId)
-                || ids.getWidgetId2KeepBr().contains(widgetId)) {
+                || ids.getWidgetId2KeepBr().contains(widgetId)
+                || ids.getWidgetId2FixedSize().containsKey(widgetId)) {
             widgetsUtilRLingual.setWidgetText_BrAsIs(widget, translatedText);
         } else {
             widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
         }
-        widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget);
         widgetsUtilRLingual.changeLineSize_ifNeeded(widget);
+        widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget);
+
 
         //below is for debugging
 //            int widgetId = widgetId;

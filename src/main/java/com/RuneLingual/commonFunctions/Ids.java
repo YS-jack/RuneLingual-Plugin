@@ -132,7 +132,7 @@ public class Ids {
         widget2FitTextDict.add(prayerTabHoverTextId, false, true, false, true, false, 3, 3, 3, 3);
 
         // spellbook tab's hover text
-        widget2FitTextDict.add(spellbookTabHoverTextId, true, false, false, true, true, 2, 3, 2, 2);
+        widget2FitTextDict.add(spellbookTabHoverTextId, true, false, false, true, true, 2, 2, 2, 2);
     }
 
 

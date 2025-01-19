@@ -59,6 +59,8 @@ public class Widget2FitTextDict {
         INSIDE,
         OUTSIDE,
         DIAGONAL, // won't need to shift, nor is it inside or outside
+        HORIZONTAL,
+        VERTICAL,
     }
 
     public void add(int widgetId, boolean hasSiblingWidget , boolean fixedTop, boolean fixedBottom, boolean fixedLeft, boolean fixedRight, int topPadding, int bottomPadding, int leftPadding, int rightPadding) {
@@ -112,10 +114,8 @@ public class Widget2FitTextDict {
             //this.plugin.getWidgetsUtilRLingual().changeWidgetWidth(widget, newText, widget2FitText.leftPadding, widget2FitText.rightPadding);
         }
 
-
         if (!widget2FitText.fixedTop || !widget2FitText.fixedBottom) {
             int originalHeight = widget.getHeight();
-            int originalY = widget.getRelativeY();
             int newHeight = getHeightToFit(widget2FitText, newText);
             int heightDiff = newHeight - originalHeight;
             if (originalHeight == newHeight) {
@@ -164,10 +164,6 @@ public class Widget2FitTextDict {
                     int newY = getNewShiftedY(widget, dirToShift, heightDiff); // relative position
                     setWidgetRelativeYPos(widget, newY);
                 }
-//              else if (dirToShift == Direction.BELOW) { // if shifting downwards, just set y to the top padding
-//                    int newY = widget2FitText.topPadding; // relative position
-//                    setWidgetRelativeYPos(widget, newY);
-//                }
 
                 // change parent width/height if needed
                 int siblingYCoverage = getSiblingsYCoverage(childWidgets);
