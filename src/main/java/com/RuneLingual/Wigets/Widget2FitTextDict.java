@@ -143,11 +143,14 @@ public class Widget2FitTextDict {
             } else {
                 // reposition depending on what side is fixed, and resize
                 Direction dirToShift = getVerticalDirToShift(widget2FitText);
-                int newY = getNewShiftedY(widget, dirToShift, heightDiff); // relative position
+
 
                 // shift sibling widgets in that direction
                 List<Widget> childWidgets = getAllChildWidget(widget.getParent());
                 for (Widget sibling : childWidgets) {
+                    if (sibling.equals(widget)) {
+                        continue;
+                    }
                     Direction dir = getDirTowards(widget, sibling);
                     if (dir == dirToShift || dir == Direction.INSIDE) {
                         shiftWidgetY(sibling, heightDiff, dirToShift);
@@ -155,9 +158,16 @@ public class Widget2FitTextDict {
                         expandWidget(sibling, dirToShift, heightDiff);
                     }
                 }
-
+                // set new height for widget
                 setWidgetHeightAbsolute(widget, newHeight);
-                setWidgetRelativeYPos(widget, newY);
+                if (dirToShift == Direction.ABOVE) { // if shifting upwards, shift the widget itself by the height difference
+                    int newY = getNewShiftedY(widget, dirToShift, heightDiff); // relative position
+                    setWidgetRelativeYPos(widget, newY);
+                }
+//              else if (dirToShift == Direction.BELOW) { // if shifting downwards, just set y to the top padding
+//                    int newY = widget2FitText.topPadding; // relative position
+//                    setWidgetRelativeYPos(widget, newY);
+//                }
 
                 // change parent width/height if needed
                 int siblingYCoverage = getSiblingsYCoverage(childWidgets);
@@ -201,24 +211,25 @@ public class Widget2FitTextDict {
 
 
     private Direction getVerticalDirToShift(Widget2FitText widget2FitText) {
-        if (widget2FitText.fixedTop && widget2FitText.fixedBottom) {
+        if (!widget2FitText.fixedTop && !widget2FitText.fixedBottom) {
             // can be difficult to determine which direction to shift, so hard coding
 
             // for spellbook tab hover text
             if (widget2FitText.getWidgetId() == plugin.getIds().getSpellbookTabHoverTextId()){
-                // if the bottom right corner of widget is at the bottom of parent, shift above
+                // if the bottom edge of widget is at the bottom of parent, shift above
                 Widget widget = widget2FitText.getWidget();
                 int parentHeight = widget.getParent().getHeight();
-                if (widget.getRelativeY() + widget.getHeight() > parentHeight * 0.8) {
+                int widgetBottomY = widget.getRelativeY() + widget.getHeight();
+                if (widgetBottomY > parentHeight /2) {
                     return Direction.ABOVE;
                 } else {
                     return Direction.BELOW;// not tested
                 }
             }
             return Direction.OUTSIDE; // shift both ways
-        } else if (widget2FitText.fixedBottom) {
+        } else if (!widget2FitText.fixedBottom) {
             return Direction.BELOW;
-        } else if (widget2FitText.fixedTop) {
+        } else if (!widget2FitText.fixedTop) {
             return Direction.ABOVE;
         }
         return Direction.OUTSIDE;
@@ -308,21 +319,28 @@ public class Widget2FitTextDict {
         int targetBottom = targetWidget.getRelativeY() + targetWidget.getHeight();
         int targetLeft = targetWidget.getRelativeX();
         int targetRight = targetWidget.getRelativeX() + targetWidget.getWidth();
-        if (targetBottom < baseTop && widgetsOverlapHor(baseWidget, targetWidget)) {
+        boolean widgetsOverlapHor = widgetsOverlapHor(baseWidget, targetWidget);
+        boolean widgetsOverlapVer = widgetsOverlapVer(baseWidget, targetWidget);
+
+        int overlapErrorPixels = 4; // widgets inside can be bigger by this amount even for bottom and right edges, even if they appear to be inside
+
+        if (targetBottom - overlapErrorPixels < baseTop && widgetsOverlapHor) {
             return Direction.ABOVE;
-        } else if (targetTop > baseBottom && widgetsOverlapHor(baseWidget, targetWidget)) {
+        } else if (targetTop > baseBottom - overlapErrorPixels && widgetsOverlapHor) {
             return Direction.BELOW;
-        } else if (targetRight < baseLeft && widgetsOverlapVer(baseWidget, targetWidget)) {
+        } else if (targetRight - overlapErrorPixels < baseLeft && widgetsOverlapVer) {
             return Direction.LEFT;
-        } else if (targetLeft > baseRight && widgetsOverlapVer(baseWidget, targetWidget)) {
+        } else if (targetLeft > baseRight - overlapErrorPixels && widgetsOverlapVer) {
             return Direction.RIGHT;
-        } else if (targetTop >= baseTop && targetBottom <= baseBottom && targetLeft >= baseLeft && targetRight <= baseRight) {
-            return Direction.INSIDE;
-        } else if (targetTop < baseTop && targetBottom > baseBottom && targetLeft < baseLeft && targetRight > baseRight) {
-            return Direction.OUTSIDE;
-        } else {
-            return Direction.DIAGONAL;
+        } else if (widgetsOverlapHor && widgetsOverlapVer) {
+            if (isAnyEdgeInside(baseWidget, targetWidget, overlapErrorPixels)) {
+                return Direction.INSIDE;
+            } else if (targetTop <= baseTop && targetBottom >= baseBottom && targetLeft <= baseLeft && targetRight >= baseRight) {
+                return Direction.OUTSIDE;
+            }
         }
+        return Direction.DIAGONAL;
+
     }
 
     private boolean widgetsOverlapHor(Widget w1, Widget w2) {
@@ -330,7 +348,8 @@ public class Widget2FitTextDict {
         int w1Right = w1.getRelativeX() + w1.getWidth();
         int w2Left = w2.getRelativeX();
         int w2Right = w2.getRelativeX() + w2.getWidth();
-        return (w1Left > w2Left && w1Left < w2Right) || (w1Right > w2Left && w1Right < w2Right) || (w1Left < w2Left && w1Right > w2Right);
+        return (w1Left > w2Left && w1Left < w2Right) || (w1Right > w2Left && w1Right < w2Right) || (w1Left < w2Left && w1Right > w2Right)
+            || (w2Left > w1Left && w2Left < w1Right) || (w2Right > w1Left && w2Right < w1Right) || (w2Left < w1Left && w2Right > w1Right);
     }
 
     private boolean widgetsOverlapVer(Widget w1, Widget w2) {
@@ -338,7 +357,8 @@ public class Widget2FitTextDict {
         int w1Bottom = w1.getRelativeY() + w1.getHeight();
         int w2Top = w2.getRelativeY();
         int w2Bottom = w2.getRelativeY() + w2.getHeight();
-        return (w1Top > w2Top && w1Top < w2Bottom) || (w1Bottom > w2Top && w1Bottom < w2Bottom) || (w1Top < w2Top && w1Bottom > w2Bottom);
+        return (w1Top > w2Top && w1Top < w2Bottom) || (w1Bottom > w2Top && w1Bottom < w2Bottom) || (w1Top < w2Top && w1Bottom > w2Bottom)
+            || (w2Top > w1Top && w2Top < w1Bottom) || (w2Bottom > w1Top && w2Bottom < w1Bottom) || (w2Top < w1Top && w2Bottom > w1Bottom);
     }
 
     private int getSiblingsYCoverage(List<Widget> siblings) {
@@ -358,6 +378,9 @@ public class Widget2FitTextDict {
     }
 
     private void expandWidget(Widget widget, Direction dir, int diff) {
+//        if (widget.getType() == 5){ // type 5 seems to be icon sprites
+//            return;
+//        } // todo: remove comment after resolving dirtowards issue
         int originalY = widget.getRelativeY();
         int originalX = widget.getRelativeX();
         int originalHeight = widget.getHeight();
@@ -391,6 +414,42 @@ public class Widget2FitTextDict {
                 .setOriginalHeight(newHeight)
                 .setOriginalWidth(newWidth)
                 .revalidate();
+    }
+
+    private boolean isAnyEdgeInside(Widget baseWgt, Widget targetWgt, int overlapErrorPixels) {
+        return getNumCornerInside(baseWgt, targetWgt, overlapErrorPixels) > 0;
+    }
+
+    private int getNumCornerInside(Widget baseWgt, Widget targetWgt, int overlapErrorPixels) {
+        //** for target bottom and right edges, consider overlapErrorPixels
+        int baseTop = baseWgt.getRelativeY();
+        int baseBottom = baseWgt.getRelativeY() + baseWgt.getHeight();
+        int baseLeft = baseWgt.getRelativeX();
+        int baseRight = baseWgt.getRelativeX() + baseWgt.getWidth();
+        int targetTop = targetWgt.getRelativeY();
+        int targetBottom = targetWgt.getRelativeY() + targetWgt.getHeight() - overlapErrorPixels;
+        int targetLeft = targetWgt.getRelativeX();
+        int targetRight = targetWgt.getRelativeX() + targetWgt.getWidth() - overlapErrorPixels;
+        int count = 0;
+
+        //** top and left edges can be on top of base widget's (so use <= or >= instead of < or >)
+        // target's top left corner is inside base
+        if (targetTop >= baseTop && targetTop < baseBottom && targetLeft >= baseLeft && targetLeft < baseRight) {
+            count++;
+        }
+        // target's top right corner is inside base
+        if (targetTop >= baseTop && targetTop < baseBottom && targetRight > baseLeft && targetRight < baseRight) {
+            count++;
+        }
+        // target's bottom left corner is inside base
+        if (targetBottom > baseTop && targetBottom < baseBottom && targetLeft >= baseLeft && targetLeft < baseRight) {
+            count++;
+        }
+        // target's bottom right corner is inside base
+        if (targetBottom > baseTop && targetBottom < baseBottom && targetRight > baseLeft && targetRight < baseRight) {
+            count++;
+        }
+        return count;
     }
 
     private void shiftWidgetY(Widget widget, int diff, Direction dirToShift) {

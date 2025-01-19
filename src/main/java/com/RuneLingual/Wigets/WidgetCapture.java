@@ -235,8 +235,8 @@ public class WidgetCapture {
         } else {
             widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
         }
-        widgetsUtilRLingual.changeLineSize_ifNeeded(widget);
         widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget);
+        widgetsUtilRLingual.changeLineSize_ifNeeded(widget);
 
         //below is for debugging
 //            int widgetId = widgetId;

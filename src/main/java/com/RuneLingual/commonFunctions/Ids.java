@@ -110,7 +110,8 @@ public class Ids {
     // -> (translated to) "レベル22<br>急激な回復<br>体力の回復速度を<br>２倍にする"
     // -> (set widget text as above)
     private final Set<Integer> widgetId2KeepBr = Set.of(
-            prayerTabHoverTextId
+            prayerTabHoverTextId,
+            spellbookTabHoverTextId
     );
 
     private final Set<Integer> widgetId2SetLineHeight = Set.of(
