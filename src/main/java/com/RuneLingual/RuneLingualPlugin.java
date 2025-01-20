@@ -285,7 +285,7 @@ public class RuneLingualPlugin extends Plugin {
             // download language files and structure language data
             clientToolBar.removeNavigation(navButton);
 
-            if (charImageChanged) {
+            if (charImageChanged && targetLanguage.needsCharImages()) {
                 charImageInit.loadCharImages();
             }
 

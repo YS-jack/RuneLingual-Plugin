@@ -46,6 +46,10 @@ public class WidgetsUtilRLingual
 	public void setWidgetText_NiceBr(Widget widget, String newText) {
 		if (newText.equals(widget.getText())) // the texts will be the same if the widget has already been translated, or doesn't have a translation available
 			return;
+		if (newText.contains("<br>")) {
+			widget.setText(newText);
+			return;
+		}
 
 		if (plugin.getConfig().getSelectedLanguage().needsCharImages())
 			setWidgetText_NiceBr_CharImages(widget, newText);
@@ -121,6 +125,10 @@ public class WidgetsUtilRLingual
 	}
 
 	private void setWidgetText_NiceBr_NoCharImages(Widget widget, String newText) {
+		if (!newText.contains(" ")) { // if there are no spaces, don't insert br
+			widget.setText(newText);
+			return;
+		}
 		// Set the text of the widget, but insert br considering the width of the widget
 		int widgetWidth = widget.getWidth();
 		int foreignWidth = plugin.getConfig().getSelectedLanguage().getCharWidth();
