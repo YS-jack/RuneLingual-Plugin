@@ -191,6 +191,9 @@ public class RuneLingualPlugin extends Plugin {
 
     @Subscribe
     public void onOverheadTextChanged(OverheadTextChanged event) throws Exception {
+        if (targetLanguage == LangCodeSelectableList.ENGLISH) {
+            return;
+        }
         overheadCapture.translateOverhead(event);
     }
 
@@ -222,11 +225,10 @@ public class RuneLingualPlugin extends Plugin {
 
     @Subscribe
     public void onMenuOpened(MenuOpened event) {
+        if (targetLanguage == LangCodeSelectableList.ENGLISH) {
+            return;
+        }
 
-//		MenuEntry[] ev = client.getMenuEntries();
-//		for (MenuEntry e: ev ){
-//			e.setOption(generalFunctions.StringToTags(testString, Colors.fromName("black")));
-//		}
 
         menuCapture.handleOpenedMenu(event);
     }
