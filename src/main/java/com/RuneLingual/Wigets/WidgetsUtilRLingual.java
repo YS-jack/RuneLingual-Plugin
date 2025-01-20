@@ -127,7 +127,7 @@ public class WidgetsUtilRLingual
 		int maxChars = widgetWidth / foreignWidth;
 
 		if(plugin.getConfig().getSelectedLanguage().needsSpaceBetweenWords()) {
-			String[] words = newText.split(" ");
+			String[] words = newText.split("(?=\\s)");
 			StringBuilder newTextBuilder = new StringBuilder();
 			int currentLineLength = 0;
 			for(String word : words) {
