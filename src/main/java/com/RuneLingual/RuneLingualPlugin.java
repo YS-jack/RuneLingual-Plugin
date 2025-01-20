@@ -229,7 +229,6 @@ public class RuneLingualPlugin extends Plugin {
             return;
         }
 
-
         menuCapture.handleOpenedMenu(event);
     }
 
@@ -269,11 +268,14 @@ public class RuneLingualPlugin extends Plugin {
         // if language is changed
         if (targetLanguage != config.getSelectedLanguage()) {
             targetLanguage = config.getSelectedLanguage();
-            initLangFiles();
+            boolean charImageChanged = initLangFiles();
             // todo: change the database URL and the connection to it
             databaseUrl = "jdbc:h2:" + FileNameAndPath.getLocalBaseFolder() + File.separator +
                     targetLanguage.getLangCode() + File.separator + FileNameAndPath.getLocalSQLFileName();
             try {
+                if (conn != null && !conn.isClosed()) {
+                    conn.close(); // Disconnect from the current database
+                }
                 conn = DriverManager.getConnection(databaseUrl);
             } catch (Exception e) {
                 log.error("Error connecting to database: " + databaseUrl);
@@ -282,7 +284,7 @@ public class RuneLingualPlugin extends Plugin {
             }
             // download language files and structure language data
             clientToolBar.removeNavigation(navButton);
-            boolean charImageChanged = initLangFiles();
+
             if (charImageChanged) {
                 charImageInit.loadCharImages();
             }

@@ -42,7 +42,6 @@ public class Downloader {//downloads translations and japanese char images to ex
     }
 
     public boolean initDownloader(String langCodeGiven) {
-        //langCode = langCodeGiven;
         final List<String> extensions_to_download = Arrays.asList("tsv", "zip"); // will download all files with these extensions
         final List<String> file_name_to_download = List.of("char_" + langCode + ".zip",
                 "latin2foreign_" + langCode + ".txt",
