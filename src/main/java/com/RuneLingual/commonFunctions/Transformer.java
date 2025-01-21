@@ -128,12 +128,12 @@ public class Transformer {
                 log.info("the following text doesn't exist in the English column :{}", textWithPlaceholders);
                 log.info("   query = {}", sqlQuery.getSearchQuery());
                 // translatedText = text;
-                return textWithPlaceholders;
+                return null;
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
                     log.info("{} has not been translated yet", textWithPlaceholders);
-                    return textWithPlaceholders;
+                    return null;
 
                 } else { // text has been translated
                     translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
