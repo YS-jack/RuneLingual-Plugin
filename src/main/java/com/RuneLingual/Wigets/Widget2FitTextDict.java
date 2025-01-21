@@ -9,6 +9,7 @@ import net.runelite.api.widgets.WidgetPositionMode;
 import net.runelite.api.widgets.WidgetSizeMode;
 
 import javax.inject.Inject;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -126,6 +127,7 @@ public class Widget2FitTextDict {
         Widget widget = widget2FitText.getWidget();
         int originalSize = (dirNotFixed == notFixedDir.HORIZONTAL) ? widget.getWidth() : widget.getHeight();
         int newSize = (dirNotFixed == notFixedDir.HORIZONTAL) ? getWidthToFit(widget2FitText, newText) :getHeightToFit(widget2FitText, newText);
+        int originalPos = (dirNotFixed == notFixedDir.HORIZONTAL) ? widget.getRelativeX() : widget.getRelativeY();
         int sizeDiff = newSize - originalSize;
         if (originalSize == newSize) {
             return;
@@ -134,32 +136,95 @@ public class Widget2FitTextDict {
 
         // if the widget doesn't have adjacent sibling widgets, make parent + sibling widgets larger/smaller by the same amount
         if (!widget2FitText.hasAdjacentSiblingWidget && widget.getParent() != null) {
+            int originalParentPosition = (dirNotFixed == notFixedDir.HORIZONTAL) ? parentWidget.getRelativeX() : parentWidget.getRelativeY();
+            int originalParentSize = (dirNotFixed == notFixedDir.HORIZONTAL) ? parentWidget.getWidth() : parentWidget.getHeight();
             sizeDiff = newSize - originalSize;
 
-            // set new size for parent
-            if ((dirNotFixed == notFixedDir.HORIZONTAL)) {
+            // set new size and position for parent and widget
+            if (dirNotFixed == notFixedDir.HORIZONTAL) {
+                setWidgetWidthAbsolute(widget, newSize);
                 int newParentSize = parentWidget.getWidth() + sizeDiff;
                 setWidgetWidthAbsolute(parentWidget, newParentSize);
             } else {
+                setWidgetHeightAbsolute(widget, newSize);
                 int newParentSize = parentWidget.getHeight() + sizeDiff;
                 setWidgetHeightAbsolute(parentWidget, newParentSize);
+            }
+
+            // reposition parent and the target widget
+            if (dirNotFixed == notFixedDir.HORIZONTAL) {
+                if (widget2FitText.fixedLeft && widget2FitText.fixedRight) {
+                    int newParentPos = originalParentPosition - sizeDiff / 2;
+                    if (newParentPos < 0) {
+                        newParentPos = 0;
+                    }
+                    setWidgetRelativeXPos(parentWidget, newParentPos);
+                    setWidgetRelativeXPos(widget, originalPos);
+                } else if (widget2FitText.fixedLeft) {
+                    setWidgetRelativeXPos(parentWidget, originalParentPosition);
+                    setWidgetRelativeXPos(widget, originalPos);
+                } else { // if (widget2FitText.fixedRight)
+                    int newParentPos = originalParentPosition - sizeDiff;
+                    if (newParentPos < 0) {
+                        newParentPos = 0;
+                    }
+                    setWidgetRelativeXPos(parentWidget, newParentPos);
+                    setWidgetRelativeXPos(widget, originalPos);
+                }
+            } else {
+                if (widget2FitText.fixedTop && widget2FitText.fixedBottom) {
+                    setWidgetRelativeYPos(parentWidget, originalParentPosition - sizeDiff / 2);
+                    setWidgetRelativeYPos(widget, originalPos);
+                } else if (widget2FitText.fixedTop) {
+                    setWidgetRelativeYPos(parentWidget, originalParentPosition);
+                    setWidgetRelativeYPos(widget, originalPos);
+                } else { // if (widget2FitText.fixedBottom)
+                    setWidgetRelativeYPos(parentWidget, originalParentPosition - sizeDiff);
+                    setWidgetRelativeYPos(widget, originalPos );
+                }
             }
 
             // set new size for sibling widgets
             List<Widget> childWidgets = getAllChildWidget(parentWidget);
             for (Widget sibling : childWidgets) {
                 if (sibling != widget && sibling.getType() == 3) { // 3 seems to be the type for background widgets
+                    int originalSiblingPosition = (dirNotFixed == notFixedDir.HORIZONTAL) ? sibling.getRelativeX() : sibling.getRelativeY();
                     if (dirNotFixed == notFixedDir.HORIZONTAL) {
+                        // set new width for sibling
                         int originalSiblingWidth = sibling.getWidth();
                         int newSiblingWidth = originalSiblingWidth + sizeDiff;
                         setWidgetWidthAbsolute(sibling, newSiblingWidth);
+
+                        // set new position for sibling
+                        if (widget2FitText.fixedLeft && widget2FitText.fixedRight) {
+                            setWidgetRelativeXPos(sibling, originalSiblingPosition);
+                        } else if (widget2FitText.fixedLeft) {
+                            setWidgetRelativeXPos(sibling, originalSiblingPosition);
+                        } else { // if (widget2FitText.fixedRight)
+                            setWidgetRelativeXPos(sibling, originalSiblingPosition);
+                        }
                     } else {
+                        // set new height for sibling
                         int originalSiblingHeight = sibling.getHeight();
                         int newSiblingHeight = originalSiblingHeight + sizeDiff;
                         setWidgetHeightAbsolute(sibling, newSiblingHeight);
+
+                        // set new position for sibling
+                        if (widget2FitText.fixedTop && widget2FitText.fixedBottom) {
+                            setWidgetRelativeYPos(sibling, originalSiblingPosition);
+                        } else if (widget2FitText.fixedTop) {
+                            setWidgetRelativeYPos(sibling, originalSiblingPosition);
+                        } else { // if (widget2FitText.fixedBottom)
+                            setWidgetRelativeYPos(sibling, originalSiblingPosition);
+                        }
                     }
                 }
             }
+
+
+
+
+
         } else {
             // reposition depending on what side is fixed, and resize
             Direction dirToShift = getVerticalDirToShift(widget2FitText);
@@ -222,9 +287,10 @@ public class Widget2FitTextDict {
         if (!plugin.getConfig().getSelectedLanguage().needsCharImages()) {
             for (String line : lines) {
                 if (line.length() > longestLine) {
-                    longestLine = line.length() * plugin.getConfig().getSelectedLanguage().getCharWidth();
+                    longestLine = line.length();
                 }
             }
+            longestLine *= plugin.getConfig().getSelectedLanguage().getCharWidth();
         } else {
             for (String line : lines) {
                 int imgCount = line.split("<img=").length - 1;

@@ -87,7 +87,7 @@ public class Ids {
     private final Set<Integer> widgetIdQuestName = Set.of(
             26148871 // quest name in quest list
     );
-
+    private final int attackStyleHoverTextId = 38862892;
     private final int prayerTabHoverTextId = 35455015;
     private final int spellbookTabHoverTextId = 14287050;
     private final int friendsTabPlayerNameTextId = 28114955;
@@ -134,12 +134,15 @@ public class Ids {
     );
 
     // widget ids to resize to match the text inside it, mostly for hover displays like prayer's hover descriptions
+    // sibling widgets = other widgets under the same parent, which contains text ( and should be type 4)
     private void initWidget2FitTextDict() {
+        // attack style hover text
+        widget2FitTextDict.add(attackStyleHoverTextId, false, true, false, false, false, 3, 3, 2, 2); // spellbook tab's hover text
         // prayer hover text
         widget2FitTextDict.add(prayerTabHoverTextId, false, true, false, true, false, 3, 3, 3, 3);
-
         // spellbook tab's hover text
         widget2FitTextDict.add(spellbookTabHoverTextId, true, false, false, true, true, 2, 2, 2, 2);
+
     }
 
     // widget containing player name in sentence, so cant be completely ignored

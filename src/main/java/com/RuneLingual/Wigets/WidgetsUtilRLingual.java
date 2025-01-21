@@ -163,6 +163,16 @@ public class WidgetsUtilRLingual
 			}
 			newText = newTextBuilder.toString();
 		}
+		// remove the first <br> if it's at the beginning of the text
+		if (newText.matches("^<br>.*")) {
+			newText = newText.substring(4);
+		}
+		// remove the last <br> if it's at the end of the text
+		if (newText.matches(".*<br>$")) {
+			newText = newText.substring(0, newText.length() - 4);
+		}
+		newText = newText.replaceAll("<br><br>", "<br>"); // remove double <br>
+
 		widget.setText(newText);
 	}
 

@@ -2,6 +2,7 @@ package com.RuneLingual;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import net.runelite.api.widgets.Widget;
 
 import javax.inject.Inject;
 
@@ -10,7 +11,7 @@ public enum LangCodeSelectableList
 {
     ENGLISH ("en", "EN","EN", 8, 11, 6, false, false, false, false, true),
     //PORTUGUÊS_BRASILEIRO ("pt_br", "PT","PT-BR", 8, 11, 6, false, false, false, false, true),
-    NORSK("no", "NB", "NB", 8, 11, 6, false, false, false, false, true),
+    NORSK("no", "NB", "NB", 8, 12, 6, false, false, false, false, true),
     日本語("ja", "JA", "JA", 12, 12, 12, true, true, true, true, false);
     // todo: add languages here
 
@@ -70,4 +71,7 @@ public enum LangCodeSelectableList
         return needSpaceBetweenWords;
     }
 
+    public int getCharSize(Widget widget) {
+        return widget.getWidth() / charWidth;
+    }
 }
