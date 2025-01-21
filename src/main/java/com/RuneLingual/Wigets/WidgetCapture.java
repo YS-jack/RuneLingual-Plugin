@@ -234,9 +234,6 @@ public class WidgetCapture {
             return;
         }
 
-
-
-
         if (ids.getWidgetId2SplitTextAtBr().contains(widgetId)
                 || ids.getWidgetId2KeepBr().contains(widgetId)
                 || ids.getWidgetId2FixedSize().containsKey(widgetId)) {
@@ -290,6 +287,7 @@ public class WidgetCapture {
         modifiedText = Colors.removeAllTags(modifiedText);
         return !modifiedText.isEmpty()
                 && !widgetsUtilRLingual.isTranslatedWidget(text)
+                && !pastTranslationResults.contains(text)
                 && modifiedText.matches(".*[a-zA-Z].*")
                 && !plugin.getConfig().getInterfaceTextConfig().equals(RuneLingualConfig.ingameTranslationConfig.DONT_TRANSLATE);
     }
