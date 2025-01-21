@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import static com.RuneLingual.Wigets.WidgetsUtilRLingual.removeBrAndTags;
 import static com.RuneLingual.debug.OutputToFile.appendIfNotExistToFile;
 
 @Slf4j
@@ -194,15 +195,12 @@ public class WidgetCapture {
     private void translateWidgetText(Widget widget, SqlQuery sqlQuery) {
         int widgetId = widget.getId();
         String textToTranslate = getEnglishColValFromWidget(widget);
-        String translatedText;
+        String translatedText = null;
         // for most cases
         if (!ids.getWidgetId2SplitTextAtBr().contains(widgetId)
             && !ids.getWidgetId2KeepBr().contains(widgetId)) {
             translatedText = getTranslationFromQuery(sqlQuery, widget.getText(), textToTranslate);
-            // translation was not available
-            if(Objects.equals(translatedText, textToTranslate)){
-                return;
-            }
+
         } else if (widgetsUtilRLingual.shouldPartiallyTranslate(widget)) {
             // for widgets like "Name: <playerName>" (found in accounts management tab), where only the part of the text should be translated
             // order:
@@ -215,24 +213,39 @@ public class WidgetCapture {
             String[] textList = textToTranslate.split("<br>");
             String[] originalTextList = widget.getText().split("<br>");
             StringBuilder translatedTextBuilder = new StringBuilder();
+
             for (int i = 0; i < textList.length; i++) {
                 String text = textList[i];
                 String originalText = originalTextList[i];
                 String translatedTextPart = getTranslationFromQuery(sqlQuery, originalText, text);
+                if (translatedTextPart == null) {
+                    return;
+                }
                 translatedTextBuilder.append(translatedTextPart);
                 if (i != textList.length - 1) { // if it's not the last line, add <br>
                     translatedTextBuilder.append("<br>");
                 }
             }
+
             translatedText = translatedTextBuilder.toString();
         } else { // if(ids.getWidgetId2KeepBr().contains(widgetId))
             // for widgets that have <br> in the text and should be kept where they are, translate the whole text
             translatedText = getTranslationFromQuery(sqlQuery, widget.getText(), textToTranslate);
         }
-        pastTranslationResults.add(translatedText);
-        if(Objects.equals(translatedText, textToTranslate)){
+
+        // translation was not available
+
+        if(translatedText == null){ // if the translation is the same as the original without <br>
             return;
         }
+        String originalWithoutBr = removeBrAndTags(widget.getText());
+        String translationWithoutBr = removeBrAndTags(translatedText);
+        if(Objects.equals(translatedText, textToTranslate) // if the translation is the same as the original
+                || originalWithoutBr.equals(translationWithoutBr)){ // if the translation is the same as the original without <br>
+            return;
+        }
+
+        pastTranslationResults.add(translatedText);
 
         if (ids.getWidgetId2SplitTextAtBr().contains(widgetId)
                 || ids.getWidgetId2KeepBr().contains(widgetId)

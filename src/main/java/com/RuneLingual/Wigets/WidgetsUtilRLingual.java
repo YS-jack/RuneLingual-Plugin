@@ -12,6 +12,7 @@ import net.runelite.api.widgets.WidgetSizeMode;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,8 +45,10 @@ public class WidgetsUtilRLingual
 	}
 
 	public void setWidgetText_NiceBr(Widget widget, String newText) {
-		if (newText.equals(widget.getText())) // the texts will be the same if the widget has already been translated, or doesn't have a translation available
-			return;
+		if (widget.getId() == 20971547){
+			System.out.println("Total level:<br> 75");
+		}
+
 		if (newText.contains("<br>")) {
 			widget.setText(newText);
 			return;
