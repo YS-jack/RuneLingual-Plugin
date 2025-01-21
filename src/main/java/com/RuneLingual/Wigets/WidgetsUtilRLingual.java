@@ -12,7 +12,6 @@ import net.runelite.api.widgets.WidgetSizeMode;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -134,7 +133,7 @@ public class WidgetsUtilRLingual
 		}
 		// Set the text of the widget, but insert br considering the width of the widget
 		int widgetWidth = widget.getWidth();
-		int foreignWidth = plugin.getConfig().getSelectedLanguage().getCharWidth();
+		int foreignWidth = LangCodeSelectableList.getLatinCharWidth(widget, plugin.getConfig().getSelectedLanguage());
 		int maxChars = widgetWidth / foreignWidth;
 
 		if(plugin.getConfig().getSelectedLanguage().needsSpaceBetweenWords()) {

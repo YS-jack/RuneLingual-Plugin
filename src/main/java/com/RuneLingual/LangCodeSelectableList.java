@@ -71,7 +71,20 @@ public enum LangCodeSelectableList
         return needSpaceBetweenWords;
     }
 
-    public int getCharSize(Widget widget) {
-        return widget.getWidth() / charWidth;
+    public static int getLatinCharWidth(Widget widget, LangCodeSelectableList langCode) {
+        /*
+        494: 5 px
+        495: 6 px
+        496: 7 px
+        */
+        int fontId = widget.getFontId();
+        if (fontId == 494) {
+            return 5;
+        } else if (fontId == 495) {
+            return 6;
+        } else if (fontId == 496) {
+            return 7;
+        }
+        return langCode.getCharWidth();
     }
 }

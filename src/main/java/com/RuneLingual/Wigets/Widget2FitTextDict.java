@@ -282,6 +282,7 @@ public class Widget2FitTextDict {
     private int getWidthToFit(Widget2FitText widget2FitText, String newText) {
         // get the longest line, multiply by the width of selected language's character
         int longestLine = 0;
+
         String[] lines = newText.split("<br>");
         // count the number of characters, but if its char images, count the number of <img> tags, else
         if (!plugin.getConfig().getSelectedLanguage().needsCharImages()) {
@@ -290,7 +291,8 @@ public class Widget2FitTextDict {
                     longestLine = line.length();
                 }
             }
-            longestLine *= plugin.getConfig().getSelectedLanguage().getCharWidth();
+            int latinCharWidth = LangCodeSelectableList.getLatinCharWidth(widget2FitText.getWidget(), plugin.getConfig().getSelectedLanguage());
+            longestLine *= latinCharWidth;
         } else {
             for (String line : lines) {
                 int imgCount = line.split("<img=").length - 1;
