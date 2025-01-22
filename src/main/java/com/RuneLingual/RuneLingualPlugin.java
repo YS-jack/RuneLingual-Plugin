@@ -5,7 +5,7 @@ import com.RuneLingual.ChatMessages.*;
 import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
-import com.RuneLingual.Wigets.Widget2FitTextDict;
+import com.RuneLingual.Wigets.Widget2ModDict;
 import com.RuneLingual.Wigets.WidgetCapture;
 import com.RuneLingual.Wigets.WidgetsUtilRLingual;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
@@ -125,7 +125,7 @@ public class RuneLingualPlugin extends Plugin {
     private Ids ids;
     @Inject
     @Getter
-    private Widget2FitTextDict widget2FitTextDict;
+    private Widget2ModDict widget2ModDict;
     @Inject
     @Getter
     private WidgetsUtilRLingual widgetsUtilRLingual;

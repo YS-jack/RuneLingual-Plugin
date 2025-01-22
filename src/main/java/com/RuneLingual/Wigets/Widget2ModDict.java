@@ -9,23 +9,22 @@ import net.runelite.api.widgets.WidgetPositionMode;
 import net.runelite.api.widgets.WidgetSizeMode;
 
 import javax.inject.Inject;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter @Setter
-public class Widget2FitTextDict {
-    private List<Widget2FitText> widgets2FitText = new ArrayList<>();
+public class Widget2ModDict {
+    private List<Widget2Mod> widgets2Mod = new ArrayList<>();
     @Inject
     private RuneLingualPlugin plugin;
 
     @Inject
-    public Widget2FitTextDict(RuneLingualPlugin plugin) {
+    public Widget2ModDict(RuneLingualPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Getter @Setter
-    public static class Widget2FitText {
+    public static class Widget2Mod {
         private Widget widget;
         private final int widgetId;
         private final boolean hasAdjacentSiblingWidget;
@@ -38,7 +37,7 @@ public class Widget2FitTextDict {
         private final int leftPadding;
         private final int rightPadding;
 
-        public Widget2FitText(int widgetId, boolean hasAdjacentSiblingWidget, boolean fixedTop, boolean fixedBottom, boolean fixedLeft, boolean fixedRight, int topPadding, int bottomPadding, int leftPadding, int rightPadding){
+        public Widget2Mod(int widgetId, boolean hasAdjacentSiblingWidget, boolean fixedTop, boolean fixedBottom, boolean fixedLeft, boolean fixedRight, int topPadding, int bottomPadding, int leftPadding, int rightPadding){
             this.widgetId = widgetId;
             this.hasAdjacentSiblingWidget = hasAdjacentSiblingWidget;
             this.fixedTop = fixedTop;
@@ -70,22 +69,22 @@ public class Widget2FitTextDict {
     }
 
     public void add(int widgetId, boolean hasSiblingWidget , boolean fixedTop, boolean fixedBottom, boolean fixedLeft, boolean fixedRight, int topPadding, int bottomPadding, int leftPadding, int rightPadding) {
-        Widget2FitText widget2FitText = new Widget2FitText(widgetId, hasSiblingWidget, fixedTop, fixedBottom, fixedLeft, fixedRight, topPadding, bottomPadding, leftPadding, rightPadding);
-        widgets2FitText.add(widget2FitText);
+        Widget2Mod widget2Mod = new Widget2Mod(widgetId, hasSiblingWidget, fixedTop, fixedBottom, fixedLeft, fixedRight, topPadding, bottomPadding, leftPadding, rightPadding);
+        widgets2Mod.add(widget2Mod);
     }
     private boolean contains(int widgetId) {
-        for (Widget2FitText widget2FitText : widgets2FitText) {
-            if (widget2FitText.getWidgetId() == widgetId) {
+        for (Widget2Mod widget2Mod : widgets2Mod) {
+            if (widget2Mod.getWidgetId() == widgetId) {
                 return true;
             }
         }
         return false;
     }
 
-    public Widget2FitText getWidgets2FitText(int widgetId) {
-        for (Widget2FitText widget2FitText : widgets2FitText) {
-            if (widget2FitText.getWidgetId() == widgetId) {
-                return widget2FitText;
+    public Widget2Mod getWidgets2Mod(int widgetId) {
+        for (Widget2Mod widget2Mod : widgets2Mod) {
+            if (widget2Mod.getWidgetId() == widgetId) {
+                return widget2Mod;
             }
         }
         return null;
@@ -102,17 +101,17 @@ public class Widget2FitTextDict {
 
     public void resizeWidget(Widget widget, String newText) {
         int widgetId = widget.getId();
-        Widget2FitText widget2FitText = getWidgets2FitText(widgetId);
-        if (widget2FitText == null) {
+        Widget2Mod widget2Mod = getWidgets2Mod(widgetId);
+        if (widget2Mod == null) {
             return;
         }
-        widget2FitText.setWidget(widget);
+        widget2Mod.setWidget(widget);
 
-        if (!widget2FitText.fixedLeft || !widget2FitText.fixedRight) {
-            fitWidgetInDirection(widget2FitText, newText, notFixedDir.HORIZONTAL);
+        if (!widget2Mod.fixedLeft || !widget2Mod.fixedRight) {
+            fitWidgetInDirection(widget2Mod, newText, notFixedDir.HORIZONTAL);
         }
-        if (!widget2FitText.fixedTop || !widget2FitText.fixedBottom) {
-            fitWidgetInDirection(widget2FitText, newText, notFixedDir.VERTICAL);
+        if (!widget2Mod.fixedTop || !widget2Mod.fixedBottom) {
+            fitWidgetInDirection(widget2Mod, newText, notFixedDir.VERTICAL);
         }
     }
 
@@ -123,10 +122,10 @@ public class Widget2FitTextDict {
     // shift sibling widgets in that direction
     // change parent width/height if needed
     // revalidate widgets
-    private void fitWidgetInDirection(Widget2FitText widget2FitText, String newText, notFixedDir dirNotFixed) {
-        Widget widget = widget2FitText.getWidget();
+    private void fitWidgetInDirection(Widget2Mod widget2Mod, String newText, notFixedDir dirNotFixed) {
+        Widget widget = widget2Mod.getWidget();
         int originalSize = (dirNotFixed == notFixedDir.HORIZONTAL) ? widget.getWidth() : widget.getHeight();
-        int newSize = (dirNotFixed == notFixedDir.HORIZONTAL) ? getWidthToFit(widget2FitText, newText) :getHeightToFit(widget2FitText, newText);
+        int newSize = (dirNotFixed == notFixedDir.HORIZONTAL) ? getWidthToFit(widget2Mod, newText) :getHeightToFit(widget2Mod, newText);
         int originalPos = (dirNotFixed == notFixedDir.HORIZONTAL) ? widget.getRelativeX() : widget.getRelativeY();
         int sizeDiff = newSize - originalSize;
         if (originalSize == newSize) {
@@ -135,35 +134,33 @@ public class Widget2FitTextDict {
         Widget parentWidget = widget.getParent();
 
         // if the widget doesn't have adjacent sibling widgets, make parent + sibling widgets larger/smaller by the same amount
-        if (!widget2FitText.hasAdjacentSiblingWidget && widget.getParent() != null) {
+        if (!widget2Mod.hasAdjacentSiblingWidget && widget.getParent() != null) {
             int originalParentPosition = (dirNotFixed == notFixedDir.HORIZONTAL) ? parentWidget.getRelativeX() : parentWidget.getRelativeY();
             int originalParentSize = (dirNotFixed == notFixedDir.HORIZONTAL) ? parentWidget.getWidth() : parentWidget.getHeight();
-            sizeDiff = newSize - originalSize;
-
+            int newParentSize = originalParentSize + sizeDiff;
             // set new size and position for parent and widget
             if (dirNotFixed == notFixedDir.HORIZONTAL) {
                 setWidgetWidthAbsolute(widget, newSize);
-                int newParentSize = parentWidget.getWidth() + sizeDiff;
+
                 setWidgetWidthAbsolute(parentWidget, newParentSize);
             } else {
                 setWidgetHeightAbsolute(widget, newSize);
-                int newParentSize = parentWidget.getHeight() + sizeDiff;
                 setWidgetHeightAbsolute(parentWidget, newParentSize);
             }
 
             // reposition parent and the target widget
             if (dirNotFixed == notFixedDir.HORIZONTAL) {
-                if (widget2FitText.fixedLeft && widget2FitText.fixedRight) {
+                if (widget2Mod.fixedLeft && widget2Mod.fixedRight) {
                     int newParentPos = originalParentPosition - sizeDiff / 2;
                     if (newParentPos < 0) {
                         newParentPos = 0;
                     }
                     setWidgetRelativeXPos(parentWidget, newParentPos);
                     setWidgetRelativeXPos(widget, originalPos);
-                } else if (widget2FitText.fixedLeft) {
+                } else if (widget2Mod.fixedLeft) {
                     setWidgetRelativeXPos(parentWidget, originalParentPosition);
                     setWidgetRelativeXPos(widget, originalPos);
-                } else { // if (widget2FitText.fixedRight)
+                } else { // if (widget2Mod.fixedRight)
                     int newParentPos = originalParentPosition - sizeDiff;
                     if (newParentPos < 0) {
                         newParentPos = 0;
@@ -172,13 +169,13 @@ public class Widget2FitTextDict {
                     setWidgetRelativeXPos(widget, originalPos);
                 }
             } else {
-                if (widget2FitText.fixedTop && widget2FitText.fixedBottom) {
+                if (widget2Mod.fixedTop && widget2Mod.fixedBottom) {
                     setWidgetRelativeYPos(parentWidget, originalParentPosition - sizeDiff / 2);
                     setWidgetRelativeYPos(widget, originalPos);
-                } else if (widget2FitText.fixedTop) {
+                } else if (widget2Mod.fixedTop) {
                     setWidgetRelativeYPos(parentWidget, originalParentPosition);
                     setWidgetRelativeYPos(widget, originalPos);
-                } else { // if (widget2FitText.fixedBottom)
+                } else { // if (widget2Mod.fixedBottom)
                     setWidgetRelativeYPos(parentWidget, originalParentPosition - sizeDiff);
                     setWidgetRelativeYPos(widget, originalPos );
                 }
@@ -196,11 +193,11 @@ public class Widget2FitTextDict {
                         setWidgetWidthAbsolute(sibling, newSiblingWidth);
 
                         // set new position for sibling
-                        if (widget2FitText.fixedLeft && widget2FitText.fixedRight) {
+                        if (widget2Mod.fixedLeft && widget2Mod.fixedRight) {
                             setWidgetRelativeXPos(sibling, originalSiblingPosition);
-                        } else if (widget2FitText.fixedLeft) {
+                        } else if (widget2Mod.fixedLeft) {
                             setWidgetRelativeXPos(sibling, originalSiblingPosition);
-                        } else { // if (widget2FitText.fixedRight)
+                        } else { // if (widget2Mod.fixedRight)
                             setWidgetRelativeXPos(sibling, originalSiblingPosition);
                         }
                     } else {
@@ -210,11 +207,11 @@ public class Widget2FitTextDict {
                         setWidgetHeightAbsolute(sibling, newSiblingHeight);
 
                         // set new position for sibling
-                        if (widget2FitText.fixedTop && widget2FitText.fixedBottom) {
+                        if (widget2Mod.fixedTop && widget2Mod.fixedBottom) {
                             setWidgetRelativeYPos(sibling, originalSiblingPosition);
-                        } else if (widget2FitText.fixedTop) {
+                        } else if (widget2Mod.fixedTop) {
                             setWidgetRelativeYPos(sibling, originalSiblingPosition);
-                        } else { // if (widget2FitText.fixedBottom)
+                        } else { // if (widget2Mod.fixedBottom)
                             setWidgetRelativeYPos(sibling, originalSiblingPosition);
                         }
                     }
@@ -227,7 +224,7 @@ public class Widget2FitTextDict {
 
         } else {
             // reposition depending on what side is fixed, and resize
-            Direction dirToShift = getVerticalDirToShift(widget2FitText);
+            Direction dirToShift = getVerticalDirToShift(widget2Mod);
 
             // shift sibling widgets in that direction
             List<Widget> childWidgets = getAllChildWidget(widget.getParent());
@@ -273,13 +270,13 @@ public class Widget2FitTextDict {
     }
 
 
-    private int getHeightToFit(Widget2FitText widget2FitText, String newText) {
+    private int getHeightToFit(Widget2Mod widget2Mod, String newText) {
         int lineHeight = plugin.getConfig().getSelectedLanguage().getCharHeight();
         int numLines = newText.split("<br>").length;
-        return lineHeight * numLines + widget2FitText.topPadding + widget2FitText.bottomPadding;
+        return lineHeight * numLines + widget2Mod.topPadding + widget2Mod.bottomPadding;
     }
 
-    private int getWidthToFit(Widget2FitText widget2FitText, String newText) {
+    private int getWidthToFit(Widget2Mod widget2Mod, String newText) {
         // get the longest line, multiply by the width of selected language's character
         int longestLine = 0;
 
@@ -291,7 +288,7 @@ public class Widget2FitTextDict {
                     longestLine = line.length();
                 }
             }
-            int latinCharWidth = LangCodeSelectableList.getLatinCharWidth(widget2FitText.getWidget(), plugin.getConfig().getSelectedLanguage());
+            int latinCharWidth = LangCodeSelectableList.getLatinCharWidth(widget2Mod.getWidget(), plugin.getConfig().getSelectedLanguage());
             longestLine *= latinCharWidth;
         } else {
             for (String line : lines) {
@@ -304,7 +301,7 @@ public class Widget2FitTextDict {
                 }
             }
         }
-        return longestLine + widget2FitText.leftPadding + widget2FitText.rightPadding;
+        return longestLine + widget2Mod.leftPadding + widget2Mod.rightPadding;
     }
 
     private void setWidgetWidthAbsolute(Widget widget, int width) {
@@ -331,14 +328,14 @@ public class Widget2FitTextDict {
     }
 
 
-    private Direction getVerticalDirToShift(Widget2FitText widget2FitText) {
-        if (!widget2FitText.fixedTop && !widget2FitText.fixedBottom) {
+    private Direction getVerticalDirToShift(Widget2Mod widget2Mod) {
+        if (!widget2Mod.fixedTop && !widget2Mod.fixedBottom) {
             // can be difficult to determine which direction to shift, so hard coding
 
             // for spellbook tab hover text
-            if (widget2FitText.getWidgetId() == plugin.getIds().getSpellbookTabHoverTextId()){
+            if (widget2Mod.getWidgetId() == plugin.getIds().getSpellbookTabHoverTextId()){
                 // if the bottom edge of widget is at the bottom of parent, shift above
-                Widget widget = widget2FitText.getWidget();
+                Widget widget = widget2Mod.getWidget();
                 int parentHeight = widget.getParent().getHeight();
                 int widgetBottomY = widget.getRelativeY() + widget.getHeight();
                 if (widgetBottomY > parentHeight /2) {
@@ -348,13 +345,13 @@ public class Widget2FitTextDict {
                 }
             }
             return Direction.OUTSIDE; // shift both ways
-        } else if (!widget2FitText.fixedBottom) {
+        } else if (!widget2Mod.fixedBottom) {
             return Direction.BELOW;
-        } else if (!widget2FitText.fixedTop) {
+        } else if (!widget2Mod.fixedTop) {
             return Direction.ABOVE;
-        } else if (!widget2FitText.fixedLeft) {
+        } else if (!widget2Mod.fixedLeft) {
             return Direction.LEFT;
-        } else if (!widget2FitText.fixedRight) {
+        } else if (!widget2Mod.fixedRight) {
             return Direction.RIGHT;
         }
         return Direction.OUTSIDE;
@@ -408,31 +405,6 @@ public class Widget2FitTextDict {
         childWidgets.addAll(List.of(widget.getStaticChildren()));
         childWidgets.addAll(List.of(widget.getNestedChildren()));
         return childWidgets;
-    }
-
-    // returns true if sibling is in the direction of widget and would overlap if widget moved in that direction
-    private boolean isInDirection(Widget sibling, Widget widget, Direction dir) {
-        int siblingTop = sibling.getRelativeY();
-        int siblingBottom = sibling.getRelativeY() + sibling.getHeight();
-        int siblingLeft = sibling.getRelativeX();
-        int siblingRight = sibling.getRelativeX() + sibling.getWidth();
-        int widgetTop = widget.getRelativeY();
-        int widgetBottom = widget.getRelativeY() + widget.getHeight();
-        int widgetLeft = widget.getRelativeX();
-        int widgetRight = widget.getRelativeX() + widget.getWidth();
-
-        switch (dir) {
-            case ABOVE:
-                return siblingBottom < widgetTop && widgetsOverlapHor(sibling, widget);
-            case BELOW:
-                return siblingTop > widgetBottom && widgetsOverlapHor(sibling, widget);
-            case RIGHT:
-                return siblingLeft > widgetRight && widgetsOverlapVer(sibling, widget);
-            case LEFT:
-                return siblingRight < widgetLeft && widgetsOverlapVer(sibling, widget);
-            default:
-                return false;
-        }
     }
 
     private Direction getDirTowards(Widget baseWidget, Widget targetWidget) {

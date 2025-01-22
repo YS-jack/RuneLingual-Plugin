@@ -1,6 +1,6 @@
 package com.RuneLingual.commonFunctions;
 
-import com.RuneLingual.Wigets.Widget2FitTextDict;
+import com.RuneLingual.Wigets.Widget2ModDict;
 import lombok.Getter;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,14 +23,14 @@ public class Ids {
     @Inject
     Client client;
     @Getter
-    private Widget2FitTextDict widget2FitTextDict;
+    private Widget2ModDict widget2ModDict;
 
     @Inject
-    public Ids(RuneLingualPlugin plugin, Widget2FitTextDict widget2FitTextDict) {
+    public Ids(RuneLingualPlugin plugin, Widget2ModDict widget2ModDict) {
         this.plugin = plugin;
         this.client = plugin.getClient();
-        this.widget2FitTextDict = widget2FitTextDict;
-        initWidget2FitTextDict();
+        this.widget2ModDict = widget2ModDict;
+        initWidget2ModDict();
     }
 
     // Ids of widgets
@@ -94,6 +94,8 @@ public class Ids {
     private final int playerNameInAccManTab = 7143468;
     private final int addFriendButtonId = 28114959;
     private final int removeFriendButtonId = 28114961;
+    private final int skillsTabXpHoverTextId = 20971548;
+    private final int xpBarTopRightHoverTextId = 7995417;
 
     // for English transcript to be split at <br> tags and added to the transcript
     // will reduce the number of translations needed
@@ -104,8 +106,8 @@ public class Ids {
     // -> (translated to) "運動神経XP", "次レベル開始：", "残りXP："
     // -> (combine and set widget text as) "運動神経XP:<br>次レベル開始：<br>残りXP："
     private final Set<Integer> widgetId2SplitTextAtBr = Set.of(
-            20971548, // skill tab's xp hover display
-            7995417 // hover display of xp bar top right
+            skillsTabXpHoverTextId, // skill tab's xp hover display
+            xpBarTopRightHoverTextId // hover display of xp bar top right
     );
 
     // for English transcript to be kept as is
@@ -135,13 +137,11 @@ public class Ids {
 
     // widget ids to resize to match the text inside it, mostly for hover displays like prayer's hover descriptions
     // sibling widgets = other widgets under the same parent, which contains text ( and should be type 4)
-    private void initWidget2FitTextDict() {
-        // attack style hover text
-        widget2FitTextDict.add(attackStyleHoverTextId, false, true, false, false, false, 3, 3, 2, 2); // spellbook tab's hover text
-        // prayer hover text
-        widget2FitTextDict.add(prayerTabHoverTextId, false, true, false, true, false, 3, 3, 3, 3);
-        // spellbook tab's hover text
-        widget2FitTextDict.add(spellbookTabHoverTextId, true, false, false, true, true, 2, 2, 2, 2);
+    private void initWidget2ModDict() {
+        widget2ModDict.add(attackStyleHoverTextId, false, true, false, false, false, 3, 3, 2, 2); // spellbook tab's hover text
+        widget2ModDict.add(skillsTabXpHoverTextId, true, true, false, false, false, 3, 3, 3, 3); // skill tab's xp hover display
+        widget2ModDict.add(prayerTabHoverTextId, false, true, false, true, false, 3, 3, 3, 3);
+        widget2ModDict.add(spellbookTabHoverTextId, true, false, false, true, true, 2, 2, 2, 2);
 
     }
 

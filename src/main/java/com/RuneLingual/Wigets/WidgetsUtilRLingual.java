@@ -145,6 +145,10 @@ public class WidgetsUtilRLingual
 					newTextBuilder.append("<br>");
 					currentLineLength = 0;
 				}
+				if (currentLineLength == 0 && word.charAt(0) == ' ') {
+					// remove space from the beginning of the word
+					word = word.replaceFirst(" ", "");
+				}
 				newTextBuilder.append(word);
 				currentLineLength += word.length();
 			}
@@ -189,7 +193,7 @@ public class WidgetsUtilRLingual
 		String translatedText = widget.getText();
 
 		//	resize widget if needed, dynamically depending on text length
-		ids.getWidget2FitTextDict().resizeWidgetIfNeeded(widget, translatedText);
+		ids.getWidget2ModDict().resizeWidgetIfNeeded(widget, translatedText);
 
 		// resize widget to fixed size, as defined in ids.getWidgetId2ChangeSize()
 		if (ids.getWidgetId2FixedSize().containsKey(widgetId)) {// if is set to change to fixed size
