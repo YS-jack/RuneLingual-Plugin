@@ -138,10 +138,10 @@ public class Ids {
     // widget ids to resize to match the text inside it, mostly for hover displays like prayer's hover descriptions
     // sibling widgets = other widgets under the same parent, which contains text ( and should be type 4)
     private void initWidget2ModDict() {
-        widget2ModDict.add(attackStyleHoverTextId, false, true, false, false, false, 3, 3, 2, 2); // spellbook tab's hover text
-        widget2ModDict.add(skillsTabXpHoverTextId, true, true, false, false, false, 3, 3, 3, 3); // skill tab's xp hover display
-        widget2ModDict.add(prayerTabHoverTextId, false, true, false, true, false, 3, 3, 3, 3);
-        widget2ModDict.add(spellbookTabHoverTextId, true, false, false, true, true, 2, 2, 2, 2);
+        widget2ModDict.add(attackStyleHoverTextId, 4, false, true, false, false, false, 1, 3, 2, 2); // spellbook tab's hover text
+        widget2ModDict.add(skillsTabXpHoverTextId, 4, true, false, false, false, false, 3, 3, 3, 3); // skill tab's xp hover display
+        widget2ModDict.add(prayerTabHoverTextId, 4,false, true, false, true, false, 3, 3, 3, 3);
+        widget2ModDict.add(spellbookTabHoverTextId, 4,true, false, false, true, true, 2, 2, 2, 2);
 
     }
 

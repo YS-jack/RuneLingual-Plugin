@@ -26,6 +26,7 @@ public class Widget2ModDict {
     @Getter @Setter
     public static class Widget2Mod {
         private Widget widget;
+        private final int errorPixels;
         private final int widgetId;
         private final boolean hasAdjacentSiblingWidget;
         private final boolean fixedTop;
@@ -37,8 +38,9 @@ public class Widget2ModDict {
         private final int leftPadding;
         private final int rightPadding;
 
-        public Widget2Mod(int widgetId, boolean hasAdjacentSiblingWidget, boolean fixedTop, boolean fixedBottom, boolean fixedLeft, boolean fixedRight, int topPadding, int bottomPadding, int leftPadding, int rightPadding){
+        public Widget2Mod(int widgetId, int errorPixels, boolean hasAdjacentSiblingWidget, boolean fixedTop, boolean fixedBottom, boolean fixedLeft, boolean fixedRight, int topPadding, int bottomPadding, int leftPadding, int rightPadding){
             this.widgetId = widgetId;
+            this.errorPixels = errorPixels;
             this.hasAdjacentSiblingWidget = hasAdjacentSiblingWidget;
             this.fixedTop = fixedTop;
             this.fixedBottom = fixedBottom;
@@ -60,6 +62,7 @@ public class Widget2ModDict {
         INSIDE,
         OUTSIDE,
         DIAGONAL, // won't need to shift, nor is it inside or outside
+        ALMOST_SAME // for widgets that are almost the same size and position, +/- the error pixels
 
     }
 
@@ -68,8 +71,8 @@ public class Widget2ModDict {
         VERTICAL,
     }
 
-    public void add(int widgetId, boolean hasSiblingWidget , boolean fixedTop, boolean fixedBottom, boolean fixedLeft, boolean fixedRight, int topPadding, int bottomPadding, int leftPadding, int rightPadding) {
-        Widget2Mod widget2Mod = new Widget2Mod(widgetId, hasSiblingWidget, fixedTop, fixedBottom, fixedLeft, fixedRight, topPadding, bottomPadding, leftPadding, rightPadding);
+    public void add(int widgetId, int errorPixels, boolean hasSiblingWidget , boolean fixedTop, boolean fixedBottom, boolean fixedLeft, boolean fixedRight, int topPadding, int bottomPadding, int leftPadding, int rightPadding) {
+        Widget2Mod widget2Mod = new Widget2Mod(widgetId, errorPixels, hasSiblingWidget, fixedTop, fixedBottom, fixedLeft, fixedRight, topPadding, bottomPadding, leftPadding, rightPadding);
         widgets2Mod.add(widget2Mod);
     }
     private boolean contains(int widgetId) {
@@ -125,12 +128,12 @@ public class Widget2ModDict {
     private void fitWidgetInDirection(Widget2Mod widget2Mod, String newText, notFixedDir dirNotFixed) {
         Widget widget = widget2Mod.getWidget();
         int originalSize = (dirNotFixed == notFixedDir.HORIZONTAL) ? widget.getWidth() : widget.getHeight();
-        int newSize = (dirNotFixed == notFixedDir.HORIZONTAL) ? getWidthToFit(widget2Mod, newText) :getHeightToFit(widget2Mod, newText);
+        int newSize = (dirNotFixed == notFixedDir.HORIZONTAL) ? getWidthToFit(widget2Mod, widget2Mod.widget, newText) :getHeightToFit(widget2Mod, newText);
         int originalPos = (dirNotFixed == notFixedDir.HORIZONTAL) ? widget.getRelativeX() : widget.getRelativeY();
         int sizeDiff = newSize - originalSize;
-        if (originalSize == newSize) {
-            return;
-        }
+//        if (originalSize == newSize) {
+//            return;
+//        }
         Widget parentWidget = widget.getParent();
 
         // if the widget doesn't have adjacent sibling widgets, make parent + sibling widgets larger/smaller by the same amount
@@ -218,57 +221,114 @@ public class Widget2ModDict {
                 }
             }
 
-
-
-
-
         } else {
-            // reposition depending on what side is fixed, and resize
-            Direction dirToShift = getVerticalDirToShift(widget2Mod);
-
-            // shift sibling widgets in that direction
             List<Widget> childWidgets = getAllChildWidget(widget.getParent());
+            // update size in cases like the xp hover text in skills tab, where the widget is in the same row as the sibling
+            // in this case even though the sibling widget is ALMOST_SAME, the sibling widget text's width + widget's text width should be the new size,
+            // instead of expanding the sibling widget to fit the widget's size
+            if (dirNotFixed == notFixedDir.HORIZONTAL) {
+                newSize += getAdjacentTextSiblingSize(childWidgets, widget, dirNotFixed, widget2Mod);
+                sizeDiff = newSize - originalSize;
+            }
+            // reposition depending on what side is fixed, and resize
+            Direction dirToShift = getDirToShift(widget2Mod, dirNotFixed);
+            // shift sibling widgets in that direction
             for (Widget sibling : childWidgets) {
                 if (sibling.equals(widget)) {
                     continue;
                 }
-                Direction dir = getDirTowards(widget, sibling);
-                if (dir == dirToShift || dir == Direction.INSIDE) {
-                    shiftWidgetY(sibling, sizeDiff, dirToShift);
-                } else if (dir == Direction.OUTSIDE) {
-                    expandWidget(sibling, dirToShift, sizeDiff);
+                Direction dir = getDirTowards(widget, sibling, widget2Mod);
+                if (dir == dirToShift) {
+                    shiftWidget(sibling, sizeDiff, dirToShift);
+                } else if (dir == Direction.OUTSIDE || dir == Direction.INSIDE || dir == Direction.ALMOST_SAME) {
+                    moveAndExpandWidget(sibling, dirToShift, sizeDiff);
                 }
             }
-
-            // set new height for widget
+            originalPos = widget.getRelativeX();
+//             resize and reposition the target widget
             if (dirNotFixed == notFixedDir.HORIZONTAL) {
                 setWidgetWidthAbsolute(widget, newSize);
-                if (dirToShift == Direction.LEFT) { // if shifting upwards, shift the widget itself by the height difference
-                    int newX = getNewShiftedX(widget, dirToShift, sizeDiff); // relative position
-                    setWidgetRelativeXPos(widget, newX);
+                if (dirToShift == Direction.LEFT) { // if shifting left, shift the widget itself by the difference
+                    originalPos = getNewShiftedPos(originalPos, dirToShift, sizeDiff); // relative position
                 }
+                setWidgetRelativeXPos(widget, originalPos);
             } else {
                 setWidgetHeightAbsolute(widget, newSize);
-                if (dirToShift == Direction.ABOVE) { // if shifting upwards, shift the widget itself by the height difference
-                    int newY = getNewShiftedY(widget, dirToShift, sizeDiff); // relative position
-                    setWidgetRelativeYPos(widget, newY);
+                if (dirToShift == Direction.ABOVE) { // if shifting upwards, shift the widget itself by the difference
+                    originalPos = getNewShiftedPos(originalPos, dirToShift, sizeDiff); // relative position
                 }
+                setWidgetRelativeYPos(widget, originalPos);
             }
 
+
             // change parent width/height if needed
+            int originalParentPosition = (dirNotFixed == notFixedDir.HORIZONTAL) ? parentWidget.getRelativeX() : parentWidget.getRelativeY();
             int siblingCoverage = getSiblingsCoverage(childWidgets, dirNotFixed);
             int parentCoverage = (dirNotFixed == notFixedDir.HORIZONTAL) ? parentWidget.getWidth() : parentWidget.getHeight();
             if (parentCoverage < siblingCoverage) {
                 if (dirNotFixed == notFixedDir.HORIZONTAL) {
+                    if (dirToShift == Direction.LEFT) {
+                        int newParentX = originalParentPosition - sizeDiff;
+                        setWidgetRelativeXPos(parentWidget, newParentX);
+                    }
                     setWidgetWidthAbsolute(parentWidget, siblingCoverage);
+
                 } else {
+                    if (dirToShift == Direction.ABOVE) {
+                        int newParentY = originalParentPosition - sizeDiff;
+                        setWidgetRelativeYPos(parentWidget, newParentY);
+                    }
                     setWidgetHeightAbsolute(parentWidget, siblingCoverage);
                 }
-            }
 
+            }
+            // if any of the parent's corners are outside the parent, shift the parent
+            if (dirNotFixed == notFixedDir.HORIZONTAL) {
+                if (parentWidget.getRelativeX() < 0) {
+                    setWidgetRelativeXPos(parentWidget, 0);
+                }
+                if (parentWidget.getRelativeX() + parentWidget.getWidth() > parentWidget.getParent().getWidth()) {
+                    setWidgetRelativeXPos(parentWidget, parentWidget.getParent().getWidth() - parentWidget.getWidth());
+                }
+            } else {
+                if (parentWidget.getRelativeY() < 0) {
+                    setWidgetRelativeYPos(parentWidget, 0);
+                }
+                if (parentWidget.getRelativeY() + parentWidget.getHeight() > parentWidget.getParent().getHeight()) {
+                    setWidgetRelativeYPos(parentWidget, parentWidget.getParent().getHeight() - parentWidget.getHeight());
+                }
+            }
         }
     }
 
+    private int getAdjacentTextSiblingSize(List<Widget> childWidgets, Widget widget, notFixedDir dirNotFixed, Widget2Mod widget2Mod) {
+        int maxSize = 0;
+        for (Widget sibling : childWidgets) {
+            if (sibling.equals(widget)) {
+                continue;
+            }
+            String siblingText = sibling.getText();
+            if (siblingText == null || siblingText.isEmpty()) {
+                continue;
+            }
+            int newSize = 0;
+            Direction dir = getDirTowards(widget, sibling, widget2Mod);
+            if (dir == Direction.ALMOST_SAME// if the widgets share similar boundary
+                    && sibling.getType() == 4 && sibling.getText() != null && !sibling.getText().isEmpty() // and the sibling is a text widget
+                    && Math.pow(sibling.getXTextAlignment() - widget.getXTextAlignment(), 2) == 4) { // and the sibling is aligned to the left or right of the widget
+                // they are likely to be in the same row, like the xp hover text in skills tab
+                if (dirNotFixed == notFixedDir.HORIZONTAL) {
+                    newSize = getWidthToFit(widget2Mod, widget2Mod.widget, siblingText);
+                } else {
+                    newSize = getHeightToFit(widget2Mod, siblingText);
+                }
+            }
+            if (newSize > maxSize) {
+                maxSize = newSize;
+            }
+        }
+        return maxSize;
+    }
 
     private int getHeightToFit(Widget2Mod widget2Mod, String newText) {
         int lineHeight = plugin.getConfig().getSelectedLanguage().getCharHeight();
@@ -276,7 +336,9 @@ public class Widget2ModDict {
         return lineHeight * numLines + widget2Mod.topPadding + widget2Mod.bottomPadding;
     }
 
-    private int getWidthToFit(Widget2Mod widget2Mod, String newText) {
+    // give widget as argument to get width for
+    // give widget2Mod as argument to get padding
+    private int getWidthToFit(Widget2Mod widget2Mod, Widget widget, String newText) {
         // get the longest line, multiply by the width of selected language's character
         int longestLine = 0;
 
@@ -288,14 +350,14 @@ public class Widget2ModDict {
                     longestLine = line.length();
                 }
             }
-            int latinCharWidth = LangCodeSelectableList.getLatinCharWidth(widget2Mod.getWidget(), plugin.getConfig().getSelectedLanguage());
+            int latinCharWidth = LangCodeSelectableList.getLatinCharWidth(widget, plugin.getConfig().getSelectedLanguage());
             longestLine *= latinCharWidth;
         } else {
             for (String line : lines) {
                 int imgCount = line.split("<img=").length - 1;
                 int nonImgCount = line.replaceAll("<.*>", "").length();
                 int lineLength = imgCount * plugin.getConfig().getSelectedLanguage().getCharWidth() +
-                        nonImgCount * LangCodeSelectableList.ENGLISH.getCharWidth();
+                        nonImgCount * LangCodeSelectableList.getLatinCharWidth(widget, LangCodeSelectableList.ENGLISH);
                 if (lineLength > longestLine) {
                     longestLine = lineLength;
                 }
@@ -328,71 +390,81 @@ public class Widget2ModDict {
     }
 
 
-    private Direction getVerticalDirToShift(Widget2Mod widget2Mod) {
-        if (!widget2Mod.fixedTop && !widget2Mod.fixedBottom) {
-            // can be difficult to determine which direction to shift, so hard coding
+    private Direction getDirToShift(Widget2Mod widget2Mod, notFixedDir dirNotFixed) {
+        // can be difficult to determine which direction to shift, so hard coding
 
-            // for spellbook tab hover text
-            if (widget2Mod.getWidgetId() == plugin.getIds().getSpellbookTabHoverTextId()){
-                // if the bottom edge of widget is at the bottom of parent, shift above
-                Widget widget = widget2Mod.getWidget();
-                int parentHeight = widget.getParent().getHeight();
-                int widgetBottomY = widget.getRelativeY() + widget.getHeight();
-                if (widgetBottomY > parentHeight /2) {
-                    return Direction.ABOVE;
+        // for spellbook tab hover text
+        if (widget2Mod.getWidgetId() == plugin.getIds().getSpellbookTabHoverTextId()){
+            // if the bottom edge of widget is at the bottom of parent, shift above
+            Widget widget = widget2Mod.getWidget();
+            int parentHeight = widget.getParent().getHeight();
+            int widgetBottomY = widget.getRelativeY() + widget.getHeight();
+            if (widgetBottomY > parentHeight /2) {
+                return Direction.ABOVE;
+            } else {
+                return Direction.BELOW;// not tested
+            }
+        }
+
+         if (widget2Mod.getWidgetId() == plugin.getIds().getSkillsTabXpHoverTextId()) {
+            if (dirNotFixed == notFixedDir.VERTICAL) {
+                int Y = widget2Mod.getWidget().getRelativeY();
+                if (Y < 170) {
+                    return Direction.BELOW;
                 } else {
-                    return Direction.BELOW;// not tested
+                    return Direction.ABOVE;
+                }
+            } else {
+                int parentWidth = widget2Mod.getWidget().getParent().getWidth();
+                int X = widget2Mod.getWidget().getRelativeX();
+                if (X < parentWidth / 4) {
+                    return Direction.RIGHT;
+                } else {
+                    return Direction.LEFT;
                 }
             }
-            return Direction.OUTSIDE; // shift both ways
-        } else if (!widget2Mod.fixedBottom) {
-            return Direction.BELOW;
-        } else if (!widget2Mod.fixedTop) {
-            return Direction.ABOVE;
-        } else if (!widget2Mod.fixedLeft) {
-            return Direction.LEFT;
-        } else if (!widget2Mod.fixedRight) {
-            return Direction.RIGHT;
+        }
+
+        if (dirNotFixed == notFixedDir.VERTICAL) {
+            if (!widget2Mod.fixedBottom) {
+                return Direction.BELOW;
+            } else if (!widget2Mod.fixedTop) {
+                return Direction.ABOVE;
+            }
+        } else {
+            if (!widget2Mod.fixedLeft) {
+                return Direction.LEFT;
+            } else if (!widget2Mod.fixedRight) {
+                return Direction.RIGHT;
+            }
         }
         return Direction.OUTSIDE;
     }
 
     // returns relative position
-    private int getNewShiftedY(Widget widget, Direction dirToShift, int heightDiff) {
-        int newY = getNewPos(widget, dirToShift, heightDiff);
+    private int getNewShiftedPos(int originalPos, Direction dirToShift, int heightDiff) {
+        int newY = getNewPos(originalPos, dirToShift, heightDiff);
         if (newY == -1) {
-            int originalY = widget.getRelativeY();
-            return originalY - heightDiff / 2;
+            return originalPos - heightDiff / 2;
         }
         return newY;
     }
 
-    // returns relative position
-    private int getNewShiftedX(Widget widget, Direction dirToShift, int widthDiff) {
-        int newX = getNewPos(widget, dirToShift, widthDiff);
-        if (newX == -1) {
-            int originalX = widget.getRelativeX();
-            return originalX - widthDiff / 2;
-        }
-        return newX;
-    }
 
-    private int getNewPos(Widget widget, Direction dirToShift, int diff) {
-        int originalY = widget.getRelativeY();
-        int originalX = widget.getRelativeX();
+    private int getNewPos(int originalPos, Direction dirToShift, int diff) {
         int newPos;
         switch (dirToShift) {
             case ABOVE:
-                newPos = originalY - diff;
+                newPos = originalPos - diff;
                 break;
             case BELOW:
-                newPos = originalY + diff;
+                newPos = originalPos + diff;
                 break;
             case RIGHT:
-                newPos = originalX + diff;
+                newPos = originalPos + diff;
                 break;
             case LEFT:
-                newPos = originalX - diff;
+                newPos = originalPos - diff;
                 break;
             default:
                 newPos = -1;
@@ -407,7 +479,7 @@ public class Widget2ModDict {
         return childWidgets;
     }
 
-    private Direction getDirTowards(Widget baseWidget, Widget targetWidget) {
+    private Direction getDirTowards(Widget baseWidget, Widget targetWidget, Widget2Mod widget2Mod) {
         int baseTop = baseWidget.getRelativeY();
         int baseBottom = baseWidget.getRelativeY() + baseWidget.getHeight();
         int baseLeft = baseWidget.getRelativeX();
@@ -419,7 +491,7 @@ public class Widget2ModDict {
         boolean widgetsOverlapHor = widgetsOverlapHor(baseWidget, targetWidget);
         boolean widgetsOverlapVer = widgetsOverlapVer(baseWidget, targetWidget);
 
-        int overlapErrorPixels = 4; // widgets inside can be bigger by this amount even for bottom and right edges, even if they appear to be inside
+        int overlapErrorPixels = widget2Mod.getErrorPixels(); // widgets inside can be bigger by this amount even for bottom and right edges, even if they appear to be inside
 
         if (targetBottom - overlapErrorPixels < baseTop && widgetsOverlapHor) {
             return Direction.ABOVE;
@@ -430,6 +502,12 @@ public class Widget2ModDict {
         } else if (targetLeft > baseRight - overlapErrorPixels && widgetsOverlapVer) {
             return Direction.RIGHT;
         } else if (widgetsOverlapHor && widgetsOverlapVer) {
+            if (Math.abs(baseTop - targetTop) < overlapErrorPixels
+                    && Math.abs(baseBottom - targetBottom) < overlapErrorPixels
+                    && Math.abs(baseLeft - targetLeft) < overlapErrorPixels
+                    && Math.abs(baseRight - targetRight) < overlapErrorPixels) {
+                return Direction.ALMOST_SAME;
+            } else
             if (isAnyEdgeInside(baseWidget, targetWidget, overlapErrorPixels)) {
                 return Direction.INSIDE;
             } else if (targetTop <= baseTop && targetBottom >= baseBottom && targetLeft <= baseLeft && targetRight >= baseRight) {
@@ -441,21 +519,23 @@ public class Widget2ModDict {
     }
 
     private boolean widgetsOverlapHor(Widget w1, Widget w2) {
+        // if the widgets share the same horizontal space, return true
         int w1Left = w1.getRelativeX();
         int w1Right = w1.getRelativeX() + w1.getWidth();
         int w2Left = w2.getRelativeX();
         int w2Right = w2.getRelativeX() + w2.getWidth();
-        return (w1Left > w2Left && w1Left < w2Right) || (w1Right > w2Left && w1Right < w2Right) || (w1Left < w2Left && w1Right > w2Right)
-            || (w2Left > w1Left && w2Left < w1Right) || (w2Right > w1Left && w2Right < w1Right) || (w2Left < w1Left && w2Right > w1Right);
+        return (w1Left >= w2Left && w1Left < w2Right) || (w1Right >= w2Left && w1Right < w2Right) || (w1Left < w2Left && w1Right >= w2Right)
+            || (w2Left >= w1Left && w2Left < w1Right) || (w2Right >= w1Left && w2Right < w1Right) || (w2Left < w1Left && w2Right >= w1Right);
     }
 
     private boolean widgetsOverlapVer(Widget w1, Widget w2) {
+        // if the widgets share the same vertical space, return true
         int w1Top = w1.getRelativeY();
         int w1Bottom = w1.getRelativeY() + w1.getHeight();
         int w2Top = w2.getRelativeY();
         int w2Bottom = w2.getRelativeY() + w2.getHeight();
-        return (w1Top > w2Top && w1Top < w2Bottom) || (w1Bottom > w2Top && w1Bottom < w2Bottom) || (w1Top < w2Top && w1Bottom > w2Bottom)
-            || (w2Top > w1Top && w2Top < w1Bottom) || (w2Bottom > w1Top && w2Bottom < w1Bottom) || (w2Top < w1Top && w2Bottom > w1Bottom);
+        return (w1Top >= w2Top && w1Top < w2Bottom) || (w1Bottom >= w2Top && w1Bottom < w2Bottom) || (w1Top < w2Top && w1Bottom >= w2Bottom)
+            || (w2Top >= w1Top && w2Top < w1Bottom) || (w2Bottom >= w1Top && w2Bottom < w1Bottom) || (w2Top < w1Top && w2Bottom >= w1Bottom);
     }
 
     private int getSiblingsCoverage(List<Widget> siblings, notFixedDir dirNotFixed) {
@@ -493,10 +573,8 @@ public class Widget2ModDict {
         return max - min;
     }
 
-    private void expandWidget(Widget widget, Direction dir, int diff) {
-//        if (widget.getType() == 5){ // type 5 seems to be icon sprites
-//            return;
-//        } // todo: remove comment after resolving dirtowards issue
+
+    private void moveAndExpandWidget(Widget widget, Direction dir, int diff) {
         int originalY = widget.getRelativeY();
         int originalX = widget.getRelativeX();
         int originalHeight = widget.getHeight();
@@ -521,15 +599,28 @@ public class Widget2ModDict {
                 newWidth = originalWidth + diff;
                 break;
         }
+//        if (dir == Direction.ABOVE || dir == Direction.BELOW) {
+//            newY = setXY2WithinBounds(newY, newHeight, widget.getParent().getParent().getHeight());
+//        } else {
+//            newX = setXY2WithinBounds(newX, newWidth, widget.getParent().getParent().getWidth());
+//        }
+
         setWidgetHeightAbsolute(widget, newHeight);
         setWidgetWidthAbsolute(widget, newWidth);
         setWidgetRelativeXPos(widget, newX);
         setWidgetRelativeYPos(widget, newY);
-        widget.setOriginalY(newY)
-                .setOriginalX(newX)
-                .setOriginalHeight(newHeight)
-                .setOriginalWidth(newWidth)
-                .revalidate();
+
+    }
+
+    // if any of the corners are outside the parent, shift the widget
+    private int setXY2WithinBounds(int pos, int size, int parentSize) {
+        if (pos < 0) {
+            return 0;
+        }
+        if (pos + size > parentSize) {
+            return parentSize - size;
+        }
+        return pos;
     }
 
     private boolean isAnyEdgeInside(Widget baseWgt, Widget targetWgt, int overlapErrorPixels) {
@@ -568,12 +659,21 @@ public class Widget2ModDict {
         return count;
     }
 
-    private void shiftWidgetY(Widget widget, int diff, Direction dirToShift) {
-        int originalSiblingY = widget.getRelativeY();
-        int newSiblingY = getNewShiftedY(widget, dirToShift, diff); // relative position
-        if (newSiblingY != originalSiblingY) {
-            setWidgetRelativeYPos(widget, newSiblingY);
+    private void shiftWidget(Widget widget, int diff, Direction dirToShift) {
+        if (dirToShift == Direction.ABOVE || dirToShift == Direction.BELOW) {
+            int originalSiblingY = widget.getRelativeY();
+            int newSiblingY = getNewShiftedPos(widget.getRelativeY(), dirToShift, diff); // relative position
+            if (newSiblingY != originalSiblingY) {
+                setWidgetRelativeYPos(widget, newSiblingY);
+            }
+        } else {
+            int originalSiblingX = widget.getRelativeX();
+            int newSiblingX = getNewShiftedPos(widget.getRelativeX(), dirToShift, diff); // relative position
+            if (newSiblingX != originalSiblingX) {
+                setWidgetRelativeXPos(widget, newSiblingX);
+            }
         }
+
     }
 
 }

@@ -194,6 +194,7 @@ public class WidgetCapture {
 
     private void translateWidgetText(Widget widget, SqlQuery sqlQuery) {
         int widgetId = widget.getId();
+        String originalText = widget.getText();
         String textToTranslate = getEnglishColValFromWidget(widget);
         String translatedText = null;
         // for most cases
@@ -216,8 +217,8 @@ public class WidgetCapture {
 
             for (int i = 0; i < textList.length; i++) {
                 String text = textList[i];
-                String originalText = originalTextList[i];
-                String translatedTextPart = getTranslationFromQuery(sqlQuery, originalText, text);
+                String originalTextLine = originalTextList[i];
+                String translatedTextPart = getTranslationFromQuery(sqlQuery, originalTextLine, text);
                 if (translatedTextPart == null) {
                     return;
                 }
