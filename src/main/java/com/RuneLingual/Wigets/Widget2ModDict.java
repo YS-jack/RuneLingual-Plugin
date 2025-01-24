@@ -244,9 +244,10 @@ public class Widget2ModDict {
                     moveAndExpandWidget(sibling, dirToShift, sizeDiff);
                 }
             }
-            originalPos = widget.getRelativeX();
+
 //             resize and reposition the target widget
             if (dirNotFixed == notFixedDir.HORIZONTAL) {
+                originalPos = widget.getRelativeX(); // delete later
                 setWidgetWidthAbsolute(widget, newSize);
                 if (dirToShift == Direction.LEFT) { // if shifting left, shift the widget itself by the difference
                     originalPos = getNewShiftedPos(originalPos, dirToShift, sizeDiff); // relative position
