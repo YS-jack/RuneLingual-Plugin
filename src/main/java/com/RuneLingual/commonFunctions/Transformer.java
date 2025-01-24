@@ -40,7 +40,7 @@ public class Transformer {
         String text = sqlQuery.getEnglish();
         if(text == null || text.isEmpty()){
             plugin.getFailedTranslations().add(sqlQuery);
-            return text;
+            return textAddColor(text, sqlQuery.getColor());
         }
 
         String translatedText = "";
@@ -68,15 +68,15 @@ public class Transformer {
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
-                log.info("No translation found for " + text);
+                log.info("(engWithColor) No translation found for " + text + " ");
                 //log.info("query = " + sqlQuery.getSearchQuery());
-                return text;
+                return Colors.surroundWithColorTag(text, sqlQuery.getColor());
                 //translatedText = text;
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
-                    log.info("{} has not been translated yet", text);
-                    return text;
+                    log.info("{} has not been translated yet (engWithColor)", text);
+                    return Colors.surroundWithColorTag(text, sqlQuery.getColor());
                 } else { // text has been translated
                     translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
                     translatedText = Colors.getOriginalColorWord(translatedText, colorTagsAsIs); // replace placeholders with original color tags
@@ -133,7 +133,7 @@ public class Transformer {
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, false);
             if(result.length == 0){
-                log.info("the following placeholder text doesn't exist in the English column :{}", textWithPlaceholders);
+                log.info("(withPlaceholders func) the following placeholder text doesn't exist in the English column :{}", textWithPlaceholders);
                 log.info("   query = {}", sqlQuery.getSearchQuery());
                 // translatedText = text;
                 plugin.getFailedTranslations().add(sqlQuery);
@@ -141,7 +141,7 @@ public class Transformer {
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
-                    log.info("{} has not been translated yet", textWithPlaceholders);
+                    log.info("{} has not been translated yet (withPlaceholders func)", textWithPlaceholders);
                     plugin.getFailedTranslations().add(sqlQuery);
                     return null;
 
@@ -185,7 +185,7 @@ public class Transformer {
         }
         if(text == null || text.isEmpty()){
             plugin.getFailedTranslations().add(sqlQuery);
-            return text;
+            return textAddColor(text, colors);
         }
 
         String translatedText = "";
@@ -197,17 +197,17 @@ public class Transformer {
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
-                log.info("the following text doesn't exist in the English column :{}", text);
+                log.info(" (transform func) the following text doesn't exist in the English column :{}", text);
                 log.info("   query = {}", sqlQuery.getSearchQuery());
                 // translatedText = text;
                 plugin.getFailedTranslations().add(sqlQuery);
-                return text;
+                return textAddColor(text, colors);
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
                     plugin.getFailedTranslations().add(sqlQuery);
-                    log.info("{} has not been translated yet", text);
-                    return text;
+                    log.info("{} has not been translated yet (transform func)", text);
+                    return textAddColor(text, colors);
 
                 } else { // text has been translated
                     translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
@@ -320,6 +320,13 @@ public class Transformer {
         } else { // doesnt need char image and just 1 color
             return "<col=" + colors.getHex() + ">" + translatedText + "</col>";
         }
+    }
+
+    private String textAddColor(String text, Colors color){
+        if (Colors.getColorTagsAsIs(text).isEmpty()) {
+            return Colors.surroundWithColorTag(text, color);
+        }
+        return text;
     }
 
 }

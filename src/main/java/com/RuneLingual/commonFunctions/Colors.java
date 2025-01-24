@@ -337,18 +337,14 @@ public enum Colors {
      * eg: <colNum0>Nex<colNum1> (level-1) -> <col=ff0000>Nex<col=ffffff> (level-1)
      */
     public static String getOriginalColorWord(String colWord, List<String> originalColorTags) {
-//        String[] parts = colWord.split("<colNum\\d+>");
-//        StringBuilder colorString = new StringBuilder();
-//        for (int i = 0; i < parts.length; i++) {
-//            colorString.append(parts[i]);
-//            if (i < parts.length - 1) {
-//                colorString.append(originalColorTags.get(i));
-//            }
-//        }
         for (int i = 0; i < originalColorTags.size(); i++) {
             colWord = colWord.replace("<colNum" + i + ">", originalColorTags.get(i));
         }
         return colWord;
 
+    }
+
+    public static String surroundWithColorTag(String str, Colors color) {
+        return color.getColorTag() + str + "</col>";
     }
 }
