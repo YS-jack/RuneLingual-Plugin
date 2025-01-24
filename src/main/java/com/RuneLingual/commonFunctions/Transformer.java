@@ -125,7 +125,7 @@ public class Transformer {
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, false);
             if(result.length == 0){
-                log.info("the following text doesn't exist in the English column :{}", textWithPlaceholders);
+                log.info("the following placeholder text doesn't exist in the English column :{}", textWithPlaceholders);
                 log.info("   query = {}", sqlQuery.getSearchQuery());
                 // translatedText = text;
                 return null;

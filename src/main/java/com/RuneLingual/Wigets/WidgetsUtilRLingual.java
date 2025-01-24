@@ -44,10 +44,6 @@ public class WidgetsUtilRLingual
 	}
 
 	public void setWidgetText_NiceBr(Widget widget, String newText) {
-		if (widget.getId() == 20971547){
-			System.out.println("Total level:<br> 75");
-		}
-
 		if (newText.contains("<br>")) {
 			widget.setText(newText);
 			return;

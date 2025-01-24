@@ -13,10 +13,7 @@ import net.runelite.api.Client;
 import net.runelite.api.widgets.*;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.RuneLingual.Wigets.WidgetsUtilRLingual.removeBrAndTags;
 import static com.RuneLingual.debug.OutputToFile.appendIfNotExistToFile;
@@ -30,7 +27,8 @@ public class WidgetCapture {
     @Inject
     private Transformer transformer;
     @Getter
-    List<String> pastTranslationResults = new ArrayList<>(); //TODO: add translated text to this list
+    Set<String> pastTranslationResults = new HashSet<>(); //TODO: add translated text to this list
+    Set<SqlQuery> failedTranslations = new HashSet<>();
 
     @Inject
     private WidgetsUtilRLingual widgetsUtilRLingual;
@@ -142,7 +140,6 @@ public class WidgetCapture {
             sqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
             sqlQuery.setSubCategory(SqlVariables.subcategoryValue4GeneralUI.getValue());
             sqlQuery.setSource(SqlVariables.sourceValue4SkillGuideInterface.getValue());
-
         }
         // if one of the main tabs, set the category and subcategory. main tabs = combat options, skills tab, etc.
         if (widgetId == ids.getWidgetIdMainTabs()) {
@@ -219,7 +216,8 @@ public class WidgetCapture {
                 String text = textList[i];
                 String originalTextLine = originalTextList[i];
                 String translatedTextPart = getTranslationFromQuery(sqlQuery, originalTextLine, text);
-                if (translatedTextPart == null) {
+                if (translatedTextPart == null) { // if translation failed
+                    failedTranslations.add(sqlQuery);
                     return;
                 }
                 translatedTextBuilder.append(translatedTextPart);
@@ -237,12 +235,14 @@ public class WidgetCapture {
         // translation was not available
 
         if(translatedText == null){ // if the translation is the same as the original without <br>
+            failedTranslations.add(sqlQuery);
             return;
         }
         String originalWithoutBr = removeBrAndTags(widget.getText());
         String translationWithoutBr = removeBrAndTags(translatedText);
         if(Objects.equals(translatedText, textToTranslate) // if the translation is the same as the original
                 || originalWithoutBr.equals(translationWithoutBr)){ // if the translation is the same as the original without <br>
+            failedTranslations.add(sqlQuery);
             return;
         }
 
@@ -278,6 +278,9 @@ public class WidgetCapture {
 
     private String getTranslationFromQuery(SqlQuery sqlQuery, String originalText, String textToTranslate) {
         sqlQuery.setEnglish(textToTranslate);
+        if (failedTranslations.contains(sqlQuery)) {
+            return null;
+        }
         Transformer.TransformOption option = Transformer.TransformOption.TRANSLATE_LOCAL;
         return transformer.transformWithPlaceholders(originalText, textToTranslate, option, sqlQuery);
     }

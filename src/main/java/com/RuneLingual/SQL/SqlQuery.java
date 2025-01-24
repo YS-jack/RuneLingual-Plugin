@@ -8,6 +8,7 @@ import lombok.Setter;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,6 +40,21 @@ public class SqlQuery implements Cloneable{
     @Override
     protected Object clone() throws CloneNotSupportedException {
         return super.clone();
+    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SqlQuery sqlQuery = (SqlQuery) o;
+        return Objects.equals(english, sqlQuery.english) &&
+                Objects.equals(category, sqlQuery.category) &&
+                Objects.equals(subCategory, sqlQuery.subCategory) &&
+                Objects.equals(source, sqlQuery.source) &&
+                Objects.equals(translation, sqlQuery.translation);
+    }
+    @Override
+    public int hashCode() {
+        return Objects.hash(english, category, subCategory, source, translation);
     }
     public SqlQuery copy() {
         try {
