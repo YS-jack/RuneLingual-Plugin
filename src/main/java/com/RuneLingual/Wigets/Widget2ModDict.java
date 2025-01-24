@@ -600,28 +600,12 @@ public class Widget2ModDict {
                 newWidth = originalWidth + diff;
                 break;
         }
-//        if (dir == Direction.ABOVE || dir == Direction.BELOW) {
-//            newY = setXY2WithinBounds(newY, newHeight, widget.getParent().getParent().getHeight());
-//        } else {
-//            newX = setXY2WithinBounds(newX, newWidth, widget.getParent().getParent().getWidth());
-//        }
 
         setWidgetHeightAbsolute(widget, newHeight);
         setWidgetWidthAbsolute(widget, newWidth);
         setWidgetRelativeXPos(widget, newX);
         setWidgetRelativeYPos(widget, newY);
 
-    }
-
-    // if any of the corners are outside the parent, shift the widget
-    private int setXY2WithinBounds(int pos, int size, int parentSize) {
-        if (pos < 0) {
-            return 0;
-        }
-        if (pos + size > parentSize) {
-            return parentSize - size;
-        }
-        return pos;
     }
 
     private boolean isAnyEdgeInside(Widget baseWgt, Widget targetWgt, int overlapErrorPixels) {

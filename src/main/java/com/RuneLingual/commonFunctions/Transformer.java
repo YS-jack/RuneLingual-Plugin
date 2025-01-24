@@ -32,10 +32,14 @@ public class Transformer {
 
 
     public String transformEngWithColor(TransformOption option, SqlQuery sqlQuery, boolean searchAlike){
+        if (plugin.getFailedTranslations().contains(sqlQuery)) {
+            return sqlQuery.getEnglish();
+        }
         boolean needCharImage = plugin.getConfig().getSelectedLanguage().needsCharImages();
         GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
         String text = sqlQuery.getEnglish();
         if(text == null || text.isEmpty()){
+            plugin.getFailedTranslations().add(sqlQuery);
             return text;
         }
 

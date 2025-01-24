@@ -18,6 +18,7 @@ import net.runelite.api.events.MenuOpened;
 import net.runelite.api.widgets.Widget;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.Arrays;
 import java.util.regex.Pattern;
 import com.RuneLingual.debug.OutputToFile;
 import com.RuneLingual.commonFunctions.Ids;
@@ -152,21 +153,21 @@ public class MenuCapture
 //			log.info("Widget on something");
 //			printMenuEntry(currentMenu);
 			Pair<String, String> results = convertWidgetOnSomething(currentMenu);
-			String itemName = results.getLeft();
-			String useOnX = results.getRight();
-			String itemTranslation = translateInventoryItem(itemName, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(itemName))[0];
+			String itemLeft = results.getLeft();
+			String entityOnRight = results.getRight();
+			String itemTranslation = translateInventoryItem(itemLeft, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(itemLeft))[0];
 			String useOnXTranslation = "";
 			if(menuType.equals(MenuAction.WIDGET_TARGET_ON_PLAYER)){
-				useOnXTranslation = translatePlayerTargetPart(Colors.getWordArray(useOnX), Colors.getColorArray(useOnX, Colors.white));
+				useOnXTranslation = translatePlayerTargetPart(Colors.getWordArray(entityOnRight), Colors.getColorArray(entityOnRight, Colors.white));
 			} else if(menuType.equals(MenuAction.WIDGET_TARGET_ON_NPC)){
-				useOnXTranslation = translateNpc(useOnX, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(useOnX), Colors.getColorArray(useOnX, Colors.white))[0];
+				useOnXTranslation = translateNpc(entityOnRight, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(entityOnRight), Colors.getColorArray(entityOnRight, Colors.white))[0];
 			} else if(menuType.equals(MenuAction.WIDGET_TARGET_ON_GAME_OBJECT)){
-				useOnXTranslation = translateObject(useOnX, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(useOnX))[0];
+				useOnXTranslation = translateObject(entityOnRight, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(entityOnRight))[0];
 			} else if(menuType.equals(MenuAction.WIDGET_TARGET_ON_WIDGET) || menuType.equals(MenuAction.WIDGET_TARGET_ON_GROUND_ITEM)){
-				useOnXTranslation = translateGroundItem(useOnX, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(useOnX))[0];
+				useOnXTranslation = translateGroundItem(entityOnRight, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(entityOnRight))[0];
 			}
 			String newTarget = itemTranslation + " -> " + useOnXTranslation;
-			String newOption = translateInventoryItem(itemName, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(menuOption))[1];
+			String newOption = translateInventoryItem(itemLeft, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(menuOption))[1];
 			result = new String[]{newTarget, newOption};
 		} else { // is a general menu
 //			log.info("General menu");
@@ -305,8 +306,12 @@ public class MenuCapture
 		Colors[] targetColorArray = Colors.getColorArray(menuTarget, Colors.orange); //default color is not the same as initial definition
 
 		TransformOption itemTransformOption = getTransformOption(this.plugin.getConfig().getItemNamesConfig());
-		String newTarget = transformer.transform(targetWordArray, targetColorArray, itemTransformOption, targetSqlQuery, false);
 		String newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
+		if (Arrays.equals(targetWordArray, new String[]{"Use"}) && Arrays.equals(actionWordArray, new String[]{"Use"})){// it comes from the use item on something menu
+			return new String[] {menuTarget, newOption};
+		}
+		String newTarget = transformer.transform(targetWordArray, targetColorArray, itemTransformOption, targetSqlQuery, false);
+
 		return new String[] {newTarget, newOption};
 	}
 
