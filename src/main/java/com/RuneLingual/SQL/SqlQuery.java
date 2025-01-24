@@ -301,7 +301,7 @@ public class SqlQuery implements Cloneable{
         this.translation = null;
     }
 
-    public void setMenuAcitons(String en, Colors defaultColor){
+    public void setGenMenuAcitons(String en, Colors defaultColor){
         this.english = en;
         this.category = SqlVariables.categoryValue4Actions.getValue();
         this.subCategory = SqlVariables.subcategoryValue4Menu.getValue();

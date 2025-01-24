@@ -156,17 +156,17 @@ public class MenuCapture
 			String itemLeft = results.getLeft();
 			String entityOnRight = results.getRight();
 			String itemTranslation = translateInventoryItem(itemLeft, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(itemLeft))[0];
-			String useOnXTranslation = "";
+			String entityTranslation = "";
 			if(menuType.equals(MenuAction.WIDGET_TARGET_ON_PLAYER)){
-				useOnXTranslation = translatePlayerTargetPart(Colors.getWordArray(entityOnRight), Colors.getColorArray(entityOnRight, Colors.white));
+				entityTranslation = translatePlayerTargetPart(Colors.getWordArray(entityOnRight), Colors.getColorArray(entityOnRight, Colors.white));
 			} else if(menuType.equals(MenuAction.WIDGET_TARGET_ON_NPC)){
-				useOnXTranslation = translateNpc(entityOnRight, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(entityOnRight), Colors.getColorArray(entityOnRight, Colors.white))[0];
+				entityTranslation = translateNpc(entityOnRight, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(entityOnRight), Colors.getColorArray(entityOnRight, Colors.white))[0];
 			} else if(menuType.equals(MenuAction.WIDGET_TARGET_ON_GAME_OBJECT)){
-				useOnXTranslation = translateObject(entityOnRight, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(entityOnRight))[0];
+				entityTranslation = translateObject(entityOnRight, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(entityOnRight))[0];
 			} else if(menuType.equals(MenuAction.WIDGET_TARGET_ON_WIDGET) || menuType.equals(MenuAction.WIDGET_TARGET_ON_GROUND_ITEM)){
-				useOnXTranslation = translateGroundItem(entityOnRight, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(entityOnRight))[0];
+				entityTranslation = translateGroundItem(entityOnRight, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(entityOnRight))[0];
 			}
-			String newTarget = itemTranslation + " -> " + useOnXTranslation;
+			String newTarget = itemTranslation + " -> " + entityTranslation;
 			String newOption = translateInventoryItem(itemLeft, menuOption, actionWordArray, actionColorArray, Colors.getWordArray(menuOption))[1];
 			result = new String[]{newTarget, newOption};
 		} else { // is a general menu
@@ -292,6 +292,9 @@ public class MenuCapture
 		} else {
 			newTarget = transformer.transform(targetWordArray, targetColorArray, itemTransformOption, targetSqlQuery, false);
 		}
+		if (menuOption.equals("Use")){// if it is "Use" option, it only looks at first value
+			return new String[] {newTarget, ""};
+		}
 		String newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
 		return new String[] {newTarget, newOption};
 	}
@@ -307,15 +310,19 @@ public class MenuCapture
 
 		TransformOption itemTransformOption = getTransformOption(this.plugin.getConfig().getItemNamesConfig());
 		String newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
-		if (Arrays.equals(targetWordArray, new String[]{"Use"}) && Arrays.equals(actionWordArray, new String[]{"Use"})){// it comes from the use item on something menu
-			return new String[] {menuTarget, newOption};
+		if (Arrays.equals(targetWordArray, new String[]{"Use"}) && Arrays.equals(actionWordArray, new String[]{"Use"})){
+			// it comes from the use item on something menu, and only needs to translate the option
+			return new String[] {"", newOption};
 		}
 		String newTarget = transformer.transform(targetWordArray, targetColorArray, itemTransformOption, targetSqlQuery, false);
 
 		return new String[] {newTarget, newOption};
 	}
 
-	private String[] translateGeneralMenu(String menuTarget, String menuOption, String[] actionWordArray, Colors[] actionColorArray, String[] targetWordArray, MenuEntry currentMenu){
+	// for menus that are none of item, object, npc, player, walk, cancel
+	// e.g. "Enable prayer reordering" or "Add-10"
+	private String[] translateGeneralMenu(String menuTarget, String menuOption, String[] actionWordArray,
+										  Colors[] actionColorArray, String[] targetWordArray, MenuEntry currentMenu){
 		String newTarget, newOption;
 		// check what widget it is in, then set the source column value accordingly
 		String source;
@@ -326,7 +333,7 @@ public class MenuCapture
 		}
 
 		SqlQuery actionSqlQuery = new SqlQuery(this.plugin);
-		actionSqlQuery.setMenuAcitons(menuOption, optionColor);
+		actionSqlQuery.setGenMenuAcitons(menuOption, optionColor);
 		actionSqlQuery.setSource(source);
 
 		newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
