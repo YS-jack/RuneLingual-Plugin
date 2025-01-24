@@ -49,6 +49,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 @Slf4j
 @PluginDescriptor(
@@ -158,6 +160,9 @@ public class RuneLingualPlugin extends Plugin {
     private int clickTick;
     @Getter
     private int gameCycle;
+
+    @Getter
+    Set<SqlQuery> failedTranslations = new HashSet<>();
 
 
     @Override

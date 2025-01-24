@@ -26,9 +26,7 @@ public class WidgetCapture {
     Client client;
     @Inject
     private Transformer transformer;
-    @Getter
-    Set<String> pastTranslationResults = new HashSet<>(); //TODO: add translated text to this list
-    Set<SqlQuery> failedTranslations = new HashSet<>();
+
 
     @Inject
     private WidgetsUtilRLingual widgetsUtilRLingual;
@@ -36,6 +34,8 @@ public class WidgetCapture {
     private DialogTranslator dialogTranslator;
     @Inject
     private Ids ids;
+    @Getter
+    Set<String> pastTranslationResults = new HashSet<>(); //TODO: add translated text to this list
 
 
     @Inject
@@ -217,7 +217,6 @@ public class WidgetCapture {
                 String originalTextLine = originalTextList[i];
                 String translatedTextPart = getTranslationFromQuery(sqlQuery, originalTextLine, text);
                 if (translatedTextPart == null) { // if translation failed
-                    failedTranslations.add(sqlQuery);
                     return;
                 }
                 translatedTextBuilder.append(translatedTextPart);
@@ -235,14 +234,12 @@ public class WidgetCapture {
         // translation was not available
 
         if(translatedText == null){ // if the translation is the same as the original without <br>
-            failedTranslations.add(sqlQuery);
             return;
         }
         String originalWithoutBr = removeBrAndTags(widget.getText());
         String translationWithoutBr = removeBrAndTags(translatedText);
         if(Objects.equals(translatedText, textToTranslate) // if the translation is the same as the original
                 || originalWithoutBr.equals(translationWithoutBr)){ // if the translation is the same as the original without <br>
-            failedTranslations.add(sqlQuery);
             return;
         }
 
@@ -278,9 +275,6 @@ public class WidgetCapture {
 
     private String getTranslationFromQuery(SqlQuery sqlQuery, String originalText, String textToTranslate) {
         sqlQuery.setEnglish(textToTranslate);
-        if (failedTranslations.contains(sqlQuery)) {
-            return null;
-        }
         Transformer.TransformOption option = Transformer.TransformOption.TRANSLATE_LOCAL;
         return transformer.transformWithPlaceholders(originalText, textToTranslate, option, sqlQuery);
     }

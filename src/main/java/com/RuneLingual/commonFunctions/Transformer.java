@@ -112,7 +112,11 @@ public class Transformer {
         * return value will be "サンド <col=ff>クラブ</col> (レベル15)"
      */
     public String transformWithPlaceholders(String originalText, String textWithPlaceholders,TransformOption option , SqlQuery sqlQuery){
+        if (plugin.getFailedTranslations().contains(sqlQuery)) {
+            return textWithPlaceholders;
+        }
         if(textWithPlaceholders == null || textWithPlaceholders.isEmpty()){
+            plugin.getFailedTranslations().add(sqlQuery);
             return textWithPlaceholders;
         }
 
@@ -128,11 +132,13 @@ public class Transformer {
                 log.info("the following placeholder text doesn't exist in the English column :{}", textWithPlaceholders);
                 log.info("   query = {}", sqlQuery.getSearchQuery());
                 // translatedText = text;
+                plugin.getFailedTranslations().add(sqlQuery);
                 return null;
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
                     log.info("{} has not been translated yet", textWithPlaceholders);
+                    plugin.getFailedTranslations().add(sqlQuery);
                     return null;
 
                 } else { // text has been translated
@@ -170,7 +176,11 @@ public class Transformer {
     }
 
     public String transform(String text, Colors colors, TransformOption option, SqlQuery sqlQuery, boolean searchAlike){
+        if (plugin.getFailedTranslations().contains(sqlQuery)) {
+            return text;
+        }
         if(text == null || text.isEmpty()){
+            plugin.getFailedTranslations().add(sqlQuery);
             return text;
         }
 
@@ -186,10 +196,12 @@ public class Transformer {
                 log.info("the following text doesn't exist in the English column :{}", text);
                 log.info("   query = {}", sqlQuery.getSearchQuery());
                 // translatedText = text;
+                plugin.getFailedTranslations().add(sqlQuery);
                 return text;
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
+                    plugin.getFailedTranslations().add(sqlQuery);
                     log.info("{} has not been translated yet", text);
                     return text;
 
