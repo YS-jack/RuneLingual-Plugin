@@ -236,6 +236,13 @@ public class SqlQuery implements Cloneable{
         this.translation = null;
     }
 
+    public boolean isItemNameQuery(){
+        return english != null
+                && Objects.equals(category, SqlVariables.categoryValue4Name.getValue())
+                && Objects.equals(subCategory, SqlVariables.subcategoryValue4Item.getValue())
+                && color != null;
+    }
+
     public void setNpcName(String en, Colors defaultColor){
         this.english = en;
         this.category = SqlVariables.categoryValue4Name.getValue();

@@ -32,7 +32,6 @@ public class Transformer {
 
 
     public String transformEngWithColor(TransformOption option, SqlQuery sqlQuery, boolean searchAlike){
-
         boolean needCharImage = plugin.getConfig().getSelectedLanguage().needsCharImages();
         GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
         String text = sqlQuery.getEnglish();
@@ -242,7 +241,11 @@ public class Transformer {
         }
         StringBuilder transformedTexts = new StringBuilder();
         for(int i = 0; i < texts.length; i++){
-            transformedTexts.append(transform(texts[i], colors[i], option, sqlQuery, searchAlike));
+            if (isMembersItemInF2P(texts[i], sqlQuery) && option == TransformOption.TRANSLATE_LOCAL) {
+                transformedTexts.append(translateMembersItemInF2P(texts[i], colors[i], sqlQuery));
+            } else {
+                transformedTexts.append(transform(texts[i], colors[i], option, sqlQuery, searchAlike));
+            }
         }
         return transformedTexts.toString();
     }
@@ -251,7 +254,34 @@ public class Transformer {
         String[] targetWordArray = Colors.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
         Colors[] targetColorArray = Colors.getColorArray(stringWithColors, defaultColor); // eg. [Colors.white, Colors.red]
 
+        if (isMembersItemInF2P(stringWithColors, sqlQuery) && option == TransformOption.TRANSLATE_LOCAL) {
+            return translateMembersItemInF2P(stringWithColors ,defaultColor, sqlQuery);
+        }
         return transform(targetWordArray, targetColorArray, option, sqlQuery, searchAlike);
+    }
+
+    private boolean isMembersItemInF2P(String stringWithColors, SqlQuery sqlQuery){
+        String stringWithoutTags = Colors.removeAllTags(stringWithColors);
+        return sqlQuery.isItemNameQuery() && stringWithoutTags.endsWith(" (Members)");
+    }
+
+    private String translateMembersItemInF2P(String stringWithColors ,Colors defaultColor, SqlQuery sqlQuery){
+        TransformOption option = TransformOption.TRANSLATE_LOCAL;
+        String stringWithoutTags = Colors.removeAllTags(stringWithColors);
+        String itemPart = stringWithoutTags.substring(0, stringWithoutTags.length() - 10);
+        sqlQuery.setItemName(itemPart, defaultColor);
+        String itemTranslation = transform(itemPart, defaultColor, option, sqlQuery, false);
+
+        // translate the "(Members)" part
+        String members = "(Members)";
+        sqlQuery.setGroundItemActions(members, defaultColor); // was added to database with same column values
+        String membersPart = transform(members, defaultColor, option, sqlQuery, false);
+
+        if (plugin.getConfig().getSelectedLanguage().needsCharImages()) {
+            return itemTranslation + membersPart;
+        } else {
+            return itemTranslation + " " + membersPart;
+        }
     }
 
     public String convertFullWidthToHalfWidth(String fullWidthStr) {

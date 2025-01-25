@@ -569,6 +569,9 @@ public class MenuCapture
 		if(target.isEmpty()){
 			return false;
 		}
+		if (target.endsWith(" (Members)")) {
+			target = target.substring(0, target.length() - 10);
+		}
 
 		SqlQuery sqlQuery = new SqlQuery(this.plugin);
 		sqlQuery.setItemName(target, Colors.orange);
