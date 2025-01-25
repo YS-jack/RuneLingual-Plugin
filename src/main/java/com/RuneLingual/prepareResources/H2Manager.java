@@ -27,7 +27,6 @@ public class H2Manager {
         String databaseUrl;
 
         databaseUrl = getUrl(targetLanguage);
-        plugin.setDatabaseUrl(databaseUrl);
         try {
             conn = DriverManager.getConnection(databaseUrl);
         } catch (Exception e) {

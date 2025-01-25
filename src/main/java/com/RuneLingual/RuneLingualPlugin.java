@@ -120,7 +120,7 @@ public class RuneLingualPlugin extends Plugin {
     @Getter
     @Setter
     private String[] tsvFileNames;
-    @Getter
+    @Getter @Setter
     private String databaseUrl;
     @Getter
     @Setter
