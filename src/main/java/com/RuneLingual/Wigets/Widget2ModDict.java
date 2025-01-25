@@ -319,26 +319,28 @@ public class Widget2ModDict {
                     setAllChildFitPar(parentWidget, notFixedDir.HORIZONTAL, widget2Mod);
                 }
             } else {
+                int parentHeight = parentWidget.getHeight();
+                int grandPHeight = parentWidget.getParent().getHeight();
                 boolean isTopOutside = parentWidget.getRelativeY() < 0;
-                boolean isBottomOutside = parentWidget.getRelativeY() + parentWidget.getHeight() > parentWidget.getParent().getHeight();
+                boolean isBottomOutside = parentWidget.getRelativeY() + parentHeight > grandPHeight;
                 if (isTopOutside && isBottomOutside) { // need to make parent and sibling widgets smaller to fit, not checked
                     setWidgetRelativeYPos(parentWidget, 0);
-                    setWidgetHeightAbsolute(parentWidget, parentWidget.getParent().getHeight());
+                    setWidgetHeightAbsolute(parentWidget, grandPHeight);
                     setAllChildFitPar(parentWidget, notFixedDir.VERTICAL, widget2Mod);
                 }
                 if (isTopOutside) {
                     setWidgetRelativeYPos(parentWidget, 0);
-                    if (parentWidget.getHeight() > parentWidget.getParent().getHeight()) {
+                    if (parentHeight > grandPHeight) {
                         // if the parent widget is larger than the parent, make it the same size as the parent
-                        setWidgetHeightAbsolute(parentWidget, parentWidget.getParent().getHeight());
+                        setWidgetHeightAbsolute(parentWidget, grandPHeight);
                     }
                     setAllChildFitPar(parentWidget, notFixedDir.VERTICAL, widget2Mod);
                 }
                 if (isBottomOutside) {
-                    setWidgetRelativeYPos(parentWidget, parentWidget.getParent().getHeight() - parentWidget.getHeight());
-                    if (parentWidget.getHeight() > parentWidget.getParent().getHeight()) {
+                    setWidgetRelativeYPos(parentWidget, grandPHeight - parentHeight);
+                    if (parentHeight > grandPHeight) {
                         // if the parent widget is larger than the parent, make it the same size as the parent
-                        setWidgetHeightAbsolute(parentWidget, parentWidget.getParent().getHeight());
+                        setWidgetHeightAbsolute(parentWidget, grandPHeight);
                     }
                     setAllChildFitPar(parentWidget, notFixedDir.VERTICAL, widget2Mod);
                 }

@@ -116,19 +116,17 @@ public class MenuCapture
 
 
 		menuOptionTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
-		// for debug purposes
-		if(!isWalkOrCancel(menuType)){
-			//printMenuEntry(currentMenu);
-			if(!isNpcMenu(menuType) && !isObjectMenu(menuType)
-					&& !isItemOnGround(menuType) && !isItemInWidget(currentMenu) && !isPlayerMenu(menuType)){
-				//outputToFile.menuTarget(menuTarget,SqlVariables.menuInSubCategory.getValue(), "");
-				//outputToFile.menuOption(menuOption,SqlVariables.menuInSubCategory.getValue(), "");
-			}
-		}
+//		// for debug purposes
+//		if(!isWalkOrCancel(menuType)){
+//			//printMenuEntry(currentMenu);
+//			if(!isNpcMenu(menuType) && !isObjectMenu(menuType)
+//					&& !isItemOnGround(menuType) && !isItemInWidget(currentMenu) && !isPlayerMenu(menuType)){
+//				//outputToFile.menuTarget(menuTarget,SqlVariables.menuInSubCategory.getValue(), "");
+//				//outputToFile.menuOption(menuOption,SqlVariables.menuInSubCategory.getValue(), "");
+//			}
+//		}
 
-
-		// todo: get translation option from settings
-		String[] result = new String[] {};
+		String[] result;
 		// get translation for both target and option
 		if(isWalkOrCancel(menuType))
 		{

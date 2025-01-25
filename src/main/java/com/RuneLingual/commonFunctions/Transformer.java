@@ -259,41 +259,12 @@ public class Transformer {
         return transformedTexts.toString();
     }
 
-//    public String transform(String[] texts, Colors[] colors, TransformOption[] options, SqlQuery sqlQuery){
-//        if(Colors.countColorTagsAfterReformat(sqlQuery.getEnglish()) > 1){
-//            log.info("may not work as expected");
-//        }
-//        StringBuilder transformedTexts = new StringBuilder();
-//        for(int i = 0; i < texts.length; i++){
-//            transformedTexts.append(transform(texts[i], colors[i], options[i], sqlQuery));
-//        }
-//        return transformedTexts.toString();
-//    }
-
-    public String transform(String[] texts, Colors[] colors, TransformOption[] options, SqlQuery[] sqlQueries, boolean searchAlike){
-        StringBuilder transformedTexts = new StringBuilder();
-        for(int i = 0; i < texts.length; i++){
-            if(Colors.countColorTagsAfterReformat(sqlQueries[i].getEnglish()) > 1 && options[i] != TransformOption.TRANSLATE_API){
-                transformedTexts.append(transformEngWithColor(options[i], sqlQueries[i], searchAlike));
-            } else {
-                transformedTexts.append(transform(texts[i], colors[i], options[i], sqlQueries[i], searchAlike));
-            }
-        }
-        return transformedTexts.toString();
-    }
 
     public String transform(String stringWithColors, TransformOption option, SqlQuery sqlQuery, Colors defaultColor, boolean searchAlike){
         String[] targetWordArray = Colors.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
         Colors[] targetColorArray = Colors.getColorArray(stringWithColors, defaultColor); // eg. [Colors.white, Colors.red]
 
         return transform(targetWordArray, targetColorArray, option, sqlQuery, searchAlike);
-    }
-
-    public String transform(String stringWithColors, TransformOption option, SqlQuery[] sqlQueries, Colors defaultColor, boolean searchAlike){
-        String[] targetWordArray = Colors.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
-        Colors[] targetColorArray = Colors.getColorArray(stringWithColors, defaultColor); // eg. [Colors.white, Colors.red]
-
-        return transform(targetWordArray, targetColorArray, option, sqlQueries, searchAlike);
     }
 
     public String convertFullWidthToHalfWidth(String fullWidthStr) {
