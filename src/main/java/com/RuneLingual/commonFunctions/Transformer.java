@@ -247,19 +247,6 @@ public class Transformer {
         return transformedTexts.toString();
     }
 
-    public String transform(String[] texts, Colors[] colors, TransformOption option, SqlQuery[] sqlQueries, boolean searchAlike){
-        StringBuilder transformedTexts = new StringBuilder();
-        for(int i = 0; i < texts.length; i++){
-            if(Colors.countColorTagsAfterReformat(sqlQueries[i].getEnglish()) > 1 && option != TransformOption.TRANSLATE_API){
-                transformedTexts.append(transformEngWithColor(option, sqlQueries[i], searchAlike));
-            } else {
-                transformedTexts.append(transform(texts[i], colors[i], option, sqlQueries[i], searchAlike));
-            }
-        }
-        return transformedTexts.toString();
-    }
-
-
     public String transform(String stringWithColors, TransformOption option, SqlQuery sqlQuery, Colors defaultColor, boolean searchAlike){
         String[] targetWordArray = Colors.getWordArray(stringWithColors); // eg. ["Sand Crab", " (level-15)"]
         Colors[] targetColorArray = Colors.getColorArray(stringWithColors, defaultColor); // eg. [Colors.white, Colors.red]
