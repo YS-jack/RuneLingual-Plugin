@@ -34,7 +34,7 @@ public class SqlActions {
 
     // private String databaseUrl = "jdbc:h2:" + downloader.getLocalLangFolder() + File.separator + databaseFileName;
 
-    public void createTable(String databaseFolder) throws SQLException {
+    public void createTable() throws SQLException {
         Connection conn = DriverManager.getConnection(this.plugin.getDatabaseUrl());
         this.plugin.setConn(conn);
 

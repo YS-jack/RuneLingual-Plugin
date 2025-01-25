@@ -120,7 +120,7 @@ public class RuneLingualPlugin extends Plugin {
     @Getter
     @Setter
     private String[] tsvFileNames;
-    @Getter
+    @Getter @Setter
     private String databaseUrl;
     @Getter
     @Setter
@@ -168,12 +168,12 @@ public class RuneLingualPlugin extends Plugin {
         //get selected language
         targetLanguage = config.getSelectedLanguage();
         pastLanguages.add(targetLanguage);
-
+        databaseUrl = h2Manager.getUrl(targetLanguage);
         // check if online files have changed, if so download and update local files
         initLangFiles();
 
         //connect to database
-        h2Manager.getConn(targetLanguage);
+        conn = h2Manager.getConn(targetLanguage);
 
         // initiate overlays
         overlayManager.add(mouseTooltipOverlay);
@@ -267,15 +267,14 @@ public class RuneLingualPlugin extends Plugin {
         // if language is changed
         if (targetLanguage != config.getSelectedLanguage()) {
             targetLanguage = config.getSelectedLanguage();
+            h2Manager.closeConn();
             if (targetLanguage == LangCodeSelectableList.ENGLISH) {
                 clientToolBar.removeNavigation(navButton);
-                h2Manager.closeConn();
                 return;
             }
+            databaseUrl = h2Manager.getUrl(targetLanguage);
             initLangFiles();
-
-            h2Manager.closeConn();
-            h2Manager.getConn(targetLanguage);
+            conn = h2Manager.getConn(targetLanguage);
 
             clientToolBar.removeNavigation(navButton);
             if (targetLanguage.needsCharImages() && !pastLanguages.contains(targetLanguage)) {
