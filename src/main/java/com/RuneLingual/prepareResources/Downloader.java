@@ -1,5 +1,6 @@
 package com.RuneLingual.prepareResources;
 
+import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.commonFunctions.FileActions;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
@@ -41,7 +42,11 @@ public class Downloader {//downloads translations and japanese char images to ex
         this.plugin = plugin;
     }
 
-    public boolean initDownloader(String langCodeGiven) {
+    // returns if char image changed
+    public void initDownloader() {
+        if (plugin.getConfig().getSelectedLanguage() == LangCodeSelectableList.ENGLISH) {
+            return;
+        }
         final List<String> extensions_to_download = Arrays.asList("tsv", "zip"); // will download all files with these extensions
         final List<String> file_name_to_download = List.of("char_" + langCode + ".zip",
                 "latin2foreign_" + langCode + ".txt",
@@ -73,7 +78,6 @@ public class Downloader {//downloads translations and japanese char images to ex
 
             boolean dataChanged = false;
             boolean transcriptChanged = false;
-            boolean charImageChanged = false;
             List<String> remoteTsvFileNames = new ArrayList<>(); // list of tsv files to include in the sql database
 
 
@@ -91,7 +95,6 @@ public class Downloader {//downloads translations and japanese char images to ex
                     downloadAndUpdateFile(remote_full_path);
                     if (fileExtensionIncludedIn(remote_full_path, List.of("zip"))) { // if its a zip file, unzip it
                         updateCharDir(Paths.get(localLangFolder.getPath(), "char_" + langCode + ".zip")); // currently only supports char images, which should suffice
-                        charImageChanged = true;
                     } else {
                         transcriptChanged = true; // if the file is not a zip file, then one of the transcripts has changed
                     }
@@ -113,12 +116,9 @@ public class Downloader {//downloads translations and japanese char images to ex
             } else {
                 log.info("All files are up to date.");
             }
-            return charImageChanged;
-
         } catch (IOException e) {
             System.out.println("An error occurred: " + e.getMessage());
             e.printStackTrace();
-            return false;
         }
     }
 
