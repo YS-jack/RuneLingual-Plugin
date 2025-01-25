@@ -9,6 +9,7 @@ import com.RuneLingual.Wigets.DialogTranslator;
 import com.RuneLingual.Wigets.WidgetCapture;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.RuneLingual.nonLatin.*;
+import com.RuneLingual.prepareResources.H2Manager;
 import com.google.inject.Provides;
 
 import javax.annotation.Nullable;
@@ -49,6 +50,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 @Slf4j
 @PluginDescriptor(
@@ -79,7 +82,7 @@ public class RuneLingualPlugin extends Plugin {
     @Inject
     private CharImageInit charImageInit;
 
-    @Getter
+    @Getter @Setter
     private LangCodeSelectableList targetLanguage;
     @Getter
     private String selectedLanguageName;
@@ -97,6 +100,8 @@ public class RuneLingualPlugin extends Plugin {
     @Inject
     @Getter
     private Downloader downloader;
+    @Inject
+    private H2Manager h2Manager;
     @Inject
     @Getter
     private SidePanel panel;
@@ -153,21 +158,22 @@ public class RuneLingualPlugin extends Plugin {
     @Getter
     private int gameCycle;
 
+    // stores selected languages during this session, to prevent re-initializing char images
+    private final Set<LangCodeSelectableList> pastLanguages = new HashSet<>();
+
 
     @Override
     protected void startUp() throws Exception {
         log.info("Starting...");
         //get selected language
         targetLanguage = config.getSelectedLanguage();
-        // set database URL
-        databaseUrl = "jdbc:h2:" + FileNameAndPath.getLocalBaseFolder() + File.separator + targetLanguage.getLangCode()
-                + File.separator + FileNameAndPath.getLocalSQLFileName();
+        pastLanguages.add(targetLanguage);
 
         // check if online files have changed, if so download and update local files
         initLangFiles();
 
         //connect to database
-        conn = DriverManager.getConnection(databaseUrl);
+        h2Manager.getConn(targetLanguage);
 
         // initiate overlays
         overlayManager.add(mouseTooltipOverlay);
@@ -186,6 +192,9 @@ public class RuneLingualPlugin extends Plugin {
 
     @Subscribe
     public void onOverheadTextChanged(OverheadTextChanged event) throws Exception {
+        if (targetLanguage == LangCodeSelectableList.ENGLISH) {
+            return;
+        }
         overheadCapture.translateOverhead(event);
     }
 
@@ -217,6 +226,9 @@ public class RuneLingualPlugin extends Plugin {
 
     @Subscribe
     public void onMenuOpened(MenuOpened event) {
+        if (targetLanguage == LangCodeSelectableList.ENGLISH) {
+            return;
+        }
 
 //		MenuEntry[] ev = client.getMenuEntries();
 //		for (MenuEntry e: ev ){
@@ -226,13 +238,6 @@ public class RuneLingualPlugin extends Plugin {
         menuCapture.handleOpenedMenu(event);
     }
 
-    @Subscribe
-    public void onMenuEntryAdded(MenuEntryAdded event) {
-        if (targetLanguage == LangCodeSelectableList.ENGLISH) {
-            return;
-        }
-        //menuTranslator.handleMenuEvent(event);
-    }
 
     @Subscribe
     public void onChatMessage(ChatMessage event) throws Exception {
@@ -262,25 +267,20 @@ public class RuneLingualPlugin extends Plugin {
         // if language is changed
         if (targetLanguage != config.getSelectedLanguage()) {
             targetLanguage = config.getSelectedLanguage();
-            initLangFiles();
-            // todo: change the database URL and the connection to it
-            databaseUrl = "jdbc:h2:" + FileNameAndPath.getLocalBaseFolder() + File.separator +
-                    targetLanguage.getLangCode() + File.separator + FileNameAndPath.getLocalSQLFileName();
-            try {
-                conn = DriverManager.getConnection(databaseUrl);
-            } catch (Exception e) {
-                log.error("Error connecting to database: " + databaseUrl);
-                targetLanguage = LangCodeSelectableList.ENGLISH;
-                e.printStackTrace();
+            if (targetLanguage == LangCodeSelectableList.ENGLISH) {
+                clientToolBar.removeNavigation(navButton);
+                h2Manager.closeConn();
+                return;
             }
-            // download language files and structure language data
+            initLangFiles();
+
+            h2Manager.closeConn();
+            h2Manager.getConn(targetLanguage);
+
             clientToolBar.removeNavigation(navButton);
-            boolean charImageChanged = initLangFiles();
-            if (charImageChanged) {
+            if (targetLanguage.needsCharImages() && !pastLanguages.contains(targetLanguage)) {
                 charImageInit.loadCharImages();
             }
-
-            // reset language specific variables
 
             overlayManager.remove(mouseTooltipOverlay);
             MouseTooltipOverlay.setAttemptedTranslation(new ArrayList<>());
@@ -290,6 +290,7 @@ public class RuneLingualPlugin extends Plugin {
             deepl = new Deepl(this);
 
             restartPanel();
+            pastLanguages.add(targetLanguage);
         }
 
     }
@@ -390,10 +391,13 @@ public class RuneLingualPlugin extends Plugin {
         return configManager.getConfig(RuneLingualConfig.class);
     }
 
-    private boolean initLangFiles() {
+    private void initLangFiles() {
+        if (targetLanguage == LangCodeSelectableList.ENGLISH) {
+            return;
+        }
         //download necessary files
         downloader.setLangCode(targetLanguage.getLangCode());
-        return downloader.initDownloader(targetLanguage.getLangCode());
+        downloader.initDownloader();
     }
 
     public void restartPanel() {
