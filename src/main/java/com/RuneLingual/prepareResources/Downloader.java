@@ -53,7 +53,7 @@ public class Downloader {//downloads translations and japanese char images to ex
         String LOCAL_HASH_NAME = "hashListLocal_" + langCode + ".txt";
         String remote_sub_folder = "draft"; //todo: this value is "draft" if reading from draft folder, "public" if reading from the public folder
         GITHUB_BASE_URL = "https://raw.githubusercontent.com/YS-jack/Runelingual-Transcripts/original-main/" +
-                remote_sub_folder + "/" + langCode + "/"; //todo: replace the string after .com/ with the correct username
+                remote_sub_folder + "/" + langCode + "/";
 
         String REMOTE_HASH_FILE = GITHUB_BASE_URL + "hashList_" + langCode + ".txt";
 

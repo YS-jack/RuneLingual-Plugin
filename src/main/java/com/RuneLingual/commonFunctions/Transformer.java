@@ -70,13 +70,15 @@ public class Transformer {
             if(result.length == 0){
                 log.info("(engWithColor) No translation found for " + text + " ");
                 //log.info("query = " + sqlQuery.getSearchQuery());
-                return Colors.surroundWithColorTag(text, sqlQuery.getColor());
+                plugin.getFailedTranslations().add(sqlQuery);
+                return textAddColor(text, sqlQuery.getColor());
                 //translatedText = text;
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
                     log.info("{} has not been translated yet (engWithColor)", text);
-                    return Colors.surroundWithColorTag(text, sqlQuery.getColor());
+                    plugin.getFailedTranslations().add(sqlQuery);
+                    return textAddColor(text, sqlQuery.getColor());
                 } else { // text has been translated
                     translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
                     translatedText = Colors.getOriginalColorWord(translatedText, colorTagsAsIs); // replace placeholders with original color tags
@@ -181,7 +183,7 @@ public class Transformer {
 
     public String transform(String text, Colors colors, TransformOption option, SqlQuery sqlQuery, boolean searchAlike){
         if (plugin.getFailedTranslations().contains(sqlQuery)) {
-            return text;
+            return textAddColor(text, colors);
         }
         if(text == null || text.isEmpty()){
             plugin.getFailedTranslations().add(sqlQuery);
@@ -191,13 +193,13 @@ public class Transformer {
         String translatedText = "";
 
         if(option == TransformOption.AS_IS){
-            return text;
+            return textAddColor(text, colors);
         } else if(option == TransformOption.TRANSLATE_LOCAL){
             sqlQuery.setEnglish(text);
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
-                log.info(" (transform func) the following text doesn't exist in the English column :{}", text);
+                log.info("(transform func) the following text doesn't exist in the English column :{}", text);
                 log.info("   query = {}", sqlQuery.getSearchQuery());
                 // translatedText = text;
                 plugin.getFailedTranslations().add(sqlQuery);
@@ -205,8 +207,8 @@ public class Transformer {
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
-                    plugin.getFailedTranslations().add(sqlQuery);
                     log.info("{} has not been translated yet (transform func)", text);
+                    plugin.getFailedTranslations().add(sqlQuery);
                     return textAddColor(text, colors);
 
                 } else { // text has been translated
