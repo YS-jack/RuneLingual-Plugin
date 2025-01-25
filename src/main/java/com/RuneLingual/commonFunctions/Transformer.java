@@ -32,9 +32,7 @@ public class Transformer {
 
 
     public String transformEngWithColor(TransformOption option, SqlQuery sqlQuery, boolean searchAlike){
-        if (plugin.getFailedTranslations().contains(sqlQuery)) {
-            return sqlQuery.getEnglish();
-        }
+
         boolean needCharImage = plugin.getConfig().getSelectedLanguage().needsCharImages();
         GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
         String text = sqlQuery.getEnglish();
@@ -65,7 +63,10 @@ public class Transformer {
 //                sqlQuery.setEnglish(sqlQuery.getEnglish().replace(colorTagsAsIs.get(i), "<colNum" + i + ">")); // replace color tags with placeholders
 //            }
             sqlQuery.setEnglish(Colors.getEnumeratedColorWord(sqlQuery.getEnglish())); // replace color tags with placeholders
-
+            // if translating failed for this query before, return the original text with color
+            if (plugin.getFailedTranslations().contains(sqlQuery)) {
+                return sqlQuery.getEnglish();
+            }
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
                 log.info("(engWithColor) No translation found for " + text + " ");
@@ -118,9 +119,6 @@ public class Transformer {
         * return value will be "サンド <col=ff>クラブ</col> (レベル15)"
      */
     public String transformWithPlaceholders(String originalText, String textWithPlaceholders,TransformOption option , SqlQuery sqlQuery){
-        if (plugin.getFailedTranslations().contains(sqlQuery)) {
-            return textWithPlaceholders;
-        }
         if(textWithPlaceholders == null || textWithPlaceholders.isEmpty()){
             plugin.getFailedTranslations().add(sqlQuery);
             return textWithPlaceholders;
@@ -132,6 +130,10 @@ public class Transformer {
             return textWithPlaceholders;
         } else if(option == TransformOption.TRANSLATE_LOCAL){
             sqlQuery.setEnglish(textWithPlaceholders);
+            // if translating failed for this query before, return the original text with color
+            if (plugin.getFailedTranslations().contains(sqlQuery)) {
+                return textWithPlaceholders;
+            }
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, false);
             if(result.length == 0){
@@ -182,9 +184,6 @@ public class Transformer {
     }
 
     public String transform(String text, Colors colors, TransformOption option, SqlQuery sqlQuery, boolean searchAlike){
-        if (plugin.getFailedTranslations().contains(sqlQuery)) {
-            return textAddColor(text, colors);
-        }
         if(text == null || text.isEmpty()){
             plugin.getFailedTranslations().add(sqlQuery);
             return textAddColor(text, colors);
@@ -196,6 +195,10 @@ public class Transformer {
             return textAddColor(text, colors);
         } else if(option == TransformOption.TRANSLATE_LOCAL){
             sqlQuery.setEnglish(text);
+            // if translating failed for this query before, return the original text with color
+            if (plugin.getFailedTranslations().contains(sqlQuery)) {
+                return textAddColor(text, colors);
+            }
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
