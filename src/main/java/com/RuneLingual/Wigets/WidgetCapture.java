@@ -108,9 +108,11 @@ public class WidgetCapture {
             SqlQuery queryToPass = sqlQuery.copy();
             // replace sqlQuery if they are defined as item, npc, object, quest names
             Colors textColor = Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor()));
-            if (ids.getWidgetIdItemName().contains(widgetId)) {
-                String itemName = Colors.removeColorTag(widget.getText());
-                queryToPass.setItemName(itemName, textColor);
+            if (ids.getWidgetIdItemName().contains(widgetId)
+                && !(widgetId == ComponentID.COMBAT_WEAPON_NAME && Objects.equals(widget.getText(), "Unarmed")) // "Unarmed" in combat tab is not an item
+                ) {
+                    String itemName = Colors.removeColorTag(widget.getText());
+                    queryToPass.setItemName(itemName, textColor);
             }
             if (ids.getWidgetIdNpcName().contains(widgetId)) {
                 String npcName = Colors.removeColorTag(widget.getText());
