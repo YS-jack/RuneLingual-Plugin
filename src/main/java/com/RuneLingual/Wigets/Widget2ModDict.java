@@ -7,6 +7,7 @@ import lombok.Setter;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetPositionMode;
 import net.runelite.api.widgets.WidgetSizeMode;
+import net.runelite.api.widgets.WidgetTextAlignment;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -262,7 +263,7 @@ public class Widget2ModDict {
             }
 
 
-            // change parent width/height if needed
+            // change parent width/height to fit all the widget and sibling widgets
             int originalParentPosition = (dirNotFixed == notFixedDir.HORIZONTAL) ? parentWidget.getRelativeX() : parentWidget.getRelativeY();
             int siblingCoverage = getSiblingsCoverage(childWidgets, dirNotFixed);
             int parentCoverage = (dirNotFixed == notFixedDir.HORIZONTAL) ? parentWidget.getWidth() : parentWidget.getHeight();
@@ -281,22 +282,65 @@ public class Widget2ModDict {
                     }
                     setWidgetHeightAbsolute(parentWidget, siblingCoverage);
                 }
-
             }
-            // if any of the parent's corners are outside the parent, shift the parent
+
+            // if any of the parent's corners are outside of the parent's parent, resize and reposition parent and child widgets
+
+            // also, if the parent width/height (children coverage) is larger than parent's parent,
+            // resize and reposition parent and child widgets
             if (dirNotFixed == notFixedDir.HORIZONTAL) {
-                if (parentWidget.getRelativeX() < 0) {
+                int parentWidth = parentWidget.getWidth();
+                int grandPWidth = parentWidget.getParent().getWidth();
+                boolean isLeftOutside = parentWidget.getRelativeX() < 0;
+                boolean isRightOutside = parentWidget.getRelativeX() + parentWidth > grandPWidth;
+
+                if (isLeftOutside && isRightOutside) {
+                    // parent size is bigger than parent's parent. need to make parent and sibling widgets smaller to fit. not checked
                     setWidgetRelativeXPos(parentWidget, 0);
+                    setWidgetWidthAbsolute(parentWidget, grandPWidth);
+                    setAllChildFitPar(parentWidget, notFixedDir.HORIZONTAL, widget2Mod);
                 }
-                if (parentWidget.getRelativeX() + parentWidget.getWidth() > parentWidget.getParent().getWidth()) {
-                    setWidgetRelativeXPos(parentWidget, parentWidget.getParent().getWidth() - parentWidget.getWidth());
+                if (isLeftOutside) {
+                    setWidgetRelativeXPos(parentWidget, 0);
+                    if (parentWidth > grandPWidth) {
+                        // if the parent widget is larger than the parent, make it the same size as the parent
+                        setWidgetWidthAbsolute(parentWidget, grandPWidth);
+                    }
+                    setAllChildFitPar(parentWidget, notFixedDir.HORIZONTAL, widget2Mod);
+                }
+                if (isRightOutside) {
+                    if (parentWidth <= grandPWidth) {
+                        setWidgetRelativeXPos(parentWidget, grandPWidth - parentWidth);
+                        setWidgetWidthAbsolute(parentWidget, grandPWidth);
+                    } else {
+                        setWidgetWidthAbsolute(parentWidget, grandPWidth);
+                        setWidgetRelativeXPos(parentWidget, 0);
+                    }
+                    setAllChildFitPar(parentWidget, notFixedDir.HORIZONTAL, widget2Mod);
                 }
             } else {
-                if (parentWidget.getRelativeY() < 0) {
+                boolean isTopOutside = parentWidget.getRelativeY() < 0;
+                boolean isBottomOutside = parentWidget.getRelativeY() + parentWidget.getHeight() > parentWidget.getParent().getHeight();
+                if (isTopOutside && isBottomOutside) { // need to make parent and sibling widgets smaller to fit, not checked
                     setWidgetRelativeYPos(parentWidget, 0);
+                    setWidgetHeightAbsolute(parentWidget, parentWidget.getParent().getHeight());
+                    setAllChildFitPar(parentWidget, notFixedDir.VERTICAL, widget2Mod);
                 }
-                if (parentWidget.getRelativeY() + parentWidget.getHeight() > parentWidget.getParent().getHeight()) {
+                if (isTopOutside) {
+                    setWidgetRelativeYPos(parentWidget, 0);
+                    if (parentWidget.getHeight() > parentWidget.getParent().getHeight()) {
+                        // if the parent widget is larger than the parent, make it the same size as the parent
+                        setWidgetHeightAbsolute(parentWidget, parentWidget.getParent().getHeight());
+                    }
+                    setAllChildFitPar(parentWidget, notFixedDir.VERTICAL, widget2Mod);
+                }
+                if (isBottomOutside) {
                     setWidgetRelativeYPos(parentWidget, parentWidget.getParent().getHeight() - parentWidget.getHeight());
+                    if (parentWidget.getHeight() > parentWidget.getParent().getHeight()) {
+                        // if the parent widget is larger than the parent, make it the same size as the parent
+                        setWidgetHeightAbsolute(parentWidget, parentWidget.getParent().getHeight());
+                    }
+                    setAllChildFitPar(parentWidget, notFixedDir.VERTICAL, widget2Mod);
                 }
             }
         }
@@ -646,19 +690,45 @@ public class Widget2ModDict {
 
     private void shiftWidget(Widget widget, int diff, Direction dirToShift) {
         if (dirToShift == Direction.ABOVE || dirToShift == Direction.BELOW) {
-            int originalSiblingY = widget.getRelativeY();
-            int newSiblingY = getNewShiftedPos(widget.getRelativeY(), dirToShift, diff); // relative position
-            if (newSiblingY != originalSiblingY) {
-                setWidgetRelativeYPos(widget, newSiblingY);
+            int originalY = widget.getRelativeY();
+            int newY = getNewShiftedPos(widget.getRelativeY(), dirToShift, diff); // relative position
+            if (newY != originalY) {
+                setWidgetRelativeYPos(widget, newY);
             }
         } else {
-            int originalSiblingX = widget.getRelativeX();
-            int newSiblingX = getNewShiftedPos(widget.getRelativeX(), dirToShift, diff); // relative position
-            if (newSiblingX != originalSiblingX) {
-                setWidgetRelativeXPos(widget, newSiblingX);
+            int originalX = widget.getRelativeX();
+            int newX = getNewShiftedPos(widget.getRelativeX(), dirToShift, diff); // relative position
+            if (newX != originalX) {
+                setWidgetRelativeXPos(widget, newX);
             }
         }
+    }
 
+    private void setAllChildFitPar(Widget parentWidget, notFixedDir notFixedDir, Widget2Mod widget2Mod) {
+        List<Widget> childWidgets = getAllChildWidget(parentWidget);
+        for (Widget sibling : childWidgets) {
+            // if the sibling widget is larger than the parent widget, make it the same size as the parent widget
+            if (notFixedDir == Widget2ModDict.notFixedDir.HORIZONTAL
+                    && sibling.getWidth() > parentWidget.getWidth()) {
+                int newSiblingWidth = parentWidget.getWidth();
+                if (sibling.getType() == 4 && sibling.getXTextAlignment() == WidgetTextAlignment.RIGHT) {
+                    // (subtract right padding for right aligned texts)
+                    newSiblingWidth -= widget2Mod.rightPadding;
+                }
+                setWidgetWidthAbsolute(sibling, newSiblingWidth);
+            }
+            // if the sibling widget is larger than the parent widget, make it the same size as the parent widget
+            if (notFixedDir == Widget2ModDict.notFixedDir.VERTICAL
+                    && sibling.getHeight() > parentWidget.getHeight()) {
+                int newSiblingHeight = parentWidget.getHeight();
+                if (sibling.getType() == 4 && sibling.getYTextAlignment() == WidgetTextAlignment.BOTTOM) {
+                    // (subtract bottom padding for bottom aligned texts)
+                    newSiblingHeight -= widget2Mod.bottomPadding;
+                }
+                setWidgetHeightAbsolute(sibling, newSiblingHeight);
+
+            }
+        }
     }
 
 }
