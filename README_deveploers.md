@@ -46,8 +46,9 @@ These files include:
 ## 6. Collecting Transcripts
 1. Get the Widget ID of the parent that contains the text you want to translate.
 2. Add the ID to [Ids class](src/main/java/com/RuneLingual/commonFunctions/Ids.java) below line 64. Make sure to add a comment to describe what widget it includes, such as `// parent id for the texts in the shop UI`.
-3. Add corresponding sql values to [SqlVariables class](src/main/java/com/RuneLingual/Sql/SqlVariables.java), below line 62. Name should be `"sourceValue4" + the name of the source`.
-   The second value "source" should not be changed, as it is the name of the column in the database. Also make sure to add a comment to describe what the text is, such as `// shop UI text`.
+3. Add corresponding sql values to [SqlVariables class](src/main/java/com/RuneLingual/Sql/SqlVariables.java), below line 62. 
+   <br>Name should be `"sourceValue4" + the name of the source`.
+   <br>The second value "source" should not be changed, as it is the name of the column in the database. Also make sure to add a comment to describe what the text is, such as `// shop UI text`.
 4. Go to [WidgetCapture class'](src/main/java/com/RuneLingual/Widgets/WidgetCapture.java) `modifySqlQuery4Widget` function and an if statement to in the form of
    ```java
    if(widgetId == ids.getNameOfIdInStep2){
@@ -62,4 +63,11 @@ These files include:
    Then change the file name variable `String fileName` to something appropriate, and doesnt exist yet in the `dump` folder.
    You don't have to change anything else.
 6. Run the plugin and open the interface you want to capture. You should see the text file in the `dump` folder.
+<br>The output should look like this (:
+   ```
+   Members: Scythe of Vitur (with <Num0> Strength)		interface	generalUI	skillGuide
+   Members: Soulreaper axe (with <Num0> Strength)		interface	generalUI	skillGuide
+   Members: Variants of Keris partisan (requires Beneath Cursed Sands)		interface	generalUI	skillGuide
+   Members: Osmumten's Fang		interface	generalUI	skillGuide
+    ```
 7. If this is your first time, be sure to make a PR to the latest branch so someone can check you are doing thing right.
