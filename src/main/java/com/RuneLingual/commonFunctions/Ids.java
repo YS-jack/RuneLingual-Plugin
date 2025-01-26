@@ -1,7 +1,7 @@
 package com.RuneLingual.commonFunctions;
 
-import com.RuneLingual.Wigets.PartialTranslationManager;
-import com.RuneLingual.Wigets.Widget2ModDict;
+import com.RuneLingual.Widgets.PartialTranslationManager;
+import com.RuneLingual.Widgets.Widget2ModDict;
 import lombok.Getter;
 
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.RuneLingual.Wigets.PartialTranslationManager.PlaceholderType.*;
+import static com.RuneLingual.Widgets.PartialTranslationManager.PlaceholderType.*;
 import static com.RuneLingual.commonFunctions.Transformer.TransformOption.*;
 
 @Getter @Slf4j
@@ -73,6 +73,14 @@ public class Ids {
 
     //general interface
     private final int widgetIdSkillGuide = 14024705;
+
+    /* example for adding set of widget ids
+    private final Set<Integer> idSet4Raids_Colosseum = Set.of(
+            1234, // widget id of parent containing text of display board for raids 1
+            5678, // ...
+            1234 // ...
+    );
+     */
 
     private final Set<Integer> widgetIdPlayerName = Set.of(
             46661633,//character summary player name

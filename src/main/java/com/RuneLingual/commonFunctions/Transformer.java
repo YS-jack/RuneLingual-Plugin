@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 import java.util.List;
 
-import static com.RuneLingual.Wigets.PartialTranslationManager.protectPlaceholderTags;
+import static com.RuneLingual.Widgets.PartialTranslationManager.protectPlaceholderTags;
 
 @Slf4j
 public class Transformer {

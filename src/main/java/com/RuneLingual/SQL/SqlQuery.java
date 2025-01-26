@@ -355,6 +355,14 @@ public class SqlQuery implements Cloneable{
         this.translation = null;
     }
 
+    public void setGeneralUI(String source){
+        this.english = null;
+        this.category = SqlVariables.categoryValue4Interface.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4GeneralUI.getValue();
+        this.source = source;
+        this.translation = null;
+    }
+
     public static String replaceSpecialSpaces(String input) {
         if(input == null){
             return null;

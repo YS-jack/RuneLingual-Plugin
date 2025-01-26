@@ -1,4 +1,4 @@
-package com.RuneLingual.Wigets;
+package com.RuneLingual.Widgets;
 
 import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;

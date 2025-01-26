@@ -1,4 +1,4 @@
-package com.RuneLingual.Wigets;
+package com.RuneLingual.Widgets;
 
 import com.RuneLingual.*;
 import com.RuneLingual.SQL.SqlQuery;
@@ -18,8 +18,7 @@ import javax.inject.Inject;
 
 import net.runelite.api.widgets.WidgetUtil;
 
-import static com.RuneLingual.Wigets.WidgetsUtilRLingual.removeBrAndTags;
-import com.RuneLingual.Wigets.WidgetsUtilRLingual.*;
+import static com.RuneLingual.Widgets.WidgetsUtilRLingual.removeBrAndTags;
 
 
 @Slf4j

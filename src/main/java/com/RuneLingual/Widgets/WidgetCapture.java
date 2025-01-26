@@ -1,4 +1,4 @@
-package com.RuneLingual.Wigets;
+package com.RuneLingual.Widgets;
 
 import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.RuneLingualPlugin;
@@ -15,7 +15,7 @@ import net.runelite.api.widgets.*;
 import javax.inject.Inject;
 import java.util.*;
 
-import static com.RuneLingual.Wigets.WidgetsUtilRLingual.removeBrAndTags;
+import static com.RuneLingual.Widgets.WidgetsUtilRLingual.removeBrAndTags;
 import static com.RuneLingual.debug.OutputToFile.appendIfNotExistToFile;
 
 @Slf4j
@@ -35,7 +35,7 @@ public class WidgetCapture {
     @Inject
     private Ids ids;
     @Getter
-    Set<String> pastTranslationResults = new HashSet<>(); //TODO: add translated text to this list
+    Set<String> pastTranslationResults = new HashSet<>();
 
 
     @Inject
@@ -139,18 +139,19 @@ public class WidgetCapture {
         sqlQuery.setColor(Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor())));
         int widgetId = widget.getId();
         if (widgetId == ids.getWidgetIdSkillGuide()) { //Id for parent of skill guide, or parent of element in list
-            sqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
-            sqlQuery.setSubCategory(SqlVariables.subcategoryValue4GeneralUI.getValue());
-            sqlQuery.setSource(SqlVariables.sourceValue4SkillGuideInterface.getValue());
+//            sqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
+//            sqlQuery.setSubCategory(SqlVariables.subcategoryValue4GeneralUI.getValue());
+//            sqlQuery.setSource(SqlVariables.sourceValue4SkillGuideInterface.getValue());
+            sqlQuery.setGeneralUI(SqlVariables.sourceValue4SkillGuideInterface.getValue());
         }
+        // add more general UIs here
+
         // if one of the main tabs, set the category and subcategory. main tabs = combat options, skills tab, etc.
         if (widgetId == ids.getWidgetIdMainTabs()) {
             sqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
             sqlQuery.setSubCategory(SqlVariables.subcategoryValue4MainTabs.getValue());
-        }
-        // if one of the main tabs, set the source as the tab name
-        if (sqlQuery.getCategory() != null && sqlQuery.getCategory().equals(SqlVariables.categoryValue4Interface.getValue())
-                && sqlQuery.getSubCategory() != null && sqlQuery.getSubCategory().equals(SqlVariables.subcategoryValue4MainTabs.getValue())) {
+
+            // set the source as the tab name
             if (widgetId == ids.getWidgetIdAttackStyleTab()) {
                 sqlQuery.setSource(SqlVariables.sourceValue4CombatOptionsTab.getValue());
             } else if (widgetId == ids.getWidgetIdSkillsTab()) {
@@ -161,10 +162,6 @@ public class WidgetCapture {
                 sqlQuery.setSource(SqlVariables.sourceValue4QuestListTab.getValue());
             } else if (widgetId == ids.getWidgetIdAchievementDiaryTab()) {
                 sqlQuery.setSource(SqlVariables.sourceValue4AchievementDiaryTab.getValue());
-//            } else if (widgetId == ids.getWidgetIdInventoryTab()) {
-//                sqlQuery.setSource(SqlVariables.sourceValue4InventTab.getValue());
-//            } else if (widgetId == ids.getWidgetIdEquipmentTab()) {
-//                sqlQuery.setSource(SqlVariables.sourceValue4WornEquipmentTab.getValue());
             } else if (widgetId == ids.getWidgetIdPrayerTab()) {
                 sqlQuery.setSource(SqlVariables.sourceValue4PrayerTab.getValue());
             } else if (widgetId == ids.getWidgetIdSpellBookTab()) {
@@ -357,7 +354,6 @@ public class WidgetCapture {
                         "\t" + sqlQuery.getSubCategory() +
                         "\t" + sqlQuery.getSource(), fileName);
             }
-            return;
         }
 
     }

@@ -5,10 +5,10 @@ import com.RuneLingual.ChatMessages.*;
 import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
-import com.RuneLingual.Wigets.PartialTranslationManager;
-import com.RuneLingual.Wigets.Widget2ModDict;
-import com.RuneLingual.Wigets.WidgetCapture;
-import com.RuneLingual.Wigets.WidgetsUtilRLingual;
+import com.RuneLingual.Widgets.PartialTranslationManager;
+import com.RuneLingual.Widgets.Widget2ModDict;
+import com.RuneLingual.Widgets.WidgetCapture;
+import com.RuneLingual.Widgets.WidgetsUtilRLingual;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.RuneLingual.nonLatin.*;
 import com.RuneLingual.prepareResources.H2Manager;
@@ -46,9 +46,7 @@ import com.RuneLingual.commonFunctions.Ids;
 
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;

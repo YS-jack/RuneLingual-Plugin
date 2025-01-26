@@ -1,4 +1,4 @@
-package com.RuneLingual.Wigets;
+package com.RuneLingual.Widgets;
 
 import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
@@ -12,9 +12,6 @@ import net.runelite.api.widgets.WidgetSizeMode;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class WidgetsUtilRLingual
 {

@@ -42,3 +42,23 @@ These files include:
 - **Setting Interface**: Create a settings interface that displays texts in the selected language.
 - **Bank Tags**: Add bank tags to every item for searching in the selected language (may not be possible).
 - **Plugin Compatibility**: Ensure compatibility with other useful plugins like the menu entry swapper and ground marker. This may involve creating similar versions within this plugin or making pull requests to those plugins.
+
+## 6. Collecting Transcripts
+1. Get the Widget ID of the parent that contains the text you want to translate.
+2. Add the ID to [Ids class](src/main/java/com/RuneLingual/commonFunctions/Ids.java) below line 64. Make sure to add a comment to describe what widget it includes, such as `// parent id for the texts in the shop UI`.
+3. Add corresponding sql values to [SqlVariables class](src/main/java/com/RuneLingual/Sql/SqlVariables.java), below line 62. Make sure to add a comment to describe what the text is, such as `// shop UI text`.
+4. Go to [WidgetCapture class'](src/main/java/com/RuneLingual/Widgets/WidgetCapture.java) `modifySqlQuery4Widget` function and an if statement to in the form of
+   ```java
+   if(widgetId == ids.getNameOfIdInStep2){
+      sqlQuery.setGeneralUI(SqlVariables.NameInStep3.getValue());
+   }
+   ```
+5. Also in the same WidgetCapture class, edit the `ifIsDumpTarget_thenDump` function, change the first if statement to detect the widget you want to capture, like:
+   ```java
+   if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.NameInStep3.getValue())){
+    ...
+   ```
+   Then change the file name variable `String fileName` to something appropriate, and doesnt exist yet in the `dump` folder.
+   You don't have to change anything else.
+6. Run the plugin and open the interface you want to capture. You should see the text file in the `dump` folder.
+7. If this is your first time, be sure to make a PR to the latest branch so someone can check you are doing thing right.
