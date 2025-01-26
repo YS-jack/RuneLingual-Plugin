@@ -11,8 +11,7 @@ import net.runelite.api.MenuEntry;
 import javax.inject.Inject;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.HashMap;
 
 @Slf4j
@@ -58,13 +57,25 @@ public class PastTranslationManager {
                 log.error("Error reading file: " + e.getMessage(), e);
             }
         } else {
-            // if pastTranslationFile doesn't exist, create an empty one
+            // Ensure the directory exists
+            try {
+                Files.createDirectories(Paths.get(pastTranslationFile).getParent());
+            } catch (IOException e) {
+                log.error("Error creating directories: " + e.getMessage(), e);
+                return; // Exit the method if we can't create the directory
+            }
             try {
                 Files.createFile(Paths.get(pastTranslationFile));
-                log.info("Created empty file: " + pastTranslationFile);
+            } catch (FileAlreadyExistsException e) {
+                log.info("File already exists: " + pastTranslationFile);
+            } catch (NoSuchFileException e) {
+                log.error("Unable to create file, directory doesn't exist: " + e.getMessage(), e);
+            } catch (AccessDeniedException e) {
+                log.error("Permission denied when creating file: " + e.getMessage(), e);
             } catch (IOException e) {
                 log.error("Error creating file: " + e.getMessage(), e);
             }
+
         }
     }
 

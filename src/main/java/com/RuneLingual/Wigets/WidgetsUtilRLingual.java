@@ -218,11 +218,14 @@ public class WidgetsUtilRLingual
 		return null;
 	}
 	public String translatePartialTranslation(Widget widget, String translatedText, String originalText) {
-		// for widgets like "Name: <playerName>" (found in accounts management tab), where only the part of the text should be translated
+		// for widgets like "slay <taskName> in <locationName>" (found in accounts management tab), where only the part of the text should be translated
+		// return: "<locationName>にいる<taskName>を討伐せよ"
 		// order:
-		// originalText = "Name: Durial321", enColVal = "Name: <playerName>"
-		// translatedText = "名前: <playerName>"
-		// get : translatedText = "名前: Durial321"
+		// originalText = "slay blue dragons in Taverley",
+		// enColVal = "slay <taskName> in <locationName>"
+		// translatedText = "<locationName>にいる<taskName>を討伐せよ"
+		// (also translate text in the tags, "blue dragons" and "Taverley")
+		// get : translatedText = "ターベリーにいる青い竜を討伐せよ" (Taverley = ターベリー, blue dragons = 青い竜)
 		int widgetId = widget.getId();
 		String enColVal = getEnColVal4PartialTranslation(widget);
 		if (enColVal == null) {
