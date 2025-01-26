@@ -282,12 +282,16 @@ public enum Colors {
         return colWord;
     }
 
-    public static String removeColorTag(String str) {
+    public static String removeNonImgTags(String str) {
         return str.replaceAll("<(?!img|>).*?>", "");
     }
 
     public static String removeAllTags(String str) {
         return str.replaceAll("<.*?>", "");
+    }
+
+    public static String removeColImgBrAsisTags(String str) {
+        return str.replaceAll("<col[=a-zA-Z0-9]*?>|</col>|<img=[0-9]*>|<br>|<asis>|</asis>", "");
     }
 
     public static String enumerateColorsInColWord(String colWord) {

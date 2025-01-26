@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 import java.util.List;
 
+import static com.RuneLingual.Wigets.PartialTranslationManager.protectPlaceholderTags;
+
 @Slf4j
 public class Transformer {
     @Inject
@@ -150,6 +152,7 @@ public class Transformer {
 
                 } else { // text has been translated
                     translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
+                    translatedText = protectPlaceholderTags(translatedText); // protect placeholder tags like <!monster> from being turned into char images
                 }
             }
             //translatedText = this.plugin.getTranscriptActions().getTranslation(text);
@@ -309,7 +312,7 @@ public class Transformer {
         GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
 
         if(needCharImage) {// needs char image but just 1 color
-            return generalFunctions.StringToTags(Colors.removeColorTag(translatedText), colors);
+            return generalFunctions.StringToTags(Colors.removeNonImgTags(translatedText), colors);
         } else { // doesnt need char image and just 1 color
             return "<col=" + colors.getHex() + ">" + translatedText + "</col>";
         }

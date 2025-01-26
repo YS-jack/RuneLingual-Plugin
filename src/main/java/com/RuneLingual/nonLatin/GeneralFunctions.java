@@ -6,8 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ChatIconManager;
 
 import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 public class GeneralFunctions {
@@ -78,4 +79,36 @@ public class GeneralFunctions {
         return imgTagSb.toString();
     }
 
+    public static Map<String, String> getPlaceholder2Content(String originalText, String placeholderText) {
+        /*
+        String originalText = "slay blue dragons in Taverley";
+        String enColVal = "slay <monster> in <location>";
+        returns: {"monster": "blue dragons", "location": "Taverley"}
+         */
+        Map<String, String> result = new HashMap<>();
+        String[] fixedTexts = placeholderText.split("(?=<![^>]+>)|(?<=\\w>)"); // fixedTexts = ["slay ", "<!monster>", " in ", "<!location>"]
+
+        StringBuilder regex = new StringBuilder("^");
+        List<String> placeholders = new ArrayList<>();
+
+        for (String segment : fixedTexts) {
+            if (segment.startsWith("<!") && segment.endsWith(">")) {
+                placeholders.add(segment.substring(2, segment.length() - 1));
+                regex.append("(.*)");
+            } else {
+                regex.append(Pattern.quote(segment));
+            }
+        }
+        regex.append("$"); // regex = "^\Qslay \E(.*)\Q in \E(.*)$", placeholders = ["monster", "location"]
+
+        Pattern pattern = Pattern.compile(regex.toString());
+        Matcher matcher = pattern.matcher(originalText);
+
+        if (matcher.find()) {
+            for (int i = 0; i < placeholders.size(); i++) {
+                result.put(placeholders.get(i), matcher.group(i + 1));
+            }
+        }
+        return result; //{location=Taverley, monster=blue dragons}
+    }
 }

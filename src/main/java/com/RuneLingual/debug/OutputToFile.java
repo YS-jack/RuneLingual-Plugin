@@ -15,7 +15,7 @@ import com.RuneLingual.SQL.SqlVariables;
 public class OutputToFile {
     public void menuTarget(String target, String subCategory, String source){
         if (Colors.countColorTagsAfterReformat(target) <= 1){
-            target = Colors.removeColorTag(target);
+            target = Colors.removeNonImgTags(target);
         }
         target = Colors.enumerateColorsInColWord(target);
         appendToFile(target + "\t" + SqlVariables.categoryValue4Name.getValue() + "\t" + subCategory + "\t" + source, "menuTarget_debug.txt");
@@ -23,7 +23,7 @@ public class OutputToFile {
 
     public void menuOption(String option, String subCategory, String source){
         if (Colors.countColorTagsAfterReformat(option) <= 1){
-            option = Colors.removeColorTag(option);
+            option = Colors.removeNonImgTags(option);
         }
         option = Colors.enumerateColorsInColWord(option);
         appendToFile(option + "\t" + SqlVariables.categoryValue4Actions.getValue() + "\t" + subCategory + "\t" + source, "menuOption_debug.txt");

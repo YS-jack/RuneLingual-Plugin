@@ -111,19 +111,19 @@ public class WidgetCapture {
             if (ids.getWidgetIdItemName().contains(widgetId)
                 && !(widgetId == ComponentID.COMBAT_WEAPON_NAME && Objects.equals(widget.getText(), "Unarmed")) // "Unarmed" in combat tab is not an item
                 ) {
-                    String itemName = Colors.removeColorTag(widget.getText());
+                    String itemName = Colors.removeNonImgTags(widget.getText());
                     queryToPass.setItemName(itemName, textColor);
             }
             if (ids.getWidgetIdNpcName().contains(widgetId)) {
-                String npcName = Colors.removeColorTag(widget.getText());
+                String npcName = Colors.removeNonImgTags(widget.getText());
                 queryToPass.setNpcName(npcName, textColor);
             }
             if (ids.getWidgetIdObjectName().contains(widgetId)) {
-                String objectName = Colors.removeColorTag(widget.getText());
+                String objectName = Colors.removeNonImgTags(widget.getText());
                 queryToPass.setObjectName(objectName, textColor);
             }
             if (ids.getWidgetIdQuestName().contains(widgetId)) {
-                String questName = Colors.removeColorTag(widget.getText());
+                String questName = Colors.removeNonImgTags(widget.getText());
                 queryToPass.setQuestName(questName, textColor);
             }
 
@@ -196,22 +196,20 @@ public class WidgetCapture {
         String originalText = widget.getText();
         String textToTranslate = getEnglishColValFromWidget(widget);
         String translatedText = null;
-        // for most cases
-        if (!ids.getWidgetId2SplitTextAtBr().contains(widgetId)
-            && !ids.getWidgetId2KeepBr().contains(widgetId)) {
-            translatedText = getTranslationFromQuery(sqlQuery, widget.getText(), textToTranslate);
-
-        } else if (widgetsUtilRLingual.shouldPartiallyTranslate(widget)) {
+        if (widgetsUtilRLingual.shouldPartiallyTranslate(widget)) {
             // for widgets like "Name: <playerName>" (found in accounts management tab), where only the part of the text should be translated
             // order:
             // textToTranslate = "Name: <playerName>" -> translatedText = "名前: <playerName>" -> translatedText = "名前: Durial321"
             //todo: complete this
-            translatedText = getTranslationFromQuery(sqlQuery, widget.getText(), textToTranslate);
-        }
+            String translationWIthPlaceHolder = getTranslationFromQuery(sqlQuery, originalText, textToTranslate);
+            translatedText = ids.getPartialTranslationManager().translate(widget, translationWIthPlaceHolder, originalText, sqlQuery.getColor());
+        } else if (!ids.getWidgetId2SplitTextAtBr().contains(widgetId)// for most cases
+            && !ids.getWidgetId2KeepBr().contains(widgetId)) {
+            translatedText = getTranslationFromQuery(sqlQuery, originalText, textToTranslate);
 
-        else if (ids.getWidgetId2SplitTextAtBr().contains(widgetId)){// for widgets that have <br> in the text and should be kept where they are, translate each line separately
+        } else if (ids.getWidgetId2SplitTextAtBr().contains(widgetId)){// for widgets that have <br> in the text and should be kept where they are, translate each line separately
             String[] textList = textToTranslate.split("<br>");
-            String[] originalTextList = widget.getText().split("<br>");
+            String[] originalTextList = originalText.split("<br>");
             StringBuilder translatedTextBuilder = new StringBuilder();
 
             for (int i = 0; i < textList.length; i++) {
@@ -230,15 +228,15 @@ public class WidgetCapture {
             translatedText = translatedTextBuilder.toString();
         } else { // if(ids.getWidgetId2KeepBr().contains(widgetId))
             // for widgets that have <br> in the text and should be kept where they are, translate the whole text
-            translatedText = getTranslationFromQuery(sqlQuery, widget.getText(), textToTranslate);
+            translatedText = getTranslationFromQuery(sqlQuery, originalText, textToTranslate);
         }
 
         // translation was not available
 
-        if(translatedText == null){ // if the translation is the same as the original without <br>
+        if(translatedText == null){ // if the translation is the same as the original with <br>
             return;
         }
-        String originalWithoutBr = removeBrAndTags(widget.getText());
+        String originalWithoutBr = removeBrAndTags(originalText);
         String translationWithoutBr = removeBrAndTags(translatedText);
         if(Objects.equals(translatedText, textToTranslate) // if the translation is the same as the original
                 || originalWithoutBr.equals(translationWithoutBr)){ // if the translation is the same as the original without <br>
@@ -320,7 +318,6 @@ public class WidgetCapture {
             return widgetsUtilRLingual.getEnColVal4PartialTranslation(widget);
         }
 
-
         text = SqlQuery.replaceSpecialSpaces(text);
         text = Colors.getEnumeratedColorWord(text);
         text = SqlQuery.replaceNumbersWithPlaceholders(text);
@@ -337,14 +334,14 @@ public class WidgetCapture {
 
     // used for creating the English transcript used for manual translation
     private void ifIsDumpTarget_thenDump(Widget widget, SqlQuery sqlQuery) {
-//        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4FriendsTab.getValue())
-//        || sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4IgnoreTab.getValue())
-//        || sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4AccountManagementTab.getValue())) {
-        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4SkillsTab.getValue())){
+        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4FriendsTab.getValue())
+        || sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4IgnoreTab.getValue())
+        || sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4AccountManagementTab.getValue())) {
+//        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4SkillsTab.getValue())){
             if (widget.getText() == null || !shouldTranslateWidget(widget)) {
                 return;
             }
-            String fileName = "skillsTab.txt";
+            String fileName = "FriendsIgnoreAccMan.txt";
             String textToDump = getEnglishColValFromWidget(widget);
 
             //pastTranslationResults.add(widget.getText());

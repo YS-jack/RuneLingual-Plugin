@@ -1,5 +1,6 @@
 package com.RuneLingual.commonFunctions;
 
+import com.RuneLingual.Wigets.PartialTranslationManager;
 import com.RuneLingual.Wigets.Widget2ModDict;
 import lombok.Getter;
 
@@ -16,6 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.RuneLingual.Wigets.PartialTranslationManager.PlaceholderType.*;
+import static com.RuneLingual.commonFunctions.Transformer.TransformOption.*;
+
 @Getter @Slf4j
 public class Ids {
     @Inject
@@ -24,13 +28,17 @@ public class Ids {
     Client client;
     @Getter
     private Widget2ModDict widget2ModDict;
+    @Getter
+    private PartialTranslationManager partialTranslationManager;
 
     @Inject
-    public Ids(RuneLingualPlugin plugin, Widget2ModDict widget2ModDict) {
+    public Ids(RuneLingualPlugin plugin, Widget2ModDict widget2ModDict, PartialTranslationManager partialTranslationManager) {
         this.plugin = plugin;
         this.client = plugin.getClient();
         this.widget2ModDict = widget2ModDict;
+        this.partialTranslationManager = partialTranslationManager;
         initWidget2ModDict();
+        initPartialTranslations();
     }
 
     // Ids of widgets
@@ -91,7 +99,7 @@ public class Ids {
     private final int prayerTabHoverTextId = 35455015;
     private final int spellbookTabHoverTextId = 14287050;
     private final int friendsTabPlayerNameTextId = 28114955;
-    private final int playerNameInAccManTab = 7143468;
+    private final int playerNameInAccManTab = 7143474;
     private final int addFriendButtonId = 28114959;
     private final int removeFriendButtonId = 28114961;
     private final int skillsTabXpHoverTextId = 20971548;
@@ -142,15 +150,26 @@ public class Ids {
         widget2ModDict.add(skillsTabXpHoverTextId, 4, true, false, false, false, false, 3, 3, 3, 3); // skill tab's xp hover display
         widget2ModDict.add(prayerTabHoverTextId, 4,false, true, false, true, false, 3, 3, 3, 3);
         widget2ModDict.add(spellbookTabHoverTextId, 4,true, false, false, true, true, 2, 2, 2, 2);
-
     }
 
-    // widget containing player name in sentence, so cant be completely ignored
-    // must specify which part of text to translate and which not to
-    // each value's meaning: Pair<widgetId, text to replace with>
-    private final List<Pair<Integer, String>> widgetId2TranslatePartially = List.of(
-            Pair.of(playerNameInAccManTab, "Name: <playerName>") // friends tab's player name
-    );
+    private void initPartialTranslations() {
+        /* usage:
+        partialTranslationManager.addPartialTranslation(
+                widgetId,
+                List.of("fixed text part 1", "fixed text part 2", "fixed text part 3"),
+                List.of(Pair.of(placeholderType between part 1 and 2, Transformer.TransformOption))
+         */
+        partialTranslationManager.addPartialTranslation(
+                playerNameInAccManTab,
+                List.of("Name: "),
+                List.of(Pair.of(PLAYER_NAME, AS_IS))
+        );
+        // to add placeholder at the beginning of the text, add an empty string to the fixedTextParts
+        // eg. Pair.of(12345, List.of("", " hello!"), List.of(Pair.of(PLAYER_NAME, AS_IS)))
+
+        // add more partial translations here
+    }
+
 
 
     public int getCombatOptionParentWidgetId() {

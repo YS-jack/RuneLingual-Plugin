@@ -12,6 +12,7 @@ import net.runelite.api.widgets.WidgetSizeMode;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -178,7 +179,7 @@ public class WidgetsUtilRLingual
 	public static String removeBrAndTags(String str) {
 		// replaces br with space
 		String tmp = str.replaceAll("(?<=\\S)<br>(?=\\S)", " ");
-		return Colors.removeColorTag(tmp);
+		return Colors.removeNonImgTags(tmp);
 	}
 	public boolean isTranslatedWidget(String text) {
 		return plugin.getWidgetCapture().pastTranslationResults.contains(text);
@@ -206,58 +207,13 @@ public class WidgetsUtilRLingual
 	}
 
 	public boolean shouldPartiallyTranslate(Widget widget) {
-		return ids.getWidgetId2TranslatePartially().stream().anyMatch(pair -> pair.getLeft() == widget.getId());
+		return ids.getPartialTranslationManager().hasId(widget.getId());
 	}
 	public String getEnColVal4PartialTranslation(Widget widget) {
 		int widgetId = widget.getId();
-		for (var pair : ids.getWidgetId2TranslatePartially()) {
-			if (pair.getLeft() == widgetId) {
-				return pair.getRight(); // returns the text to translate, such as "Name: <playerName>"
-			}
-		}
-		return null;
-	}
-	public String translatePartialTranslation(Widget widget, String translatedText, String originalText) {
-		// for widgets like "slay <taskName> in <locationName>" (found in accounts management tab), where only the part of the text should be translated
-		// return: "<locationName>にいる<taskName>を討伐せよ"
-		// order:
-		// originalText = "slay blue dragons in Taverley",
-		// enColVal = "slay <taskName> in <locationName>"
-		// translatedText = "<locationName>にいる<taskName>を討伐せよ"
-		// (also translate text in the tags, "blue dragons" and "Taverley")
-		// get : translatedText = "ターベリーにいる青い竜を討伐せよ" (Taverley = ターベリー, blue dragons = 青い竜)
-		int widgetId = widget.getId();
-		String enColVal = getEnColVal4PartialTranslation(widget);
-		if (enColVal == null) {
-			return translatedText;
-		}
-		// from the originalText and enColVal, get text replaced by tags like <playerName>
-		String replacedText = getReplacedText(originalText, enColVal);
-		if (replacedText.isEmpty()) {
-			return translatedText;
-		}
-		// replace the translation's tag with the replaced text
-		return translatedText.replaceAll("<.*?>", replacedText);
+		return ids.getPartialTranslationManager().getEnColVal(widgetId);
 	}
 
-	public String getReplacedText(String originalText, String enColVal) {
-		// Regular expression to find text within <>
-		Pattern pattern = Pattern.compile("<(.*?)>");
-		Matcher matcher = pattern.matcher(enColVal);
-		String replacedText = "";
-		if (matcher.find()) {
-			String tag = matcher.group(1); // Extract the text within <>
-			String regex = enColVal.replace("<" + tag + ">", "(.*?)");
-			Pattern pattern2 = Pattern.compile(regex);
-			Matcher matcher2 = pattern2.matcher(originalText);
-
-			if (matcher2.find()) {
-				replacedText = matcher2.group(1); // Extract the replaced text
-				System.out.println("Replaced Text: " + replacedText);
-			}
-		}
-		return replacedText;
-	}
 
 	// set height of line for specified widgets, because they can be too small
 	public void changeLineSize_ifNeeded(Widget widget) {

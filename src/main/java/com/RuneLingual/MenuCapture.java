@@ -198,7 +198,7 @@ public class MenuCapture
 
 		newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
 
-		if(Colors.removeColorTag(menuTarget).isEmpty()) {
+		if(Colors.removeNonImgTags(menuTarget).isEmpty()) {
 			newTarget = "";
 		} else {
 			TransformOption menuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
@@ -336,7 +336,7 @@ public class MenuCapture
 
 		newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
 
-		if(Colors.removeColorTag(menuTarget).isEmpty()) { // if it doesnt have a target
+		if(Colors.removeNonImgTags(menuTarget).isEmpty()) { // if it doesnt have a target
 			newTarget = "";
 		} else {
 			// if it is in the quest tab, the values are in a different category/sub_category
@@ -565,7 +565,7 @@ public class MenuCapture
 	public boolean isItemInWidget(MenuEntry menuEntry){
 		MenuAction action = menuEntry.getType();
 		String target = menuEntry.getTarget();
-		target = Colors.removeColorTag(target);
+		target = Colors.removeNonImgTags(target);
 		if(target.isEmpty()){
 			return false;
 		}
