@@ -44,7 +44,7 @@ These files include:
 - **Plugin Compatibility**: Ensure compatibility with other useful plugins like the menu entry swapper and ground marker. This may involve creating similar versions within this plugin or making pull requests to those plugins.
 
 ## 6. Collecting Transcripts
-1. Get the Widget ID of the parent that contains the text you want to translate. Use Widget Inspector, which you need developer mode to use.
+1. Get the Widget ID of the parent that contains the text you want to translate, by using the Widget Inspector. You need [developer mode](https://github.com/runelite/runelite/wiki/Using-the-client-developer-tools) for this.
 2. Add the ID to [Ids class](src/main/java/com/RuneLingual/commonFunctions/Ids.java) below line 64. Make sure to add a comment to describe what widget it includes, such as `// parent id for the texts in the shop UI`.
 3. Add corresponding sql values to [SqlVariables class](src/main/java/com/RuneLingual/Sql/SqlVariables.java), below line 62. 
    <br>Name should be `"sourceValue4" + the name of the source`.
