@@ -59,6 +59,7 @@ public enum SqlVariables {
     // for interfaces
     sourceValue4SkillGuideInterface("skillGuide","source"), // for skill guide interface
     // add more here, with comments for what they are for
+    // name should be "sourceValue4" + the name of the source
     // the second value "source" should not be changed, as it is the name of the column in the database
     ;
 
