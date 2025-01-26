@@ -63,7 +63,7 @@ These files include:
    Then change the file name variable `String fileName` to something appropriate, and doesnt exist yet in the `dump` folder.
    You don't have to change anything else.
 6. Run the plugin and open the interface you want to capture. You should see the text file in the `dump` folder.
-<br>The output should look like this (:
+<br>The output should look like this:
    ```
    Members: Scythe of Vitur (with <Num0> Strength)		interface	generalUI	skillGuide
    Members: Soulreaper axe (with <Num0> Strength)		interface	generalUI	skillGuide
