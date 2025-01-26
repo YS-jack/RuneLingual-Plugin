@@ -45,7 +45,7 @@ public class ChatInputOverlay extends Overlay //remove abstract when actually ma
             return null;
         }
 
-        foreignCharSize = plugin.getConfig().getSelectedLanguage().getCharWidth() + 1;
+        foreignCharSize = plugin.getConfig().getSelectedLanguage().getOverlayCharWidth() + 1;
 
 
         int msgLength = playerMessage.getChatInputString().length();

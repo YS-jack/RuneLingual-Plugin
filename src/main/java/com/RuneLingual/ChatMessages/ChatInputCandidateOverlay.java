@@ -42,7 +42,7 @@ public class ChatInputCandidateOverlay extends Overlay
             return null;
         }
 
-        foreignCharSize = plugin.getConfig().getSelectedLanguage().getCharWidth() + 1;
+        foreignCharSize = plugin.getConfig().getSelectedLanguage().getOverlayCharWidth() + 1;
 
         String[] nonLatinMsg = {};
         

@@ -9,10 +9,10 @@ import javax.inject.Inject;
 @Getter
 public enum LangCodeSelectableList
 {
-    ENGLISH ("en", "EN","EN", 8, 11, 6, false, false, false, false, true),
+    ENGLISH ("en", "EN","EN", 8, 11, 6, 6, false, false, false, false, true),
     //PORTUGUÊS_BRASILEIRO ("pt_br", "PT","PT-BR", 8, 11, 6, false, false, false, false, true),
-    NORSK("no", "NB", "NB", 8, 12, 6, false, false, false, false, true),
-    日本語("ja", "JA", "JA", 12, 12, 12, true, true, true, true, false);
+    NORSK("no", "NB", "NB", 8, 12, 6, 6, false, false, false, false, true),
+    日本語("ja", "JA", "JA", 12, 12, 12, 15, true, true, true, true, false);
     // todo: add languages here
 
     private final String langCode;
@@ -21,6 +21,7 @@ public enum LangCodeSelectableList
     private final int charWidth;
     private final int charHeight;
     private final int chatBoxCharWidth;
+    private final int overlayCharWidth;
 
     @Getter(AccessLevel.NONE)
     private final boolean needCharImages;
@@ -35,7 +36,7 @@ public enum LangCodeSelectableList
 
     @Inject
     LangCodeSelectableList(String langCode, String deeplCodeSrc, String deeplCodeTgt,
-                           int charWidth, int charHeight, int chatBoxCharWidth,
+                           int charWidth, int charHeight, int chatBoxCharWidth, int overlayCharWidth,
                            boolean needCharImages, boolean swapMenuOptionAndTarget,
                            boolean needInputOverlay, boolean needInputCandidateOverlay,
                            boolean needSpaceBetweenWords){
@@ -45,6 +46,7 @@ public enum LangCodeSelectableList
         this.charWidth = charWidth;
         this.charHeight = charHeight;
         this.chatBoxCharWidth = chatBoxCharWidth;
+        this.overlayCharWidth = overlayCharWidth;
         this.needCharImages = needCharImages;
         this.swapMenuOptionAndTarget = swapMenuOptionAndTarget;
         this.needInputOverlay = needInputOverlay;
