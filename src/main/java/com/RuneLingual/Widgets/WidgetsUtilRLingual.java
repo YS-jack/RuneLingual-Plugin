@@ -213,11 +213,9 @@ public class WidgetsUtilRLingual
 
 
 	// set height of line for specified widgets, because they can be too small
-	public void changeLineSize_ifNeeded(Widget widget) {
-		if (ids.getWidgetId2SetLineHeight().contains(widget.getId())) {
-			int lineHeight = plugin.getConfig().getSelectedLanguage().getCharHeight();
-			widget.setLineHeight(lineHeight);
-		}
+	public void changeLineSize(Widget widget) {
+		int lineHeight = plugin.getConfig().getSelectedLanguage().getCharHeight();
+		widget.setLineHeight(lineHeight);
 	}
 
 }

@@ -137,12 +137,12 @@ public class Ids {
             addFriendButtonId, removeFriendButtonId
     );
 
-    private final Set<Integer> widgetId2SetLineHeight = Set.of(
-            46661634, // character summary tab's category texts
-            35455018, // prayer tab's filter texts
-            14287046, // spellbook tab filter texts
-            addFriendButtonId, removeFriendButtonId // friends tab's add friend and remove friend button texts
-    );
+//    private final Set<Integer> widgetId2SetLineHeight = Set.of(
+//            46661634, // character summary tab's category texts
+//            35455018, // prayer tab's filter texts
+//            14287046, // spellbook tab filter texts
+//            addFriendButtonId, removeFriendButtonId // friends tab's add friend and remove friend button texts
+//    );
 
     // widget ids to change the width of, because some widget have room and also needs more
     // each value's meaning: Map<widgetId, Pair<newWidth, newHeight>>

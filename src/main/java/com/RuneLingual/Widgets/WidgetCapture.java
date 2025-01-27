@@ -254,7 +254,7 @@ public class WidgetCapture {
         } else {
             widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
         }
-        widgetsUtilRLingual.changeLineSize_ifNeeded(widget);
+        widgetsUtilRLingual.changeLineSize(widget);
         widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget);
 
 
@@ -336,11 +336,11 @@ public class WidgetCapture {
 
     // used for creating the English transcript used for manual translation
     private void ifIsDumpTarget_thenDump(Widget widget, SqlQuery sqlQuery) {
-        if (sqlQuery.getSource() != null &&
-                (sqlQuery.getSource().equals(SqlVariables.sourceValue4FriendsTab.getValue())
-        || sqlQuery.getSource().equals(SqlVariables.sourceValue4IgnoreTab.getValue())
-        || sqlQuery.getSource().equals(SqlVariables.sourceValue4AccountManagementTab.getValue()))) {
-//        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4SkillsTab.getValue())){
+//        if (sqlQuery.getSource() != null &&
+//                (sqlQuery.getSource().equals(SqlVariables.sourceValue4FriendsTab.getValue())
+//        || sqlQuery.getSource().equals(SqlVariables.sourceValue4IgnoreTab.getValue())
+//        || sqlQuery.getSource().equals(SqlVariables.sourceValue4AccountManagementTab.getValue()))) {
+        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4GroupTab.getValue())){
             if (widget.getText() == null || !shouldTranslateWidget(widget)) {
                 return;
             }
