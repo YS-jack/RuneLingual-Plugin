@@ -156,7 +156,7 @@ private final Set<Integer> widgetIdQuestName = Set.of(
 ```
 <br>If you find other types of dynamic texts, we could make a new set, talk to the devs on Discord.
 ### 7.1.2 Partially Dynamic
-For widgets that are <u><b>PARTIALLY DYNAMIC</b></u>, such as "Name: (player name)", you need to add an object to the PartialTranslationManager in [Ids class](src/main/java/com/RuneLingual/commonFunctions/Ids.java) and also add the text to the [WidgetCapture class](src/main/java/com/RuneLingual/Widgets/WidgetCapture.java) in the `ifIsDumpTarget_thenDump` function.
+For widgets that are <u><b>PARTIALLY DYNAMIC</b></u>, such as "Name: (player name)", you need to add an object to the PartialTranslationManager in [Ids class](src/main/java/com/RuneLingual/commonFunctions/Ids.java).
 ```java
 private void initPartialTranslations() {
     partialTranslationManager.addPartialTranslation(
