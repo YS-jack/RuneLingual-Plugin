@@ -139,11 +139,13 @@ public class WidgetCapture {
         sqlQuery.setColor(Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor())));
         int widgetId = widget.getId();
         if (widgetId == ids.getWidgetIdSkillGuide()) { //Id for parent of skill guide, or parent of element in list
-//            sqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
-//            sqlQuery.setSubCategory(SqlVariables.subcategoryValue4GeneralUI.getValue());
-//            sqlQuery.setSource(SqlVariables.sourceValue4SkillGuideInterface.getValue());
             sqlQuery.setGeneralUI(SqlVariables.sourceValue4SkillGuideInterface.getValue());
         }
+        /* example of using Sets:
+        if (ids.getWidgetIdPlayerName().contains(widgetId)) {
+            sqlQuery.setPlayerName(widget.getText(), sqlQuery.getColor());
+        }
+         */
         // add more general UIs here
 
         // if one of the main tabs, set the category and subcategory. main tabs = combat options, skills tab, etc.

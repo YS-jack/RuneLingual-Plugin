@@ -148,12 +148,14 @@ public class Ids {
     // widget ids to change the width of, because some widget have room and also needs more
     // each value's meaning: Map<widgetId, Pair<newWidth, newHeight>>
     private final Map<Integer, Pair<Integer, Integer>> widgetId2FixedSize = Map.ofEntries(
+        //Map.entry(widget_id, Pair.of(newWidth, newHeight))
         Map.entry(16973826, Pair.of(110, null)) // the achievement diary tab's location names
     );
 
     // widget ids to resize to match the text inside it, mostly for hover displays like prayer's hover descriptions
     // sibling widgets = other widgets under the same parent, which contains text ( and should be type 4)
     private void initWidget2ModDict() {
+        // widget2ModDict.add(widgetId, error pixels, has Sibling Widget, fixed top, fixed bottom, fixed left, fixed right, top padding, bottom padding, left padding, right padding)
         widget2ModDict.add(attackStyleHoverTextId, 4, false, true, false, false, false, 1, 3, 2, 2); // spellbook tab's hover text
         widget2ModDict.add(skillsTabXpHoverTextId, 4, true, false, false, false, false, 3, 3, 3, 3); // skill tab's xp hover display
         widget2ModDict.add(prayerTabHoverTextId, 4,false, true, false, true, false, 3, 3, 3, 3);
@@ -165,7 +167,7 @@ public class Ids {
         partialTranslationManager.addPartialTranslation(
                 widgetId,
                 List.of("fixed text part 1", "fixed text part 2", "fixed text part 3"),
-                List.of(Pair.of(placeholderType between part 1 and 2, Transformer.TransformOption))
+                List.of(Pair.of(placeholderType between fixed text part 1 and 2, Transformer.TransformOption))
          */
         partialTranslationManager.addPartialTranslation(
                 playerNameInAccManTab,
