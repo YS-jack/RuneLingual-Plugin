@@ -1,5 +1,6 @@
 package com.RuneLingual.Widgets;
 
+import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.SQL.SqlQuery;
 import com.RuneLingual.commonFunctions.Colors;
@@ -8,10 +9,10 @@ import com.RuneLingual.nonLatin.GeneralFunctions;
 import lombok.Getter;
 import lombok.Setter;
 import net.runelite.api.widgets.Widget;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.inject.Inject;
 import java.util.*;
+
 
 @Getter
 @Setter
@@ -44,10 +45,10 @@ public class PartialTranslationManager {
         @Setter
         private int id;
         private final List<String> fixedTextParts; // fixed text parts of the text
-        private final List<Pair<String, Transformer.TransformOption>> placeholders = new ArrayList<>(); // name and option for each placeholder
+        private final List<String> placeholders = new ArrayList<>(); // name and option for each placeholder
 
         public PartialTranslation(RuneLingualPlugin plugin, Transformer transformer, List<String> fixedTextParts,
-                                  List<Pair<PlaceholderType, Transformer.TransformOption>> placeholders){
+                                  List<PlaceholderType> placeholders){
             /*
              fixedTextParts = ["slay ", " in "]
              placeholders = [(NPC_NAME, LOCAL_TRANSLATION), (LOCATION, AS_IS)]
@@ -61,14 +62,14 @@ public class PartialTranslationManager {
             int[] typeCounter = new int[PlaceholderType.values().length]; // count the number of each placeholder type, to be placed in the placeholder name (eg: <!PLAYER_NAME0>)
             Arrays.fill(typeCounter, 0);
 
-            for (Pair<PlaceholderType, Transformer.TransformOption> placeholder : placeholders) {
-                String type = placeholder.getLeft().name();
-                int counter = typeCounter[placeholder.getLeft().ordinal()];
+            for (PlaceholderType placeholder : placeholders) {
+                String type = placeholder.name();
+                int counter = typeCounter[placeholder.ordinal()];
                 String placeholderName = type + counter;
 
-                this.placeholders.add(Pair.of(placeholderName, placeholder.getRight()));
+                this.placeholders.add(placeholderName);
 
-                typeCounter[placeholder.getLeft().ordinal()]++;
+                typeCounter[placeholder.ordinal()]++;
             }
 
         }
@@ -85,9 +86,8 @@ public class PartialTranslationManager {
             for (int i = 0; i < fixedTextParts.size(); i++) {
                 enColVal.append(fixedTextParts.get(i));
                 if (i < placeholders.size()) {
-                    Pair<String, Transformer.TransformOption> placeholder = placeholders.get(i);
                     enColVal.append("<!");
-                    enColVal.append(placeholder.getLeft());
+                    enColVal.append(placeholders.get(i));
                     enColVal.append(">");
                 }
             }
@@ -95,11 +95,45 @@ public class PartialTranslationManager {
         }
 
         private Transformer.TransformOption getTransformOption(int i){
-            return placeholders.get(i).getRight();
+            PlaceholderType placeholderType = PlaceholderType.valueOf(getPlaceholderName(i).replaceAll("[0-9]", ""));
+            RuneLingualConfig.ingameTranslationConfig config;
+            switch (placeholderType) {
+                case PLAYER_NAME:
+                    return Transformer.TransformOption.AS_IS;
+                case ITEM_NAME:
+                    config = plugin.getConfig().getItemNamesConfig();
+                    if (config.equals(RuneLingualConfig.ingameTranslationConfig.USE_LOCAL_DATA)) {
+                        return Transformer.TransformOption.TRANSLATE_LOCAL;
+                    } else if (config.equals(RuneLingualConfig.ingameTranslationConfig.USE_API)) {
+                        return Transformer.TransformOption.TRANSLATE_API;
+                    } else {
+                        return Transformer.TransformOption.AS_IS;
+                    }
+                case NPC_NAME:
+                    config = plugin.getConfig().getNPCNamesConfig();
+                    if (config.equals(RuneLingualConfig.ingameTranslationConfig.USE_LOCAL_DATA)) {
+                        return Transformer.TransformOption.TRANSLATE_LOCAL;
+                    } else if (config.equals(RuneLingualConfig.ingameTranslationConfig.USE_API)) {
+                        return Transformer.TransformOption.TRANSLATE_API;
+                    } else {
+                        return Transformer.TransformOption.AS_IS;
+                    }
+                case OBJECT_NAME:
+                    config = plugin.getConfig().getObjectNamesConfig();
+                    if (config.equals(RuneLingualConfig.ingameTranslationConfig.USE_LOCAL_DATA)) {
+                        return Transformer.TransformOption.TRANSLATE_LOCAL;
+                    } else if (config.equals(RuneLingualConfig.ingameTranslationConfig.USE_API)) {
+                        return Transformer.TransformOption.TRANSLATE_API;
+                    } else {
+                        return Transformer.TransformOption.AS_IS;
+                    }
+                default:
+                    return Transformer.TransformOption.AS_IS;
+            }
         }
 
         private String getPlaceholderName(int i){
-            return placeholders.get(i).getLeft();
+            return placeholders.get(i);
         }
 
         public List<String> translateAllPlaceholders(List<String> originalTexts, Colors defaultColor){
@@ -111,6 +145,10 @@ public class PartialTranslationManager {
                 PlaceholderType placeholderType = PlaceholderType.valueOf(getPlaceholderName(i).replaceAll("[0-9]", ""));
                 getQuery4PlaceholderType(originalText, placeholderType, defaultColor, query);
                 String translatedText = transformer.transform(originalText, defaultColor, option, query, false);
+                if (translatedText.equals(Colors.surroundWithColorTag(originalText, defaultColor))
+                && !option.equals(Transformer.TransformOption.AS_IS)) {
+                    return null;
+                }
                 translatedPlaceholders.add(translatedText);
             }
             return translatedPlaceholders;
@@ -118,12 +156,12 @@ public class PartialTranslationManager {
     }
 
     public void addPartialTranslation(List<String> fixedTextParts,
-                                        List<Pair<PlaceholderType, Transformer.TransformOption>> placeholders){
+                                        List<PlaceholderType> placeholders){
             partialTranslations.add(new PartialTranslation(plugin, transformer, fixedTextParts, placeholders));
     }
 
     public void addPartialTranslation(int id, List<String> fixedTextParts,
-                                      List<Pair<PlaceholderType, Transformer.TransformOption>> placeholders){
+                                      List<PlaceholderType> placeholders){
         PartialTranslation partialTranslation = new PartialTranslation(plugin, transformer, fixedTextParts, placeholders);
         partialTranslation.setId(id);
         partialTranslations.add(partialTranslation);

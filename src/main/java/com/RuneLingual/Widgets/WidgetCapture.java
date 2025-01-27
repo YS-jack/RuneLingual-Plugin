@@ -152,7 +152,10 @@ public class WidgetCapture {
         if (widgetId == ids.getWidgetIdMainTabs()) {
             sqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
             sqlQuery.setSubCategory(SqlVariables.subcategoryValue4MainTabs.getValue());
-
+        }
+        // if one of the main tabs, set the source as the tab name
+        if (sqlQuery.getCategory() != null && sqlQuery.getCategory().equals(SqlVariables.categoryValue4Interface.getValue())
+                && sqlQuery.getSubCategory() != null && sqlQuery.getSubCategory().equals(SqlVariables.subcategoryValue4MainTabs.getValue())) {
             // set the source as the tab name
             if (widgetId == ids.getWidgetIdAttackStyleTab()) {
                 sqlQuery.setSource(SqlVariables.sourceValue4CombatOptionsTab.getValue());
@@ -297,7 +300,7 @@ public class WidgetCapture {
         modifiedText = Colors.removeAllTags(modifiedText);
         return !modifiedText.isEmpty()
                 && !widgetsUtilRLingual.isTranslatedWidget(text)
-                && !pastTranslationResults.contains(text)
+                //&& !pastTranslationResults.contains(text)
                 && modifiedText.matches(".*[a-zA-Z].*")
                 && !plugin.getConfig().getInterfaceTextConfig().equals(RuneLingualConfig.ingameTranslationConfig.DONT_TRANSLATE);
     }
@@ -333,9 +336,10 @@ public class WidgetCapture {
 
     // used for creating the English transcript used for manual translation
     private void ifIsDumpTarget_thenDump(Widget widget, SqlQuery sqlQuery) {
-        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4FriendsTab.getValue())
-        || sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4IgnoreTab.getValue())
-        || sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4AccountManagementTab.getValue())) {
+        if (sqlQuery.getSource() != null &&
+                (sqlQuery.getSource().equals(SqlVariables.sourceValue4FriendsTab.getValue())
+        || sqlQuery.getSource().equals(SqlVariables.sourceValue4IgnoreTab.getValue())
+        || sqlQuery.getSource().equals(SqlVariables.sourceValue4AccountManagementTab.getValue()))) {
 //        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4SkillsTab.getValue())){
             if (widget.getText() == null || !shouldTranslateWidget(widget)) {
                 return;

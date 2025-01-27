@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.RuneLingual.Widgets.PartialTranslationManager.PlaceholderType.*;
-import static com.RuneLingual.commonFunctions.Transformer.TransformOption.*;
 
 @Getter @Slf4j
 public class Ids {
@@ -167,15 +166,19 @@ public class Ids {
         partialTranslationManager.addPartialTranslation(
                 widgetId,
                 List.of("fixed text part 1", "fixed text part 2", "fixed text part 3"),
-                List.of(Pair.of(placeholderType between fixed text part 1 and 2, Transformer.TransformOption))
+                List.of(placeholder_type1, placeholder_type2)
          */
         partialTranslationManager.addPartialTranslation(
                 playerNameInAccManTab,
                 List.of("Name: "),
-                List.of(Pair.of(PLAYER_NAME, AS_IS))
+                List.of(PLAYER_NAME)
         );
         // to add placeholder at the beginning of the text, add an empty string to the fixedTextParts
-        // eg. Pair.of(12345, List.of("", " hello!"), List.of(Pair.of(PLAYER_NAME, AS_IS)))
+        // eg.  partialTranslationManager.addPartialTranslation(
+        //                playerNameInAccManTab,
+        //                List.of("", "is his name."),
+        //                List.of(PLAYER_NAME)
+        //        );
 
         // add more partial translations here
     }
