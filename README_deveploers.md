@@ -158,13 +158,17 @@ private final Set<Integer> widgetIdQuestName = Set.of(
 ### 7.1.2 Partially Dynamic
 For widgets that are <u><b>PARTIALLY DYNAMIC</b></u>, such as "Name: (player name)", you need to add an object to the PartialTranslationManager in [Ids class](src/main/java/com/RuneLingual/commonFunctions/Ids.java).
 ```java
-private void initPartialTranslations() {
-    partialTranslationManager.addPartialTranslation(
-            playerNameInAccManTab,
-            List.of("Name: "),
-            List.of(PLAYER_NAME)
-    );
-}
+partialTranslationManager.addPartialTranslation(
+playerNameInAccManTab,
+List.of("Name: "),
+        List.of(PLAYER_NAME)
+);
+/* usage:
+partialTranslationManager.addPartialTranslation(
+        widgetId,
+        List.of("fixed text part 1", "fixed text part 2", "fixed text part 3"),
+        List.of(placeholder_type1, placeholder_type2)
+ */
 ```
 This will capture the text "Name: (player name)", replace the dynamic part with a placeholder.
 
@@ -188,7 +192,7 @@ This will capture the text "Name: (player name)", replace the dynamic part with 
 
 - **error\_pixels**: The amount of pixels that can be stuck out when widgets are meant to be inside another.
 - **has\_Sibling\_Widget**: If the widget has sibling widgets (widgets under the same parent), the plugin will resize the sibling widget as well.
-- **fixed\_top**: Boolean indicating if the top of the widget is fixed.
+- **fixed\_top**: Boolean indicating if the top of the widget is fixed. (true: fixed, false: not fixed)
 - **fixed\_bottom**: Boolean indicating if the bottom of the widget is fixed.
 - **fixed\_left**: Boolean indicating if the left of the widget is fixed.
 - **fixed\_right**: Boolean indicating if the right of the widget is fixed.
@@ -196,7 +200,9 @@ This will capture the text "Name: (player name)", replace the dynamic part with 
 - **bottom\_padding**: The padding at the bottom of the widget.
 - **left\_padding**: The padding at the left of the widget.
 - **right\_padding**: The padding at the right of the widget.
-
+<br><br><i> If top is fixed, the top part won't move, and it will expand/shrink at the bottom edge. Same goes for others.</i>
+<br><i> If top and bottom / left and right are both fixed, it will not resize vertically / horizontally.</i>
+<br><i> If both top and bottom / left and right are not fixed, it will try to expand/shrink equally on both sides.</i>
 ### 7.2.2 Specifying Widget Size
 - To make widget size needs to a <b><u>Fixed size</u></b> like 
 <br><img src="Readmes/toDevsImg/SpecifyWidth.png" width="200">(make it as big as possible to fit as much letters)
