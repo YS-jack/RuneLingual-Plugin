@@ -162,7 +162,7 @@ private void initPartialTranslations() {
     partialTranslationManager.addPartialTranslation(
             playerNameInAccManTab,
             List.of("Name: "),
-            List.of(Pair.of(PLAYER_NAME, AS_IS))
+            List.of(PLAYER_NAME)
     );
 }
 ```
