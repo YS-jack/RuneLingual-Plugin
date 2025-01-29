@@ -12,7 +12,8 @@ public enum LangCodeSelectableList
     ENGLISH ("en", "EN","EN", 8, 11, 6, 6, false, false, false, false, true),
     //PORTUGUÊS_BRASILEIRO ("pt_br", "PT","PT-BR", 8, 11, 6, false, false, false, false, true),
     NORSK("no", "NB", "NB", 8, 12, 6, 6, false, false, false, false, true),
-    日本語("ja", "JA", "JA", 12, 12, 12, 15, true, true, true, true, false);
+    日本語("ja", "JA", "JA", 12, 12, 12, 15, true, true, true, true, false),
+    Русский("ru", "RU", "RU", 8, 12, 6, 6, true, false, true, false, true);
     // todo: add languages here
 
     private final String langCode;

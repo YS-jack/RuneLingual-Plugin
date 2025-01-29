@@ -77,17 +77,6 @@ public class ChatCapture
         String name = chatMessage.getName(); // getName always returns player name
         TransformOption translationOption;
 
-
-//        // debug
-//        log.info("Chat message received: " + message + " | type: " + type.toString() + " | name: " + name);
-//        openChatbox chatbox = getOpenChatbox();
-//        chatModes chatMode = getChatMode();
-//        log.info("Chatbox: " + chatbox.toString() + " | Chat mode: " + chatMode.toString());
-//        PlayerMessage.talkingIn talkingIn = playerMessage.getTalkingIn();
-//        log.info("Talking in: " + talkingIn.toString());
-//        TransformOption translationOption = playerMessage.getTranslationOption();
-//        log.info("player translation option: " + translationOption.toString());
-
         switch (chatMessage.getType()) {
             case MESBOX: // dont support this, yet
             case DIALOG: // will be treated in dialogCapture
