@@ -8,6 +8,7 @@ import com.RuneLingual.SQL.SqlQuery;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.Menu;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 
@@ -66,7 +67,12 @@ public class MenuCapture
 					handleMenuEvent(menu);
 				}
 			}
+
+			Menu subMenu = menu.getSubMenu();
+			if (subMenu != null)
+				log.info("submenu found");
 		}
+
 	}
 
 	public void handleMenuEvent(MenuEntry currentMenu) {
