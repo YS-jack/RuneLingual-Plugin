@@ -24,14 +24,14 @@ Contributions are welcome and greatly appreciated! If you would like to contribu
 ## How it would look
 Here's a glimpse into the ongoing development of RuneLingual, showcasing our latest features:
 
-| Feature                                                   | Example Image                                                 |
-|-----------------------------------------------------------|---------------------------------------------------------------|
-| NPC dialog                                                | ![d](src/main/resources/ReadmeImages/dialogue_exmaple.png)    |
-| Right click menus                                         | ![d](src/main/resources/ReadmeImages/menu_entry_example.png)  |
-| Mouse Hovers                                              | ![d](src/main/resources/ReadmeImages/mouse_hover_example.png) |
-| Overheads                                                 | ![d](src/main/resources/ReadmeImages/overhead_text.png)       |
-| Chat input, non latin!                                    | ![d](src/main/resources/ReadmeImages/japanese_chat_input.png) |
-| Side panel with copy-able logs + <br>word search function | ![d](src/main/resources/ReadmeImages/sidePanel.png)           |
+| Feature                                                   | Example Image                                |
+|-----------------------------------------------------------|----------------------------------------------|
+| NPC dialog                                                | ![d](Readmes/images/dialogue_exmaple.png)    |
+| Right click menus                                         | ![d](Readmes/images/menu_entry_example.png)  |
+| Mouse Hovers                                              | ![d](Readmes/images/mouse_hover_example.png) |
+| Overheads                                                 | ![d](Readmes/images/overhead_text.png)       |
+| Chat input, non latin!                                    | ![d](Readmes/images/japanese_chat_input.png) |
+| Side panel with copy-able logs + <br>word search function | ![d](Readmes/images/sidePanel.png)           |
 
 <p style="text-align:right; font-style:italic;">Screenshot contents are Japanese, implemented as proof of concept.</p>
 

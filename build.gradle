@@ -18,13 +18,6 @@ repositories {
 
 def runeLiteVersion = 'latest.release'
 
-sourceSets {
-	main {
-		resources {
-			srcDirs = ['src/main/resources']
-		}
-	}
-}
 
 dependencies {
 	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion

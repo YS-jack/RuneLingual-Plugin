@@ -37,7 +37,7 @@ public class DataFormater {
             FileActions.deleteFile(SQLFilePath2);
         }
         try {
-            sqlActions.createTable(localLangFolder);
+            sqlActions.createTable();
             log.info("Table created.");
             sqlActions.tsvToSqlDatabase(tsvFileNames, localLangFolder);
         } catch (Exception e) {
