@@ -385,6 +385,7 @@ public class RuneLingualPlugin extends Plugin {
         overlayManager.remove(deeplUsageOverlay);
         overlayManager.remove(chatInputOverlay);
         overlayManager.remove(chatInputCandidateOverlay);
+        h2Manager.closeConn();
         log.info("RuneLingual plugin stopped!");
     }
 
