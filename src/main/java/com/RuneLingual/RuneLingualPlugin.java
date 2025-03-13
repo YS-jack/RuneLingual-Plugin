@@ -203,7 +203,7 @@ public class RuneLingualPlugin extends Plugin {
         if (targetLanguage == LangCodeSelectableList.ENGLISH) {
             return;
         }
-        log.info("Widget loaded:" + event.getGroupId());
+        //log.info("Widget loaded:" + event.getGroupId());
 //		clientThread.invokeLater(() -> {
 //			widgetCapture.translateWidget();
 //		});
