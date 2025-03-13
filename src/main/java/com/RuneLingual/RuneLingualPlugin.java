@@ -264,6 +264,10 @@ public class RuneLingualPlugin extends Plugin {
 
     @Subscribe
     public void onConfigChanged(ConfigChanged event) {
+        if (!event.getGroup().equals(RuneLingualConfig.GROUP))
+        {
+            return;
+        }
         // if language is changed
         if (targetLanguage != config.getSelectedLanguage()) {
             targetLanguage = config.getSelectedLanguage();
