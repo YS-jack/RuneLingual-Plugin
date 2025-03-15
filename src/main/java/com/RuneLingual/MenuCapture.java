@@ -55,16 +55,17 @@ public class MenuCapture
 				// if config is set to use local data, it has to be on main thread (for general menus specifically)
 				handleMenuEvent(menu);
 			} else {
-				if (plugin.getConfig().ApiConfig() &&
-						!plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedMenuBefore(menu.getOption(), menu.getTarget(), menu)){
-					Thread thread = new Thread(() -> {
-						handleMenuEvent(menu);
-					});
-					thread.setDaemon(false);
-					thread.start();
-				} else {
-					handleMenuEvent(menu);
-				}
+				handleMenuEvent(menu);
+//				if (plugin.getConfig().ApiConfig() &&
+//						!plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedMenuBefore(menu.getOption(), menu.getTarget(), menu)){
+//					Thread thread = new Thread(() -> {
+//						handleMenuEvent(menu);
+//					});
+//					thread.setDaemon(false);
+//					thread.start();
+//				} else {
+//					handleMenuEvent(menu);
+//				}
 			}
 		}
 	}
@@ -116,14 +117,14 @@ public class MenuCapture
 
 		menuOptionTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
 		// for debug purposes
-		if(!isWalkOrCancel(menuType)){
-			//printMenuEntry(currentMenu);
-			if(!isNpcMenu(menuType) && !isObjectMenu(menuType)
-					&& !isItemOnGround(menuType) && !isItemInWidget(currentMenu) && !isPlayerMenu(menuType)){
-				//outputToFile.menuTarget(menuTarget,SqlVariables.menuInSubCategory.getValue(), "");
-				//outputToFile.menuOption(menuOption,SqlVariables.menuInSubCategory.getValue(), "");
-			}
-		}
+//		if(!isWalkOrCancel(menuType)){
+//			//printMenuEntry(currentMenu);
+//			if(!isNpcMenu(menuType) && !isObjectMenu(menuType)
+//					&& !isItemOnGround(menuType) && !isItemInWidget(currentMenu) && !isPlayerMenu(menuType)){
+//				//outputToFile.menuTarget(menuTarget,SqlVariables.menuInSubCategory.getValue(), "");
+//				//outputToFile.menuOption(menuOption,SqlVariables.menuInSubCategory.getValue(), "");
+//			}
+//		}
 
 
 		// todo: get translation option from settings

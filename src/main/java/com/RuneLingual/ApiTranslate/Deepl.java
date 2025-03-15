@@ -89,20 +89,23 @@ public class Deepl {
         }
 
         String urlParameters = getUrlParameters(sourceLang, targetLang, text);
-        String response = getResponse(url, urlParameters);
-        if (response.isEmpty()) { // if response is empty, return as is
-            setKeyValid(false);
-            return text;
-        }
 
-        String translation = getTranslationInResponse(response);
 
-        setKeyValid(true);
-        setUsageAndLimit();
-        // add the new translation to the past translations and its file
-        deeplPastTranslationManager.addToPastTranslations(text, translation);
-
-        return translation;
+        Thread thread = new Thread(() -> {
+            String response = getResponse(url, urlParameters);
+            if (response.isEmpty()) { // if response is empty, return as is
+                setKeyValid(false);
+            } else {
+                String translation = getTranslationInResponse(response);
+                setKeyValid(true);
+                setUsageAndLimit();
+                // add the new translation to the past translations and its file
+                deeplPastTranslationManager.addToPastTranslations(text, translation);
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+        return text; // return original text while the translation is being processed in the thread
     }
 
     private String getUrlParameters(LangCodeSelectableList sourceLang, LangCodeSelectableList targetLang, String text) {
