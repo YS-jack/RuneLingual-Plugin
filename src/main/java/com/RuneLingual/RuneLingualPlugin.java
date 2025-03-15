@@ -161,7 +161,6 @@ public class RuneLingualPlugin extends Plugin {
     // stores selected languages during this session, to prevent re-initializing char images
     private final Set<LangCodeSelectableList> pastLanguages = new HashSet<>();
 
-
     @Override
     protected void startUp() throws Exception {
         log.info("Starting...");
@@ -229,11 +228,6 @@ public class RuneLingualPlugin extends Plugin {
         if (targetLanguage == LangCodeSelectableList.ENGLISH) {
             return;
         }
-
-//		MenuEntry[] ev = client.getMenuEntries();
-//		for (MenuEntry e: ev ){
-//			e.setOption(generalFunctions.StringToTags(testString, Colors.fromName("black")));
-//		}
 
         menuCapture.handleOpenedMenu(event);
     }
@@ -311,6 +305,10 @@ public class RuneLingualPlugin extends Plugin {
             // when the destination is reached, clear the interacting object
             interactedObject = null;
             interactedNpc = null;
+        }
+
+        if (client.isMenuOpen()) {
+            menuCapture.handlePendingApiTranslation();
         }
     }
 

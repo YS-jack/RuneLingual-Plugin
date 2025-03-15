@@ -96,11 +96,7 @@ public class DialogTranslator {
         // if the widget is the npc name widget, and the config is set to use api translation
         if (npcNameOption.equals(TransformOption.TRANSLATE_API) && widget.getId() == npcNameWidgetId) {
             String npcName = widget.getText();
-            Thread thread = new Thread(() -> {
-                widgetsUtilRLingual.setWidgetText_ApiTranslation(widget, npcName, nameAndSelectOptionTextColor);
-            });
-            thread.setDaemon(false);
-            thread.start();
+            widgetsUtilRLingual.setWidgetText_ApiTranslation(widget, npcName, nameAndSelectOptionTextColor);
             return;
         }
         // if the widget is not npc name nor player name, and the config is set to use api translation
@@ -113,14 +109,11 @@ public class DialogTranslator {
             else if(widget.getId() == dialogOptionWidgetId && widget.getText().equals(selectOptionText))
                 textColor[0] = nameAndSelectOptionTextColor;
 
-            Thread thread = new Thread(() -> {
-                widgetsUtilRLingual.setWidgetText_ApiTranslation(widget, dialogText, textColor[0]);
-            });
-            thread.setDaemon(false);
-            thread.start();
+            widgetsUtilRLingual.setWidgetText_ApiTranslation(widget, dialogText, textColor[0]);
             return;
         }
 
+        // is not api translation
         switch (interfaceID) {
             case InterfaceID.DIALOG_NPC:
                 handleNpcDialog(widget);
@@ -137,6 +130,7 @@ public class DialogTranslator {
         log.info("Unknown dialog widget: " + widget.getId());
     }
 
+    // is not api translation
     private void handleNpcDialog(Widget widget) {
         if (widget.getId() == npcNameWidgetId) {
             String npcName = widget.getText();
@@ -160,6 +154,7 @@ public class DialogTranslator {
         }
     }
 
+    // is not api translation
     private void handlePlayerDialog(Widget widget) {
         if (widget.getId() == playerContinueWidgetId) {
             log.info(widget.getText());

@@ -303,4 +303,7 @@ public enum Colors {
         return matches;
     }
 
+    public static String surroundWithColorTag(String str, Colors color) {
+        return color.getColorTag() + str + "</col>";
+    }
 }
