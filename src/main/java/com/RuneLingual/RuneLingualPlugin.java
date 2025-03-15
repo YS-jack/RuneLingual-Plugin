@@ -310,6 +310,8 @@ public class RuneLingualPlugin extends Plugin {
         if (client.isMenuOpen()) {
             menuCapture.handlePendingApiTranslation();
         }
+
+        chatCapture.handlePendingChatMessages();
     }
 
     @Subscribe
