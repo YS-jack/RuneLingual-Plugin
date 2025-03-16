@@ -117,7 +117,7 @@ public class Downloader {//downloads translations and japanese char images to ex
                 log.info("All files are up to date.");
             }
         } catch (IOException e) {
-            System.out.println("An error occurred: " + e.getMessage());
+            log.info("An error occurred: " + e.getMessage());
             e.printStackTrace();
         }
     }
