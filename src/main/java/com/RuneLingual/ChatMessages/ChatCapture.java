@@ -378,28 +378,28 @@ public class ChatCapture
         return string.replaceAll("<img=(\\d+)>","AA");
     }
 
+    // called every game tick, until the pendingChatMessages is empty
+    // pending messages will be removed from set if they are not translated within 30 seconds
     public void handlePendingChatMessages() {
         if(pendingChatMessages.isEmpty())
             return;
 
         long currentTime = System.currentTimeMillis();
         Set<Pair<ChatMessage, Long>> toRemove = new HashSet<>();
-        for (Pair<ChatMessage, Long> pair : pendingChatMessages) {
-            if (pair.getRight() < currentTime) {
-                toRemove.add(pair);
-            }
-        }
-        for (Pair<ChatMessage, Long> pair : toRemove) {
-            pendingChatMessages.remove(pair);
-        }
         for(Pair<ChatMessage, Long> pair : pendingChatMessages){
+
+            if (pair.getRight() < currentTime) { // time out
+                toRemove.add(pair);
+                continue;
+            }
+
             ChatMessage chatMessage = pair.getLeft();
             MessageNode node = chatMessage.getMessageNode();
             String message = chatMessage.getMessage();
 
             String translation = deepl.translate(message, LangCodeSelectableList.ENGLISH, config.getSelectedLanguage());
 
-            // if the translation is the same as the original message, don't replace it
+            // if the translation is the same as the original message, don't replace
             if(translation.equals(message)){
                 continue;
             }
@@ -410,6 +410,9 @@ public class ChatCapture
 
             replaceChatMessage(textToDisplay, node);
             addMsgToSidePanel(chatMessage, translation);
+            toRemove.add(pair);
+        }
+        for (Pair<ChatMessage, Long> pair : toRemove) {
             pendingChatMessages.remove(pair);
         }
     }

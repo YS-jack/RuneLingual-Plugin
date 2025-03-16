@@ -312,6 +312,7 @@ public class RuneLingualPlugin extends Plugin {
         }
 
         chatCapture.handlePendingChatMessages();
+        overheadCapture.handlePendingOverheadTranslations();
     }
 
     @Subscribe

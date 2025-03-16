@@ -9,6 +9,7 @@ import com.RuneLingual.SQL.SqlQuery;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.Menu;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 
@@ -642,41 +643,42 @@ public class MenuCapture
 				pendingApiTranslation.isEmpty()){
 			return;
 		}
+		Set<Pair<MenuEntry, PendingTranslationType>> toRemove = new HashSet<>();
         for (Pair<MenuEntry, PendingTranslationType> pair : pendingApiTranslation) {
-		MenuEntry menu = pair.getLeft();
+			MenuEntry menu = pair.getLeft();
             PendingTranslationType type = pair.getRight();
-			handlePendingMenu(menu, type);
+			boolean remove = handlePendingMenu(menu, type);
+			if (remove) {
+				toRemove.add(pair);
+			}
         }
+		pendingApiTranslation.removeAll(toRemove);
 	}
 
 	// if the menu text contains multiple colors, it won't be updated with this function (need to reopen the menu)
-	private void handlePendingMenu(MenuEntry menu, PendingTranslationType type){
+	private boolean handlePendingMenu(MenuEntry menu, PendingTranslationType type){
 		String[] newMenus = translateMenuAction(menu);
 		String newTarget = newMenus[0];
 		String newOption = newMenus[1];
+		boolean remove = false;
 		if (type.equals(PendingTranslationType.BOTH) && !newOption.equals(menu.getOption()) && !newTarget.equals(menu.getTarget())
 		&& !colWordHasMatchingWords(menu.getOption(), newOption) && !colWordHasMatchingWords(menu.getTarget(), newTarget)){
-			pendingApiTranslation.removeIf(pair ->
-					pair.getLeft().equals(menu) && pair.getRight().equals(PendingTranslationType.BOTH)
-			);
+			remove = true;
 			menu.setOption(newOption);
 			menu.setTarget(newTarget);
 			swapOptionTarget(menu);
 		} else if (type.equals(PendingTranslationType.OPTION) && !newOption.equals(menu.getOption())
 				&& !colWordHasMatchingWords(menu.getOption(), newOption)){
-			pendingApiTranslation.removeIf(pair ->
-					pair.getLeft().equals(menu) && pair.getRight().equals(PendingTranslationType.OPTION)
-			);
+			remove = true;
 			menu.setOption(newOption);
 			swapOptionTarget(menu);
 		} else if (type.equals(PendingTranslationType.TARGET) && !newTarget.equals(menu.getTarget())
 				&& !colWordHasMatchingWords(menu.getTarget(), newTarget)){
-			pendingApiTranslation.removeIf(pair ->
-					pair.getLeft().equals(menu) && pair.getRight().equals(PendingTranslationType.TARGET)
-			);
+			remove = true;
 			menu.setTarget(newTarget);
 			swapOptionTarget(menu);
 		}
+		return remove;
 	}
 
 	private void swapOptionTarget(MenuEntry menu){

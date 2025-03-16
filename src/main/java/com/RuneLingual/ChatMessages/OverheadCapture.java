@@ -9,12 +9,16 @@ import com.RuneLingual.commonFunctions.Transformer.TransformOption;
 import com.RuneLingual.ChatMessages.ChatCapture;
 import com.RuneLingual.RuneLingualConfig;
 
+import lombok.Getter;
 import net.runelite.api.*;
 import net.runelite.api.events.OverheadTextChanged;
 import net.runelite.client.game.ChatIconManager;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.inject.Inject;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 
 public class OverheadCapture {
@@ -26,6 +30,8 @@ public class OverheadCapture {
     private PlayerMessage playerMessage;
     @Inject
     Transformer transformer;
+    @Getter
+    private Set<Pair<OverheadTextChanged, Long>> pendingOverheadTranslations = new HashSet<>();
 
 
     @Inject
@@ -71,21 +77,16 @@ public class OverheadCapture {
     }
 
     private void translateOverheadWithApi(OverheadTextChanged event, String enMsg) {
-        Thread thread = new Thread(() -> {//process with new thread because games freezes while waiting for api response
-            try {
-                String apiTranslation = plugin.getDeepl().translate(Colors.removeAllTags(enMsg),
-                                            LangCodeSelectableList.ENGLISH,
-                                            plugin.getConfig().getSelectedLanguage());
-                String textToDisplay = strToYellowDisplayStr(apiTranslation);
+        String apiTranslation = plugin.getDeepl().translate(Colors.removeAllTags(enMsg),
+                                    LangCodeSelectableList.ENGLISH,
+                                    plugin.getConfig().getSelectedLanguage());
+        if(apiTranslation.equals(enMsg)) {// it is pending for api translation
+            pendingOverheadTranslations.add(Pair.of(event, System.currentTimeMillis() + 10*1000)); // times out in 10 seconds
+            return;
+        }
+        String textToDisplay = strToYellowDisplayStr(apiTranslation);
 
-                event.getActor().setOverheadText(textToDisplay);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        thread.setDaemon(false);
-        thread.start();
+        event.getActor().setOverheadText(textToDisplay);
     }
 
     private String strToYellowDisplayStr(String str){
@@ -156,4 +157,32 @@ public class OverheadCapture {
         }
     }
 
+    public void handlePendingOverheadTranslations(){
+        Set<Pair<OverheadTextChanged, Long>> toRemove = new HashSet<>();
+        for(Pair<OverheadTextChanged, Long> pair : pendingOverheadTranslations){
+            if(pair.getLeft().getActor() == null) {
+                toRemove.add(pair);
+                continue;
+            }
+            String currentText = pair.getLeft().getActor().getOverheadText();
+            if(System.currentTimeMillis() > pair.getRight() // time out
+            || currentText == null || currentText.isBlank()){ // overhead text is removed
+                toRemove.add(pair);
+                continue;
+            }
+
+            OverheadTextChanged event = pair.getLeft();
+            String enMsg = event.getOverheadText();
+            String apiTranslation = plugin.getDeepl().translate(Colors.removeAllTags(enMsg),
+                    LangCodeSelectableList.ENGLISH,
+                    plugin.getConfig().getSelectedLanguage());
+            if(apiTranslation.equals(enMsg)) {// it is still pending for api translation
+                return;
+            }
+            String textToDisplay = strToYellowDisplayStr(apiTranslation);
+            event.getActor().setOverheadText(textToDisplay);
+            toRemove.add(pair);
+        }
+        pendingOverheadTranslations.removeAll(toRemove);
+    }
 }
