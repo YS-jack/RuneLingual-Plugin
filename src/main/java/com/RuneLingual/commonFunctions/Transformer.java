@@ -63,14 +63,14 @@ public class Transformer {
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
-                log.info("No translation found for " + text);
+                //log.info("No translation found for " + text);
                 //log.info("query = " + sqlQuery.getSearchQuery());
                 return text;
                 //translatedText = text;
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
-                    log.info("{} has not been translated yet", text);
+                    //log.info("{} has not been translated yet", text);
                     return text;
                 } else { // text has been translated
                     translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
@@ -122,14 +122,14 @@ public class Transformer {
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
-                log.info("the following text doesn't exist in the English column :{}", text);
-                log.info("   query = {}", sqlQuery.getSearchQuery());
+                //log.info("the following text doesn't exist in the English column :{}", text);
+                //log.info("   query = {}", sqlQuery.getSearchQuery());
                 // translatedText = text;
                 return text;
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
-                    log.info("{} has not been translated yet", text);
+                    //log.info("{} has not been translated yet", text);
                     return text;
 
                 } else { // text has been translated
@@ -178,17 +178,6 @@ public class Transformer {
         }
         return transformedTexts.toString();
     }
-
-//    public String transform(String[] texts, Colors[] colors, TransformOption[] options, SqlQuery sqlQuery){
-//        if(Colors.countColorTagsAfterReformat(sqlQuery.getEnglish()) > 1){
-//            log.info("may not work as expected");
-//        }
-//        StringBuilder transformedTexts = new StringBuilder();
-//        for(int i = 0; i < texts.length; i++){
-//            transformedTexts.append(transform(texts[i], colors[i], options[i], sqlQuery));
-//        }
-//        return transformedTexts.toString();
-//    }
 
     public String transform(String[] texts, Colors[] colors, TransformOption[] options, SqlQuery[] sqlQueries, boolean searchAlike){
         StringBuilder transformedTexts = new StringBuilder();
