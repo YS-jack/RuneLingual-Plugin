@@ -42,6 +42,7 @@ import com.RuneLingual.SidePanelComponents.SidePanel;
 import com.RuneLingual.commonFunctions.FileActions;
 import com.RuneLingual.prepareResources.Downloader;
 import com.RuneLingual.commonFunctions.Ids;
+import okhttp3.OkHttpClient;
 
 
 import java.awt.image.BufferedImage;
@@ -157,6 +158,7 @@ public class RuneLingualPlugin extends Plugin {
     private int clickTick;
     @Getter
     private int gameCycle;
+    private OkHttpClient httpClient = new OkHttpClient();
 
     // stores selected languages during this session, to prevent re-initializing char images
     private final Set<LangCodeSelectableList> pastLanguages = new HashSet<>();
@@ -252,6 +254,7 @@ public class RuneLingualPlugin extends Plugin {
             return;
         }
         if (gameStateChanged.getGameState() == GameState.LOADING) {
+            deepl.setUsageAndLimit();
             interactedObject = null;
         }
     }
@@ -289,10 +292,13 @@ public class RuneLingualPlugin extends Plugin {
             overlayManager.add(mouseTooltipOverlay);
 
             //reset deepl's past translations
-            deepl = new Deepl(this);
+            deepl = new Deepl(this, httpClient);
 
             restartPanel();
             pastLanguages.add(targetLanguage);
+        }
+        if(config.ApiConfig()){
+            deepl.setUsageAndLimit();
         }
 
     }
