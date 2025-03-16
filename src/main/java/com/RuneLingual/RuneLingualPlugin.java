@@ -274,7 +274,12 @@ public class RuneLingualPlugin extends Plugin {
         // if language is changed
         if (targetLanguage != config.getSelectedLanguage()) {
             targetLanguage = config.getSelectedLanguage();
-            h2Manager.closeConn();
+
+            if (targetLanguage != LangCodeSelectableList.ENGLISH) {
+                //close current connection
+                h2Manager.closeConn();
+            }
+
             if (targetLanguage == LangCodeSelectableList.ENGLISH) {
                 clientToolBar.removeNavigation(navButton);
                 return;

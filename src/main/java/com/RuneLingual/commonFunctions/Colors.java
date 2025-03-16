@@ -348,6 +348,12 @@ public enum Colors {
     }
 
     public static String surroundWithColorTag(String str, Colors color) {
+        if(str == null){
+            return "";
+        }
+        if(color == null){
+            return str;
+        }
         return color.getColorTag() + str + "</col>";
     }
 }
