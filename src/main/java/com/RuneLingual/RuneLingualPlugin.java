@@ -158,7 +158,8 @@ public class RuneLingualPlugin extends Plugin {
     private int clickTick;
     @Getter
     private int gameCycle;
-    private OkHttpClient httpClient = new OkHttpClient();
+    @Inject
+    private OkHttpClient httpClient;
 
     // stores selected languages during this session, to prevent re-initializing char images
     private final Set<LangCodeSelectableList> pastLanguages = new HashSet<>();
