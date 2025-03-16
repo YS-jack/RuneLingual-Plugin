@@ -65,6 +65,11 @@ public class MenuCapture
 		MenuEntry[] menus = event.getMenuEntries();
 		for (MenuEntry menu : menus) {
             handleMenuEvent(menu);
+			Menu subMenu = menu.getSubMenu();
+			if (subMenu != null)
+				for(MenuEntry subMenuEntry : subMenu.getMenuEntries()) {
+					handleMenuEvent(subMenuEntry);
+				}
         }
 	}
 
@@ -338,6 +343,13 @@ public class MenuCapture
 		actionSqlQuery.setSource(source);
 
 		newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
+
+		// if it didnt find a new option (newOption = menuOption), search for any match
+		if(Colors.removeNonImgTags(newOption).equals(menuOption)){
+			actionSqlQuery = new SqlQuery(this.plugin);
+			actionSqlQuery.setEnglish(menuOption);
+			newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
+		}
 
 		if(Colors.removeNonImgTags(menuTarget).isEmpty()) { // if it doesnt have a target
 			newTarget = "";
