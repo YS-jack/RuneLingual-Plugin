@@ -68,6 +68,7 @@ public class Transformer {
             if (plugin.getFailedTranslations().contains(sqlQuery)) {
                 return sqlQuery.getEnglish();
             }
+
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
                 log.info("(engWithColor) No translation found for " + text + " ");
@@ -93,6 +94,10 @@ public class Transformer {
         } else if(option == TransformOption.TRANSLATE_API){ // wont have any colors
             translatedText = this.plugin.getDeepl().translate(Colors.removeAllTags(text),
                     LangCodeSelectableList.ENGLISH ,this.plugin.getConfig().getSelectedLanguage());
+            if(translatedText.equals(text)){
+                // if using api but the translation is the same as the original text, it's pending for translation
+                return text;
+            }
         } else if(option == TransformOption.TRANSLITERATE){
             //return
         }
@@ -224,8 +229,10 @@ public class Transformer {
         } else if(option == TransformOption.TRANSLATE_API){
             translatedText = this.plugin.getDeepl().translate(text,
                     LangCodeSelectableList.ENGLISH ,this.plugin.getConfig().getSelectedLanguage());
-        } else if(option == TransformOption.TRANSLITERATE){
-            //return
+            if(translatedText.equals(text)){
+                // if using api but the translation is the same as the original text, it's pending for translation
+                return Colors.surroundWithColorTag(text,colors);
+            }
         }
         return stringToDisplayedString(translatedText, colors);
     }

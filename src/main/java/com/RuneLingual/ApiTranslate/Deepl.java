@@ -4,6 +4,8 @@ import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.TranslatingServiceSelectableList;
+import com.RuneLingual.commonFunctions.Colors;
+import com.RuneLingual.nonLatin.GeneralFunctions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,9 +18,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import javax.inject.Inject;
 
 @Slf4j
@@ -59,7 +59,7 @@ public class Deepl {
      * @param text the text to be translated
      * @param sourceLang the source language
      * @param targetLang the target language
-     * @return the translated text, or the original text if the translation fails
+     * @return the translated text if translated in the past, the original text if the translation fails or trying to translate
      */
     public String translate(String text, LangCodeSelectableList sourceLang, LangCodeSelectableList targetLang) {
 
@@ -89,20 +89,23 @@ public class Deepl {
         }
 
         String urlParameters = getUrlParameters(sourceLang, targetLang, text);
-        String response = getResponse(url, urlParameters);
-        if (response.isEmpty()) { // if response is empty, return as is
-            setKeyValid(false);
-            return text;
-        }
 
-        String translation = getTranslationInResponse(response);
 
-        setKeyValid(true);
-        setUsageAndLimit();
-        // add the new translation to the past translations and its file
-        deeplPastTranslationManager.addToPastTranslations(text, translation);
-
-        return translation;
+        Thread thread = new Thread(() -> {
+            String response = getResponse(url, urlParameters);
+            if (response.isEmpty()) { // if response is empty, return as is
+                setKeyValid(false);
+            } else {
+                String translation = getTranslationInResponse(response);
+                // add the new translation to the past translations and its file
+                deeplPastTranslationManager.addToPastTranslations(text, translation);
+                setKeyValid(true);
+                setUsageAndLimit();
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+        return text; // return original text while the translation is being processed in the thread
     }
 
     private String getUrlParameters(LangCodeSelectableList sourceLang, LangCodeSelectableList targetLang, String text) {
@@ -132,48 +135,60 @@ public class Deepl {
     }
 
     private String getResponse(String url, String urlParameters) {
-        try {
-            URL deeplUrl = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) deeplUrl.openConnection();
-            // Set the request method to POST
-            connection.setRequestMethod("POST");
+        int maxRetries = 10;
+        int retryCount = 0;
+        Random random = new Random();
 
-            // Enable input and output streams
-            connection.setDoOutput(true);
+        while (retryCount < maxRetries) {
+            try {
+                URL deeplUrl = new URL(url);
+                HttpURLConnection connection = (HttpURLConnection) deeplUrl.openConnection();
+                // Set the request method to POST
+                connection.setRequestMethod("POST");
 
-            // Set the content type to indicate UTF-8 encoding
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+                // Enable input and output streams
+                connection.setDoOutput(true);
 
-            // Write the parameters to the request
-            try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = urlParameters.getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
-            }
+                // Set the content type to indicate UTF-8 encoding
+                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
 
-            // Get the response code
-            int responseCode = connection.getResponseCode();
-
-            // If the response code is 200 (HTTP_OK), read the response
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                // Use UTF-8 encoding when reading the response
-                try (BufferedReader br = new BufferedReader(
-                        new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-                    StringBuilder response = new StringBuilder();
-                    String responseLine;
-                    while ((responseLine = br.readLine()) != null) {
-                        response.append(responseLine.trim());
-                    }
-                    return response.toString();
+                // Write the parameters to the request
+                try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = urlParameters.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
                 }
-            } else {
+
+                // Get the response code
+                int responseCode = connection.getResponseCode();
+
+                // If the response code is 200 (HTTP_OK), read the response
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    // Use UTF-8 encoding when reading the response
+                    try (BufferedReader br = new BufferedReader(
+                            new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                        StringBuilder response = new StringBuilder();
+                        String responseLine;
+                        while ((responseLine = br.readLine()) != null) {
+                            response.append(responseLine.trim());
+                        }
+                        return response.toString();
+                    }
+                }
+            } catch (Exception e) {
                 setKeyValid(false);
-                System.out.println("POST request not worked. Response Code: " + responseCode);
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            setKeyValid(false);
-            e.printStackTrace();
+            retryCount++;
+            try {
+                // Wait for a random time between 0.5 to 1 second before retrying
+                Thread.sleep(500 + random.nextInt(501));
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                break;
+            }
         }
         setKeyValid(false);
+        log.info("Failed to get response from DeepL API.");
         return "";
     }
 

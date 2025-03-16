@@ -171,7 +171,6 @@ public class RuneLingualPlugin extends Plugin {
     // stores selected languages during this session, to prevent re-initializing char images
     private final Set<LangCodeSelectableList> pastLanguages = new HashSet<>();
 
-
     @Override
     protected void startUp() throws Exception {
         log.info("Starting...");
@@ -212,7 +211,7 @@ public class RuneLingualPlugin extends Plugin {
         if (targetLanguage == LangCodeSelectableList.ENGLISH) {
             return;
         }
-        log.info("Widget loaded:" + event.getGroupId());
+        //log.info("Widget loaded:" + event.getGroupId());
 //		clientThread.invokeLater(() -> {
 //			widgetCapture.translateWidget();
 //		});
@@ -238,11 +237,6 @@ public class RuneLingualPlugin extends Plugin {
         if (targetLanguage == LangCodeSelectableList.ENGLISH) {
             return;
         }
-
-//		MenuEntry[] ev = client.getMenuEntries();
-//		for (MenuEntry e: ev ){
-//			e.setOption(generalFunctions.StringToTags(testString, Colors.fromName("black")));
-//		}
 
         menuCapture.handleOpenedMenu(event);
     }
@@ -273,6 +267,10 @@ public class RuneLingualPlugin extends Plugin {
 
     @Subscribe
     public void onConfigChanged(ConfigChanged event) {
+        if (!event.getGroup().equals(RuneLingualConfig.GROUP))
+        {
+            return;
+        }
         // if language is changed
         if (targetLanguage != config.getSelectedLanguage()) {
             targetLanguage = config.getSelectedLanguage();
@@ -317,6 +315,13 @@ public class RuneLingualPlugin extends Plugin {
             interactedObject = null;
             interactedNpc = null;
         }
+
+        if (client.isMenuOpen()) {
+            menuCapture.handlePendingApiTranslation();
+        }
+
+        chatCapture.handlePendingChatMessages();
+        overheadCapture.handlePendingOverheadTranslations();
     }
 
     @Subscribe
@@ -390,6 +395,7 @@ public class RuneLingualPlugin extends Plugin {
         overlayManager.remove(deeplUsageOverlay);
         overlayManager.remove(chatInputOverlay);
         overlayManager.remove(chatInputCandidateOverlay);
+        h2Manager.closeConn();
         log.info("RuneLingual plugin stopped!");
     }
 

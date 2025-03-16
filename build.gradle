@@ -10,9 +10,6 @@ repositories {
 			includeGroupByRegex("net\\.runelite.*")
 		}
 	}
-	maven {
-		url 'https://repo.maven.apache.org/maven2/'
-	}
 	mavenCentral()
 }
 
@@ -25,7 +22,6 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok:1.18.30'
 	annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
-	//implementation 'com.google.cloud:google-cloud-translate:2.19.0'
 	implementation 'com.h2database:h2:2.1.212'
 	implementation 'org.json:json:20200518'
 

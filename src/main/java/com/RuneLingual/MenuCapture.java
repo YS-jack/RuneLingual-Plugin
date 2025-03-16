@@ -6,8 +6,10 @@ import com.RuneLingual.commonFunctions.Transformer.TransformOption;
 import com.RuneLingual.SQL.SqlVariables;
 import com.RuneLingual.SQL.SqlQuery;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.Menu;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 
@@ -18,6 +20,10 @@ import net.runelite.api.events.MenuOpened;
 import net.runelite.api.widgets.Widget;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 import com.RuneLingual.debug.OutputToFile;
@@ -34,11 +40,10 @@ public class MenuCapture
 
 	@Setter
 	private boolean debugMessages = true;
-	private final Colors colorObj = Colors.black;
 	@Inject
 	private Transformer transformer;
-	@Inject
-	private OutputToFile outputToFile;
+	@Getter // list of menu options currently being translated by api, periodically checked to see if they are done
+	private Set<Pair<MenuEntry, PendingTranslationType>> pendingApiTranslation = new HashSet<>();
 
 	private TransformOption menuOptionTransformOption = TransformOption.TRANSLATE_LOCAL;
 
@@ -49,25 +54,18 @@ public class MenuCapture
 
 	private final Colors optionColor = Colors.white;
 
+	enum PendingTranslationType {
+		OPTION,
+		TARGET,
+		BOTH
+	}
+
 	public void handleOpenedMenu(MenuOpened event){
+		pendingApiTranslation.clear();
 		MenuEntry[] menus = event.getMenuEntries();
 		for (MenuEntry menu : menus) {
-			if (isGeneralMenu(menu) && plugin.getConfig().getMenuOptionConfig().equals(ingameTranslationConfig.USE_LOCAL_DATA)){
-				// if config is set to use local data, it has to be on main thread (for general menus specifically)
-				handleMenuEvent(menu);
-			} else {
-				if (plugin.getConfig().ApiConfig() &&
-						!plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedMenuBefore(menu.getOption(), menu.getTarget(), menu)){
-					Thread thread = new Thread(() -> {
-						handleMenuEvent(menu);
-					});
-					thread.setDaemon(false);
-					thread.start();
-				} else {
-					handleMenuEvent(menu);
-				}
-			}
-		}
+            handleMenuEvent(menu);
+        }
 	}
 
 	public void handleMenuEvent(MenuEntry currentMenu) {
@@ -75,6 +73,14 @@ public class MenuCapture
 		String[] newMenus = translateMenuAction(currentMenu);
 		String newTarget = newMenus[0];
 		String newOption = newMenus[1];
+
+		// add to pending list if they haven't been translated yet
+
+		boolean isPending = addPendingApiTranslation(currentMenu, newOption, newTarget);
+		if (isPending) {
+			return;
+		}
+
 
 		// reorder them if it is grammatically correct to do so in that language
 		if(plugin.getTargetLanguage().needsSwapMenuOptionAndTarget()) {
@@ -128,8 +134,7 @@ public class MenuCapture
 
 		String[] result;
 		// get translation for both target and option
-		if(isWalkOrCancel(menuType))
-		{
+		if(isWalkOrCancel(menuType)){
 			result = translateWalkOrCancel(menuTarget, menuOption, actionWordArray, actionColorArray, targetWordArray, targetColorArray);
 		}
 		else if (isPlayerMenu(menuType)){
@@ -148,8 +153,7 @@ public class MenuCapture
 			result = translateInventoryItem(menuTarget, menuOption, actionWordArray, actionColorArray, targetWordArray);
 		}
 		else if(isWidgetOnSomething(menuType)){ // needs checking
-//			log.info("Widget on something");
-//			printMenuEntry(currentMenu);
+			//printMenuEntry(currentMenu);
 			Pair<String, String> results = convertWidgetOnSomething(currentMenu);
 			String itemLeft = results.getLeft();
 			String entityOnRight = results.getRight();
@@ -189,7 +193,6 @@ public class MenuCapture
 	}
 
 	private String[] translateWalkOrCancel(String menuTarget, String menuOption, String[] actionWordArray, Colors[] actionColorArray, String[] targetWordArray, Colors[] targetColorArray){
-		//returns String[] {newTarget, newOption}
 		SqlQuery actionSqlQuery = new SqlQuery(this.plugin);
 		SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
 		String newOption, newTarget;
@@ -600,5 +603,120 @@ public class MenuCapture
 		return false;
 	}
 
+	private boolean addPendingApiTranslation(MenuEntry currentMenu, String newOption, String newTarget) {
+		if (!plugin.getConfig().ApiConfig()){
+			return false;
+		}
+		PendingTranslationType pendingType = null;
+		boolean isOptionPending = false;
+		boolean isTargetPending = false;
+		boolean updateTarget = true;
+		boolean updateOption = true;
+		if (plugin.getConfig().getMenuOptionConfig().equals(ingameTranslationConfig.USE_API)){
+			if(!newOption.isEmpty() && !newOption.isBlank()) {
+				String oldOption_colTag = currentMenu.getOption();
+				String oldOption = Colors.removeNonImgTags(oldOption_colTag);
+				newOption = Colors.removeNonImgTags(newOption);
+				if ((oldOption.equals(newOption) && !oldOption.contains("<img="))// text didnt change after translation todo: need other way of telling if it has already been translated after other languages are added
+				|| colWordHasMatchingWords(oldOption_colTag, newOption)){ // or when separating words by colors, if any of the words match
+					isOptionPending = true;
+					pendingType = PendingTranslationType.OPTION;
+					updateOption = false;
+				}
+			}
+		}
+		String oldTarget_colTag = currentMenu.getTarget();
+		String oldTarget = Colors.removeNonImgTags(oldTarget_colTag);
+		newTarget = Colors.removeNonImgTags(newTarget);
+
+		if(oldTarget.equals(newTarget) && !oldTarget.contains("<img=")// text didnt change after translation todo: same as above
+				|| colWordHasMatchingWords(oldTarget_colTag, newTarget)){// or when separating words by colors, if any of the words match
+			if(!newTarget.isEmpty() && !newTarget.isBlank()){
+				isTargetPending = true;
+				pendingType = PendingTranslationType.TARGET;
+				updateTarget = false;
+			}
+		}
+		if (updateOption){
+			currentMenu.setOption(newOption);
+		}
+		if (updateTarget){
+			currentMenu.setTarget(newTarget);
+		}
+		if (isOptionPending && isTargetPending){
+			pendingType = PendingTranslationType.BOTH;
+		}
+		if (pendingType != null){
+			pendingApiTranslation.add(Pair.of(currentMenu, pendingType));
+		}
+
+		return pendingType != null;
+	}
+
+	// check if any api translation is done
+	// if it is, replace the menu entry with the translation
+	public void handlePendingApiTranslation(){
+		if (!plugin.getConfig().ApiConfig() ||
+				pendingApiTranslation.isEmpty()){
+			return;
+		}
+		Set<Pair<MenuEntry, PendingTranslationType>> toRemove = new HashSet<>();
+        for (Pair<MenuEntry, PendingTranslationType> pair : pendingApiTranslation) {
+			MenuEntry menu = pair.getLeft();
+            PendingTranslationType type = pair.getRight();
+			boolean remove = handlePendingMenu(menu, type);
+			if (remove) {
+				toRemove.add(pair);
+			}
+        }
+		pendingApiTranslation.removeAll(toRemove);
+	}
+
+	// if the menu text contains multiple colors, it won't be updated with this function (need to reopen the menu)
+	private boolean handlePendingMenu(MenuEntry menu, PendingTranslationType type){
+		String[] newMenus = translateMenuAction(menu);
+		String newTarget = newMenus[0];
+		String newOption = newMenus[1];
+		boolean remove = false;
+		if (type.equals(PendingTranslationType.BOTH) && !newOption.equals(menu.getOption()) && !newTarget.equals(menu.getTarget())
+		&& !colWordHasMatchingWords(menu.getOption(), newOption) && !colWordHasMatchingWords(menu.getTarget(), newTarget)){
+			remove = true;
+			menu.setOption(newOption);
+			menu.setTarget(newTarget);
+			swapOptionTarget(menu);
+		} else if (type.equals(PendingTranslationType.OPTION) && !newOption.equals(menu.getOption())
+				&& !colWordHasMatchingWords(menu.getOption(), newOption)){
+			remove = true;
+			menu.setOption(newOption);
+			swapOptionTarget(menu);
+		} else if (type.equals(PendingTranslationType.TARGET) && !newTarget.equals(menu.getTarget())
+				&& !colWordHasMatchingWords(menu.getTarget(), newTarget)){
+			remove = true;
+			menu.setTarget(newTarget);
+			swapOptionTarget(menu);
+		}
+		return remove;
+	}
+
+	private void swapOptionTarget(MenuEntry menu){
+		String option = menu.getOption();
+		String target = menu.getTarget();
+		menu.setOption(target);
+		menu.setTarget(option);
+	}
+
+	// check if any words in old text matches words in new text
+	// eg: old text = <col=0>view<col=ff0000>Magic<col=0>Wiki
+	// new text = <col=0>表示<col=ff0000>Magic<col=0>ウィキ
+	// returns true because "Magic" is the same in both texts
+	private boolean colWordHasMatchingWords(String oldText, String newText){
+		String[] oldWords = Colors.getWordArray(oldText);
+		for (String oldWord : oldWords) {
+			if (newText.contains(oldWord)){
+				return true;
+			}
+		}
+		return false;
+	}
 
 }

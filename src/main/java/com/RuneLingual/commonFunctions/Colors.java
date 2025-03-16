@@ -143,7 +143,6 @@ public enum Colors {
             return closestI;
         }
     }
-
     public static String IntToHex(int intColor) {
         String hexString = String.format("%06x",intColor);
 

@@ -13,6 +13,8 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class PastTranslationManager {
@@ -20,7 +22,7 @@ public class PastTranslationManager {
     @Inject
     private Deepl deepl;
     private RuneLingualPlugin plugin;
-    private HashMap<String, String> pastTranslations = new HashMap<>();
+    private Map<String, String> pastTranslations = new ConcurrentHashMap<>();
 
 
     @Inject
@@ -90,7 +92,7 @@ public class PastTranslationManager {
     }
 
     public void addToPastTranslations(String text, String translation) {
-        // add to the hashmap
+        // add to the map
         pastTranslations.put(text, translation);
 
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(

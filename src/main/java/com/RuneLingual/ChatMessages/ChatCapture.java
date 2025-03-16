@@ -13,12 +13,15 @@ import javax.inject.Inject;
 
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.Transformer.TransformOption;
+import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
 public class ChatCapture
@@ -38,6 +41,8 @@ public class ChatCapture
     private Deepl deepl;
     @Inject
     private ChatColorManager chatColorManager;
+    @Getter
+    private Set<Pair<ChatMessage, Long>> pendingChatMessages = new HashSet<>(); // the untranslated message (by api) and time to expire
 
     
     @Inject
@@ -94,11 +99,7 @@ public class ChatCapture
                 localTranslator(message, messageNode, chatMessage);
                 break;
             case TRANSLATE_API:
-                Thread thread = new Thread(() -> {
-                    onlineTranslator(message, messageNode, chatMessage);
-                });
-                thread.setDaemon(false);
-                thread.start();
+                onlineTranslator(message, messageNode, chatMessage);
                 break;
             case TRANSFORM: // ex: konnnitiha -> こんにちは
                 chatTransformer(message, messageNode, chatMessage);
@@ -122,6 +123,12 @@ public class ChatCapture
         }
 
         String translation = deepl.translate(message, LangCodeSelectableList.ENGLISH, config.getSelectedLanguage());
+
+        // if the translation is the same as the original message, don't replace it
+        if(translation.equals(message)){
+            pendingChatMessages.add(Pair.of(chatMessage, System.currentTimeMillis()+30*1000));// it will timeout in 30 seconds
+            return;
+        }
         Transformer transformer = new Transformer(plugin);
         Colors textColor = chatColorManager.getMessageColor();
         String textToDisplay = transformer.stringToDisplayedString(translation, textColor);
@@ -358,5 +365,44 @@ public class ChatCapture
 
     private String replaceTagWithAA (String string){ //"<img=41>sand in sand" into "11sand in sand" for easy counting
         return string.replaceAll("<img=(\\d+)>","AA");
+    }
+
+    // called every game tick, until the pendingChatMessages is empty
+    // pending messages will be removed from set if they are not translated within 30 seconds
+    public void handlePendingChatMessages() {
+        if(pendingChatMessages.isEmpty())
+            return;
+
+        long currentTime = System.currentTimeMillis();
+        Set<Pair<ChatMessage, Long>> toRemove = new HashSet<>();
+        for(Pair<ChatMessage, Long> pair : pendingChatMessages){
+
+            if (pair.getRight() < currentTime) { // time out
+                toRemove.add(pair);
+                continue;
+            }
+
+            ChatMessage chatMessage = pair.getLeft();
+            MessageNode node = chatMessage.getMessageNode();
+            String message = chatMessage.getMessage();
+
+            String translation = deepl.translate(message, LangCodeSelectableList.ENGLISH, config.getSelectedLanguage());
+
+            // if the translation is the same as the original message, don't replace
+            if(translation.equals(message)){
+                continue;
+            }
+
+            Transformer transformer = new Transformer(plugin);
+            Colors textColor = chatColorManager.getMessageColor();
+            String textToDisplay = transformer.stringToDisplayedString(translation, textColor);
+
+            replaceChatMessage(textToDisplay, node);
+            addMsgToSidePanel(chatMessage, translation);
+            toRemove.add(pair);
+        }
+        for (Pair<ChatMessage, Long> pair : toRemove) {
+            pendingChatMessages.remove(pair);
+        }
     }
 }
