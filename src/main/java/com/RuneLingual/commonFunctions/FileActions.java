@@ -5,8 +5,9 @@ import java.io.IOException;
 import java.util.List;
 
 import com.RuneLingual.LangCodeSelectableList;
+import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 public class FileActions {
     /*
     mainly for managing the file whose name includes the current selected language
