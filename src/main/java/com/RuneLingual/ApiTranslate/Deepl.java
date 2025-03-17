@@ -6,13 +6,18 @@ import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.TranslatingServiceSelectableList;
 import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.nonLatin.GeneralFunctions;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.RuneLite;
+import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -27,6 +32,8 @@ public class Deepl {
     private RuneLingualPlugin plugin;
     @Inject
     private RuneLingualConfig config;
+    @Inject
+    private OkHttpClient httpClient;
     private String deeplKey;
     @Getter @Setter
     private int deeplLimit = 500000;
@@ -37,6 +44,7 @@ public class Deepl {
 
     @Getter @Setter
     private PastTranslationManager deeplPastTranslationManager;
+    private static final MediaType mediaType = MediaType.parse("Content-Type: application/json");
 
 
     // add texts that has already been attempted to be translated.
@@ -45,10 +53,12 @@ public class Deepl {
     private List<String> translationAttempt = new ArrayList<>();
 
     @Inject
-    public Deepl(RuneLingualPlugin plugin) {
+    public Deepl(RuneLingualPlugin plugin, OkHttpClient httpClient) {
         this.plugin = plugin;
         this.config = plugin.getConfig();
-        setUsageAndLimitInThread();
+        this.httpClient = httpClient;
+        //setUsageAndLimit();
+        deeplKey = plugin.getConfig().getAPIKey();
         deeplPastTranslationManager = new PastTranslationManager(this, plugin);
     }
 
@@ -62,7 +72,9 @@ public class Deepl {
      * @return the translated text if translated in the past, the original text if the translation fails or trying to translate
      */
     public String translate(String text, LangCodeSelectableList sourceLang, LangCodeSelectableList targetLang) {
-
+        if(!plugin.getConfig().ApiConfig()){
+            return text;
+        }
         // if the text is already translated, return the past translation
         String pastTranslation = deeplPastTranslationManager.getPastTranslation(text);
         if (pastTranslation != null) {
@@ -73,7 +85,9 @@ public class Deepl {
         if (text.isEmpty() || translationAttempt.contains(text)) {
             return text;
         }
+        deeplKey = plugin.getConfig().getAPIKey();
 
+        setUsageAndLimit();
         //if the character count is close to the limit, return the original text
         if(deeplCount > deeplLimit - text.length() - 1000){
             return text;
@@ -81,39 +95,59 @@ public class Deepl {
 
         // from here, attempt to translate the text
         translationAttempt.add(text);
-        deeplKey = plugin.getConfig().getAPIKey();
+
 
         String url = getTranslatorUrl();
         if(url.isEmpty()){// if selected service is not deepl, return as is
             return text;
         }
 
-        String urlParameters = getUrlParameters(sourceLang, targetLang, text);
+        JsonObject urlParameters = getUrlParameters(sourceLang, targetLang, text);
 
-
-        Thread thread = new Thread(() -> {
-            String response = getResponse(url, urlParameters);
-            if (response.isEmpty()) { // if response is empty, return as is
-                setKeyValid(false);
-            } else {
-                String translation = getTranslationInResponse(response);
-                // add the new translation to the past translations and its file
-                deeplPastTranslationManager.addToPastTranslations(text, translation);
-                setKeyValid(true);
+        getResponse(url, FormBody.create(mediaType, urlParameters.toString()), new ResponseCallback() {
+            @Override
+            public void onSuccess(String response) {
                 setUsageAndLimit();
+                String translation = getTranslationInResponse(response);
+                if (!translation.isEmpty()) {
+                    // add the new translation to the past translations and its file
+                    deeplPastTranslationManager.addToPastTranslations(text, translation);
+                    setKeyValid(true);
+                    translationAttempt.remove(text);
+                }
+
+            }
+
+            @Override
+            public void onFailure(Exception error) {
+                setKeyValid(false);
+                handleError(error);
+            }
+
+            @Override
+            public void onApiOff() {
+                translationAttempt.remove(text);
             }
         });
-        thread.setDaemon(true);
-        thread.start();
+
         return text; // return original text while the translation is being processed in the thread
     }
 
-    private String getUrlParameters(LangCodeSelectableList sourceLang, LangCodeSelectableList targetLang, String text) {
-
-        String key = config.getAPIKey();
-        String sourceLangCode = sourceLang.getDeeplLangCodeSource();
+    private JsonObject getUrlParameters(LangCodeSelectableList sourceLang, LangCodeSelectableList targetLang, String text) {
         String targetLangCode = targetLang.getDeeplLangCodeTarget();
-        return "auth_key=" + key + "&text=" + text + "&source_lang=" + sourceLangCode + "&target_lang=" + targetLangCode;
+        JsonArray jsonArray = new JsonArray();
+        jsonArray.add(text);
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.add("text", jsonArray);
+        jsonObject.addProperty("target_lang", targetLangCode);
+        jsonObject.addProperty("context", "runescape; dungeons and dragons; medieval fantasy;");
+        jsonObject.addProperty("split_sentences", "nonewlines");
+        jsonObject.addProperty("preserve_formatting", true);
+        jsonObject.addProperty("formality", "prefer_less");
+        jsonObject.addProperty("source_lang", "EN");
+
+        return jsonObject;
     }
 
     private String getTranslatorUrl() {
@@ -122,6 +156,14 @@ public class Deepl {
             return "";
         }
         return baseUrl + "translate";
+    }
+
+    private String getUsageUrl() {
+        String baseUrl = getBaseUrl();
+        if(baseUrl.isEmpty()){
+            return "";
+        }
+        return baseUrl + "usage";
     }
 
     private String getBaseUrl() {
@@ -134,105 +176,139 @@ public class Deepl {
         }
     }
 
-    private String getResponse(String url, String urlParameters) {
-        int maxRetries = 10;
-        int retryCount = 0;
-        Random random = new Random();
+    private void getResponse(String url, RequestBody requestBody, ResponseCallback callback) {
+        getResponseWithRetry(url, requestBody, callback, 0);
+    }
 
-        while (retryCount < maxRetries) {
-            try {
-                URL deeplUrl = new URL(url);
-                HttpURLConnection connection = (HttpURLConnection) deeplUrl.openConnection();
-                // Set the request method to POST
-                connection.setRequestMethod("POST");
+    private void getResponseWithRetry(String url, RequestBody requestBody, ResponseCallback callback, int retryCount) {
+        if (!plugin.getConfig().ApiConfig()){
+            //log.info("API is disabled");
+            callback.onApiOff();
+            return;
+        }
+        if (deeplKey == null || deeplKey.isEmpty()) {
+            callback.onFailure(new IOException("API key is missing"));
+            return;
+        }
 
-                // Enable input and output streams
-                connection.setDoOutput(true);
+        try {
+            Request.Builder request = new Request.Builder()
+                    .addHeader("User-Agent", RuneLite.USER_AGENT + " (runelingual)")
+                    .addHeader("Authorization", "DeepL-Auth-Key " + deeplKey)
+                    .addHeader("Accept", "application/json")
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("Content-Length", String.valueOf(requestBody.contentLength()))
+                    .url(url)
+                    .post(requestBody);
 
-                // Set the content type to indicate UTF-8 encoding
-                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-
-                // Write the parameters to the request
-                try (OutputStream os = connection.getOutputStream()) {
-                    byte[] input = urlParameters.getBytes(StandardCharsets.UTF_8);
-                    os.write(input, 0, input.length);
-                }
-
-                // Get the response code
-                int responseCode = connection.getResponseCode();
-
-                // If the response code is 200 (HTTP_OK), read the response
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    // Use UTF-8 encoding when reading the response
-                    try (BufferedReader br = new BufferedReader(
-                            new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-                        StringBuilder response = new StringBuilder();
-                        String responseLine;
-                        while ((responseLine = br.readLine()) != null) {
-                            response.append(responseLine.trim());
+            httpClient.newCall(request.build()).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException error) {
+                    if (!plugin.getConfig().ApiConfig()){
+                        callback.onApiOff();
+                        //log.info("API is disabled");
+                        return;
+                    }
+                    if (retryCount < 5) {
+                        int delay = new Random().nextInt(8) + 3;
+                        //log.info("Retrying in " + delay + " seconds...");
+                        try {
+                            Thread.sleep(delay * 1000);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
                         }
-                        return response.toString();
+                        getResponseWithRetry(url, requestBody, callback, retryCount + 1);
+                    } else {
+                        callback.onFailure(error);
                     }
                 }
-            } catch (Exception e) {
-                setKeyValid(false);
-                e.printStackTrace();
-            }
-            retryCount++;
-            try {
-                // Wait for a random time between 0.5 to 1 second before retrying
-                Thread.sleep(500 + random.nextInt(501));
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                break;
+
+                @Override
+                public void onResponse(Call call, Response response) {
+                    try (ResponseBody responseBody = response.body()) {
+                        if (!plugin.getConfig().ApiConfig()){
+                            callback.onApiOff();
+                            //log.info("API is disabled");
+                            return;
+                        }
+                        if (responseBody != null) {
+                            String responseBodyString = responseBody.string();
+                            if (response.code() == 429) { // Too Many Requests
+                                if (retryCount < 5) {
+                                    int delay = new Random().nextInt(8) + 3;
+                                    //log.info("Too many requests. Retrying in " + delay + " seconds...");
+                                    try {
+                                        Thread.sleep(delay * 1000);
+                                    } catch (InterruptedException e) {
+                                        Thread.currentThread().interrupt();
+                                    }
+                                    getResponseWithRetry(url, requestBody, callback, retryCount + 1);
+                                } else {
+                                    callback.onFailure(new IOException("Too many requests"));
+                                }
+                            } else {
+                                callback.onSuccess(responseBodyString);
+                            }
+                        } else {
+                            callback.onFailure(new IOException("Response body is null"));
+                        }
+                    } catch (Exception error) {
+                        callback.onFailure(error);
+                    }
+                }
+            });
+        } catch (Exception error) {
+            log.error("Failed to create the API request", error);
+            callback.onFailure(error);
+        }
+    }
+
+    private void handleError(Exception error) {
+        log.error("Failed to get response from DeepL API.", error);
+    }
+
+
+    public interface ResponseCallback {
+        void onSuccess(String response);
+        void onFailure(Exception error);
+        void onApiOff();
+    }
+
+    private String getTranslationInResponse(String response) {
+        JSONObject jsonObject = new JSONObject(response);
+        if (jsonObject.has("translations")) {
+            JSONArray translationsArray = jsonObject.getJSONArray("translations");
+            if (!translationsArray.isEmpty()) {
+                JSONObject translationObject = translationsArray.getJSONObject(0);
+                return translationObject.getString("text");
             }
         }
-        setKeyValid(false);
-        log.info("Failed to get response from DeepL API.");
         return "";
     }
 
-    private String getTranslationInResponse(String response){
-        JSONObject jsonObject = new JSONObject(response);
-        JSONArray translationsArray = jsonObject.getJSONArray("translations");
-        JSONObject firstTranslation = translationsArray.getJSONObject(0);
-        return firstTranslation.getString("text");
-    }
-
     // function to set usage of the API
-    private void setUsageAndLimit() {
-        String usage = getUsage();
-        //log.info("usage: " + usage);
-        if(usage.isEmpty()){
-            return;
-        }
-        JSONObject jsonObject = new JSONObject(usage);
-        deeplCount = jsonObject.getInt("character_count");
-        deeplLimit = jsonObject.getInt("character_limit");
-        //log.info("updated deepl count:" + deeplCount+"\nupdated deepl limit" + deeplLimit);
-    }
-    private String getUsage() {
-        // URL of the DeepL API
-        String url = getUsageUrl();
-        if(url.isEmpty()){
-            setKeyValid(false);
-            return "";
-        }
-        String paramUrl = "auth_key=" + config.getAPIKey();
-        return getResponse(url, paramUrl);
-    }
+    public void setUsageAndLimit() {
+        getResponse(getUsageUrl(), FormBody.create(mediaType, ""), new ResponseCallback() {
+            @Override
+            public void onSuccess(String usage) {
+                if (usage.isEmpty()) {
+                    return;
+                }
+                JSONObject jsonObject = new JSONObject(usage);
+                deeplCount = jsonObject.getInt("character_count");
+                deeplLimit = jsonObject.getInt("character_limit");
+                //log.info("updated deepl count:" + deeplCount + "\nupdated deepl limit" + deeplLimit);
+            }
 
-    private String getUsageUrl() {
-        String baseUrl = getBaseUrl();
-        if (baseUrl.isEmpty()) {
-            setKeyValid(false);
-            return "";
-        }
-        return getBaseUrl() + "usage";
-    }
+            @Override
+            public void onFailure(Exception error) {
+                handleError(error);
+            }
 
-    private void setUsageAndLimitInThread(){
-        Thread thread = new Thread(this::setUsageAndLimit);
-        thread.start();
+            @Override
+            public void onApiOff() {
+                //log.info("API is disabled");
+            }
+        });
     }
 }

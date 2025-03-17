@@ -38,8 +38,6 @@ public class ChatCapture
     @Inject
     private PlayerMessage playerMessage;
     @Inject
-    private Deepl deepl;
-    @Inject
     private ChatColorManager chatColorManager;
     @Getter
     private Set<Pair<ChatMessage, Long>> pendingChatMessages = new HashSet<>(); // the untranslated message (by api) and time to expire
@@ -51,7 +49,6 @@ public class ChatCapture
         this.config = config;
         this.client = client;
         this.plugin = plugin;
-        this.deepl = plugin.getDeepl();
     }
 
     public enum openChatbox{
@@ -99,7 +96,8 @@ public class ChatCapture
                 localTranslator(message, messageNode, chatMessage);
                 break;
             case TRANSLATE_API:
-                onlineTranslator(message, messageNode, chatMessage);
+                if(plugin.getConfig().ApiConfig())
+                    onlineTranslator(message, messageNode, chatMessage);
                 break;
             case TRANSFORM: // ex: konnnitiha -> こんにちは
                 chatTransformer(message, messageNode, chatMessage);
@@ -116,13 +114,13 @@ public class ChatCapture
     
     private void onlineTranslator(String message, MessageNode node, ChatMessage chatMessage)
     {
-        if(deepl.getDeeplCount() + message.length() + 1000 > deepl.getDeeplLimit())
+        if(plugin.getDeepl().getDeeplCount() + message.length() + 1000 > plugin.getDeepl().getDeeplLimit())
         {
             log.info("DeepL limit reached, cannot translate message.");
             return;
         }
 
-        String translation = deepl.translate(message, LangCodeSelectableList.ENGLISH, config.getSelectedLanguage());
+        String translation = plugin.getDeepl().translate(message, LangCodeSelectableList.ENGLISH, config.getSelectedLanguage());
 
         // if the translation is the same as the original message, don't replace it
         if(translation.equals(message)){
@@ -386,7 +384,7 @@ public class ChatCapture
             MessageNode node = chatMessage.getMessageNode();
             String message = chatMessage.getMessage();
 
-            String translation = deepl.translate(message, LangCodeSelectableList.ENGLISH, config.getSelectedLanguage());
+            String translation = plugin.getDeepl().translate(message, LangCodeSelectableList.ENGLISH, config.getSelectedLanguage());
 
             // if the translation is the same as the original message, don't replace
             if(translation.equals(message)){
