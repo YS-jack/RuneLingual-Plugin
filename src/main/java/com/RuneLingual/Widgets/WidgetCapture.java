@@ -171,7 +171,7 @@ public class WidgetCapture {
                 sqlQuery.setSource(SqlVariables.sourceValue4PrayerTab.getValue());
             } else if (widgetId == ids.getWidgetIdSpellBookTab()) {
                 sqlQuery.setSource(SqlVariables.sourceValue4SpellBookTab.getValue());
-            } else if (widgetId == ids.getWidgetIdGroupsTab()) {
+            } else if (widgetId == ids.getWidgetIdGroupsTab() || widgetId == ids.getWidgetIdGroupTabNonGIM() || widgetId == ids.getWidgetIdPvPArena()) {
                 sqlQuery.setSource(SqlVariables.sourceValue4GroupTab.getValue());
             } else if (widgetId == ids.getWidgetIdFriendsTab()) {
                 sqlQuery.setSource(SqlVariables.sourceValue4FriendsTab.getValue());
@@ -284,12 +284,42 @@ public class WidgetCapture {
 
     private boolean shouldTranslateWidget(Widget widget) {
         int widgetId = widget.getId();
-        boolean isFriendsListNames = ids.getFriendsTabPlayerNameTextId() == widgetId
-                && widget.getXTextAlignment() == WidgetTextAlignment.LEFT;
+
         return shouldTranslateText(widget.getText())
+                && widget.getType() == WidgetType.TEXT
                 && widget.getFontId() != -1 // if font id is -1 it's probably not shown
-                && !ids.getWidgetIdPlayerName().contains(widgetId) // player name should not be translated
-                && !isFriendsListNames;
+                && !ids.getWidgetIdNot2Translate().contains(widgetId)
+                && !isWidgetIdNot2Translate(widget);
+    }
+
+    private boolean isWidgetIdNot2Translate(Widget widget) {
+        int widgetId = widget.getId();
+        boolean isFriendsListNames = ids.getFriendsTabPlayerNameTextId() == widgetId
+                    && widget.getXTextAlignment() == WidgetTextAlignment.LEFT;
+        boolean isGimMemberNames = ids.getGimMemberNameId() == widgetId
+                    && widget.getXTextAlignment() == WidgetTextAlignment.LEFT
+                    && widget.getTextColor() == 0xffffff; // if not white text its "Vacancy". use color because "Vacancy" could be player name
+        boolean isFriendsChatList = ComponentID.FRIENDS_CHAT_LIST == widgetId
+                    && widget.getType() == WidgetType.TEXT && widget.getTextColor() == 0xffffff; // check colors so its not world #
+        boolean isFcTitleOrOwner = (ComponentID.FRIENDS_CHAT_TITLE == widgetId || ComponentID.FRIENDS_CHAT_OWNER == widgetId)
+                && client.getFriendsChatManager() != null;
+        // if its orange text, its clan name, world, member count etc,
+        // but if its grey its "Your Clan" and "No current clan" which is displayed when not in a clan
+        boolean isClanName = ComponentID.CLAN_HEADER == widgetId
+                    && widget.getTextColor() == 0xe6981f;
+        boolean isClanMemberName = ComponentID.CLAN_MEMBERS == widgetId
+                    && widget.getTextColor() == 0xffffff;
+        boolean isGuesClanName = ComponentID.CLAN_GUEST_HEADER == widgetId
+                    && widget.getTextColor() == 0xe6981f;
+        boolean isGuestClanMemberName = ComponentID.CLAN_GUEST_MEMBERS == widgetId
+                    && widget.getTextColor() == 0xffffff;
+        boolean isPvPMemberName = ids.getGroupTabPvPGroupMemberId() == widgetId
+                    && (widget.getTextColor() == 0xffffff || widget.getTextColor() == 0x9f9f9f);
+        boolean isGroupingGroupMemberName = ids.getGroupingGroupMemberNameId() == widgetId
+                && widget.getTextColor() == 0xffffff;
+
+        return isFriendsListNames || isGimMemberNames || isFcTitleOrOwner || isFriendsChatList || isClanMemberName || isClanName
+                || isGuesClanName || isGuestClanMemberName || isPvPMemberName || isGroupingGroupMemberName;
     }
 
     /* check if the text should be translated
@@ -344,9 +374,13 @@ public class WidgetCapture {
             if (widget.getText() == null || !shouldTranslateWidget(widget)) {
                 return;
             }
-            String fileName = "FriendsIgnoreAccMan.txt";
+            String fileName = "GroupTab.txt";
             String textToDump = getEnglishColValFromWidget(widget);
 
+            // for partial translation
+            if (widgetsUtilRLingual.shouldPartiallyTranslate(widget)) {
+                textToDump = widgetsUtilRLingual.getEnColVal4PartialTranslation(widget);
+            }
             //pastTranslationResults.add(widget.getText());
             if (ids.getWidgetId2SplitTextAtBr().contains(widget.getId())) {
                 String[] textList = textToDump.split("<br>");

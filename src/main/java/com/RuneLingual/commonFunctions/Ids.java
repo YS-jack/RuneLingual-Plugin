@@ -53,6 +53,8 @@ public class Ids {
     private final int widgetIdPrayerTab = ComponentID.PRAYER_PARENT;
     private final int widgetIdSpellBookTab = ComponentID.SPELLBOOK_PARENT;
     private final int widgetIdGroupsTab = 47644672;
+    private final int widgetIdGroupTabNonGIM = 46333952;
+    private final int widgetIdPvPArena = 49938432;
     private final int widgetIdFriendsTab = 28114944;
     private final int widgetIdIgnoreTab = 28311552;
     private final int widgetIdAccountManagementTab = 7143445;
@@ -63,15 +65,18 @@ public class Ids {
     private final int widgetIdWorldSwitcherTab = 4521984;
 
     // dont translate at all, except menu option
+    private final int widgetIdCharacterSummaryName = 46661633;
     private final int widgetIdGimGroupName = 47579137;
-    private final int widgetIdGimMemberList = 47579140;
-    private final int widgetIdIgnoreNameList = ComponentID.IGNORE_LIST_FULL_CONTAINER;
-
-    //dont translate names, but translate World ### and "Offline"
-    private final int widgetIdFriendsNameList = ComponentID.FRIEND_LIST_FULL_CONTAINER;
+    private final int widgetIdClockGIM = 47644681;
+    private final int widgetIdClockNonGIM = 46333960;
 
     //general interface
     private final int widgetIdSkillGuide = 14024705;
+
+    // partial translations
+    private final int playerNameInAccManTab = 7143474;
+    private final int widgetIdPvPArenaNan = 49938440;//group tab, click PvP Arena button in top right while in an unrelated guest clan
+    private final int widgetIdInOtherActivityChannel = 4980752;// group tab, select an activity in drop down menu, click join, then select another activity
 
     /* example for adding set of widget ids
     private final Set<Integer> idSet4Raids_Colosseum = Set.of(
@@ -81,10 +86,15 @@ public class Ids {
     );
      */
 
-    private final Set<Integer> widgetIdPlayerName = Set.of(
-            46661633,//character summary player name
-            28311561,//ignore list
-            458764//friends chat list
+    // dont translate at all
+    private final Set<Integer> widgetIdNot2Translate = Set.of(
+            widgetIdCharacterSummaryName,
+            ComponentID.IGNORE_LIST_FULL_CONTAINER,
+            //ComponentID.FRIENDS_CHAT_LIST,// mostly dont translate, but contains World # which could be translatedId	458764
+            //ComponentID.FRIENDS_CHAT_TITLE,// is translated when not in fc
+            //ComponentID.FRIENDS_CHAT_OWNER,// is translated when not in fc
+            widgetIdGimGroupName, //gim group name in group tab
+            widgetIdClockGIM, widgetIdClockNonGIM
     );
 
     private final Set<Integer> widgetIdItemName = Set.of(
@@ -102,15 +112,19 @@ public class Ids {
     private final Set<Integer> widgetIdQuestName = Set.of(
             26148871 // quest name in quest list
     );
+
+    // other specific ids
     private final int attackStyleHoverTextId = 38862892;
     private final int prayerTabHoverTextId = 35455015;
     private final int spellbookTabHoverTextId = 14287050;
-    private final int friendsTabPlayerNameTextId = 28114955;
-    private final int playerNameInAccManTab = 7143474;
+    private final int friendsTabPlayerNameTextId = ComponentID.FRIEND_LIST_NAMES_CONTAINER;
     private final int addFriendButtonId = 28114959;
     private final int removeFriendButtonId = 28114961;
     private final int skillsTabXpHoverTextId = 20971548;
     private final int xpBarTopRightHoverTextId = 7995417;
+    private final int gimMemberNameId = 47579142; // show only if type = 4 and left aligned
+    private final int groupTabPvPGroupMemberId = 49938440;
+    private final int groupingGroupMemberNameId = 4980752;
 
     // for English transcript to be split at <br> tags and added to the transcript
     // will reduce the number of translations needed
@@ -151,7 +165,7 @@ public class Ids {
         Map.entry(16973826, Pair.of(110, null)) // the achievement diary tab's location names
     );
 
-    // widget ids to resize to match the text inside it, mostly for hover displays like prayer's hover descriptions
+    // ids of widgets to resize to match the text inside it, mostly for hover displays like prayer's hover descriptions
     // sibling widgets = other widgets under the same parent, which contains text ( and should be type 4)
     private void initWidget2ModDict() {
         // widget2ModDict.add(widgetId, error pixels, has Sibling Widget, fixed top, fixed bottom, fixed left, fixed right, top padding, bottom padding, left padding, right padding)
@@ -162,7 +176,10 @@ public class Ids {
     }
 
     private void initPartialTranslations() {
-        /* usage:
+        /* use for when part of a text should not be translated / translated as item name, object name etc, and other parts should be translated by translator/api
+         * for placeholder types, use PLAYER_NAME, ITEM_NAME, NPC_NAME, OBJECT_NAME, QUEST_NAME
+         * use PLAYER_NAME for any text that shouldn't be translated, ITEM_NAME for item names, etc.
+         *
         partialTranslationManager.addPartialTranslation(
                 widgetId,
                 List.of("fixed text part 1", "fixed text part 2", "fixed text part 3"),
@@ -172,6 +189,16 @@ public class Ids {
                 playerNameInAccManTab,
                 List.of("Name: "),
                 List.of(PLAYER_NAME)
+        );
+        partialTranslationManager.addPartialTranslation(
+                widgetIdPvPArenaNan,
+                List.of("You have currently loaded <col=ffb83f>", "</col>, which is not a PvP Arena group."),
+                List.of(PLAYER_NAME)// clan name goes here
+        );
+        partialTranslationManager.addPartialTranslation(
+                widgetIdInOtherActivityChannel,
+                List.of("You are currently talking in the <col=ffffff>","</col> channel."),
+                List.of(ANY_TRANSLATED)// activity name goes here
         );
         // to add placeholder at the beginning of the text, add an empty string to the fixedTextParts
         // eg.  partialTranslationManager.addPartialTranslation(

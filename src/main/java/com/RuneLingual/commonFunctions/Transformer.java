@@ -215,14 +215,18 @@ public class Transformer {
                 plugin.getFailedTranslations().add(sqlQuery);
                 return textAddColor(text, colors);
             } else {
-                if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
+                for (String s : result) {
+                    if(!s.isEmpty()) {
+                        translatedText = convertFullWidthToHalfWidth(s); // convert full width characters to half width
+                        break;
+                    }
+                }
+                if(translatedText.isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
                     log.info("{} has not been translated yet (transform func)", text);
+                    log.info("   query = {}", sqlQuery.getSearchQuery());
                     plugin.getFailedTranslations().add(sqlQuery);
                     return textAddColor(text, colors);
-
-                } else { // text has been translated
-                    translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
                 }
             }
             //translatedText = this.plugin.getTranscriptActions().getTranslation(text);

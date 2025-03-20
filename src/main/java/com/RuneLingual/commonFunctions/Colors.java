@@ -36,6 +36,7 @@ public enum Colors {
     white2("9f9f9f","white"),
     white3("af6a1a","white"),
     yellow("ffff00", "yellow"),
+    yellow2("ffb83f", "yellow"),
 
     ;
 

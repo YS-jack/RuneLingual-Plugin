@@ -202,13 +202,14 @@ public class WidgetsUtilRLingual
 	}
 
 	public boolean shouldPartiallyTranslate(Widget widget) {
-		return ids.getPartialTranslationManager().hasId(widget.getId());
+		return ids.getPartialTranslationManager().hasId(widget.getId())
+				&& ids.getPartialTranslationManager().stringMatchesEnColVal(widget.getText(), widget.getId());
 	}
+
 	public String getEnColVal4PartialTranslation(Widget widget) {
 		int widgetId = widget.getId();
 		return ids.getPartialTranslationManager().getEnColVal(widgetId);
 	}
-
 
 	// set height of line for specified widgets, because they can be too small
 	public void changeLineSize(Widget widget) {

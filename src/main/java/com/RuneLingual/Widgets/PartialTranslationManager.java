@@ -34,6 +34,7 @@ public class PartialTranslationManager {
         ITEM_NAME,
         NPC_NAME,
         OBJECT_NAME,
+        ANY_TRANSLATED // will first look for any matches in the local translation, but if it doesnt exist and the api config for interface is on, will try to translate with api
     } // after adding, add to getQuery4PlaceholderType
 
     @Getter
@@ -127,6 +128,9 @@ public class PartialTranslationManager {
                     } else {
                         return Transformer.TransformOption.AS_IS;
                     }
+                case ANY_TRANSLATED:
+                    // after trying to translate but failed, if api config for interface is on, try to translate with api
+                    return Transformer.TransformOption.TRANSLATE_LOCAL;
                 default:
                     return Transformer.TransformOption.AS_IS;
             }
@@ -143,16 +147,31 @@ public class PartialTranslationManager {
                 Transformer.TransformOption option = getTransformOption(i);
                 SqlQuery query = new SqlQuery(plugin);
                 PlaceholderType placeholderType = PlaceholderType.valueOf(getPlaceholderName(i).replaceAll("[0-9]", ""));
+                Colors placeholderColor = getPlaceholderColor(fixedTextParts.get(i), defaultColor);
                 getQuery4PlaceholderType(originalText, placeholderType, defaultColor, query);
-                String translatedText = transformer.transform(originalText, defaultColor, option, query, false);
-                if (translatedText.equals(Colors.surroundWithColorTag(originalText, defaultColor))
-                && !option.equals(Transformer.TransformOption.AS_IS)) {
-                    return null;
+                String translatedText = transformer.transform(originalText, placeholderColor, option, query, false);
+                if (translatedText.equals(Colors.surroundWithColorTag(originalText, placeholderColor))) { // if the translation failed
+                    if(!option.equals(Transformer.TransformOption.AS_IS)) {
+                        return null;
+                    }
+                    if(placeholderType.equals(PlaceholderType.ANY_TRANSLATED) // if the placeholder type is ANY_TRANSLATED and api config for interface is on, try to translate with api
+                            && plugin.getConfig().getInterfaceTextConfig().equals(RuneLingualConfig.ingameTranslationConfig.USE_API)){
+                        translatedText = transformer.transform(originalText, placeholderColor, Transformer.TransformOption.TRANSLATE_API, query, false);
+                    }
                 }
                 translatedPlaceholders.add(translatedText);
             }
             return translatedPlaceholders;
         }
+    }
+
+    public static Colors getPlaceholderColor(String text, Colors defaultColor){
+        // if the text ends with a color tag, return that color
+        // eg. in "slay <col=ff0000>blue dragons<col=ffffff> in Taverley" -> text = "slay <col=ff0000>", which ends with color tag, so return Colors.RED
+        if(text.matches(".*<col=[a-zA-Z0-9]*?>$")){
+            return Colors.getColorFromHex(text.substring(text.lastIndexOf("<col=") + 5, text.lastIndexOf(">")));
+        }
+        return defaultColor;
     }
 
     public void addPartialTranslation(List<String> fixedTextParts,
@@ -194,7 +213,7 @@ public class PartialTranslationManager {
         // 3. return the translation with the replaced text
 
         String enColVal = getEnColVal(widget.getId()); // enColVal = "slay <!NPC_NAME0> in <!LOCATION_NAME0>"
-        if (enColVal == null) {
+        if (enColVal == null || translationWithPlaceHolder == null) {
             return Colors.surroundWithColorTag(originalText, defaultColor);
         }
 
@@ -234,7 +253,25 @@ public class PartialTranslationManager {
             query.setNpcName(text, defaultColor);
         } else if (type == PlaceholderType.OBJECT_NAME) {
             query.setObjectName(text, defaultColor);
+        } else if (type == PlaceholderType.ANY_TRANSLATED) {
+            query.setEnglish(text);
+            query.setColor(defaultColor);
         }
+    }
+
+    /*
+    * Check if the text matches the enColVal of the partial translation
+    * eg. "slay blue dragons in Taverley" matches "slay <!NPC_NAME0> in <!LOCATION_NAME0>"
+     */
+    public boolean stringMatchesEnColVal(String text, int id) {
+        if(!hasId(id)){
+            return false;
+        }
+        String template = getEnColVal(id);
+        // Escape special regex characters in the template except for the placeholder
+        String regex = template.replaceAll("([\\\\.*+\\[\\](){}|^$])", "\\\\$1")
+                .replaceAll("<!.+?>", ".*");
+        return text.matches(regex);
     }
 
 }
