@@ -57,15 +57,15 @@ public class SqlActions {
         }
 
         // index the english column
-            String sql = "CREATE INDEX english_index ON " + tableName + " ("+ SqlVariables.columnEnglish.getColumnName()
-                    + ", " + SqlVariables.columnTranslation.getColumnName()
-                    + ", " + SqlVariables.columnCategory.getColumnName()
-                    + "," + SqlVariables.columnSubCategory.getColumnName()
-                    + "," + SqlVariables.columnSource.getColumnName() + ")";
-            try (Statement stmt = this.plugin.getConn().createStatement()) {
-                stmt.execute(sql);
-            }catch (SQLException e) {
-            e.printStackTrace();
+        String sql = "CREATE INDEX english_index ON " + tableName + " ("+ SqlVariables.columnEnglish.getColumnName()
+                + ", " + SqlVariables.columnTranslation.getColumnName()
+                + ", " + SqlVariables.columnCategory.getColumnName()
+                + "," + SqlVariables.columnSubCategory.getColumnName()
+                + "," + SqlVariables.columnSource.getColumnName() + ")";
+        try (Statement stmt = this.plugin.getConn().createStatement()) {
+            stmt.execute(sql);
+        }catch (SQLException e) {
+            log.error("Error creating index on " + tableName, e);
         }
     }
 
@@ -111,14 +111,12 @@ public class SqlActions {
 
                     pstmt.executeUpdate();
                 } catch (SQLException e) {
-                    log.info("Error processing TSV file " + tsvFilePath + " at line " + i + " : '" + lines.get(i) + "'");
-                    log.info("sql: '" + sql + "'");
-                    e.printStackTrace();
+                    log.error("Error processing TSV file {} at line {} : '{}'", tsvFilePath, i, lines.get(i));
+                    log.error("sql: '{}'", sql, e);
                 }
             }
         } catch (Exception e) {
-            //log.info("Error processing TSV file " + tsvFilePath);
-            e.printStackTrace();
+            log.error("Error processing TSV file {}", tsvFilePath, e);
         }
     }
 
@@ -128,8 +126,7 @@ public class SqlActions {
             try (Statement stmt = this.plugin.getConn().createStatement()) {
                 stmt.execute(sql);
             } catch (SQLException e) {
-                log.info("Error adding column " + columnName + " to " + tableName);
-                e.printStackTrace();
+                log.error("Error adding column {} to " + tableName, columnName, e);
             }
         }
     }
@@ -163,7 +160,7 @@ public class SqlActions {
             return array;
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Error executing search query: {}", query, e);
         }
         return new String[0][0];
     }
@@ -183,7 +180,7 @@ public class SqlActions {
                 results.add(columnValue);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Error executing query: {}", query, e);
         }
         return results.toArray(new String[0]);
     }

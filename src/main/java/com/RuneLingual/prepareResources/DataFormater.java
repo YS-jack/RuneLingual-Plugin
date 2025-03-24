@@ -41,9 +41,7 @@ public class DataFormater {
             log.info("Table created.");
             sqlActions.tsvToSqlDatabase(tsvFileNames, localLangFolder);
         } catch (Exception e) {
-            log.error("Error creating table.");
-            e.printStackTrace();
-
+            log.error("Error creating table.",e);
         }
     }
 

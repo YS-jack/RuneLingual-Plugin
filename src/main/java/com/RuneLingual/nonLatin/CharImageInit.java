@@ -47,7 +47,7 @@ public class CharImageInit {
 
                 final int charID = chatIconManager.registerChatIcon(image);
                 charIds.put(imageName, charID);
-            } catch (Exception e){log.info(String.valueOf(e));}
+            } catch (Exception e){log.error("error:",e);}
         }
         log.info("end of making character image hashmap");
     }

@@ -10,7 +10,9 @@ import java.nio.file.StandardOpenOption;
 
 import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.SQL.SqlVariables;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class OutputToFile {
     public void menuTarget(String target, String subCategory, String source){
         if (Colors.countColorTagsAfterReformat(target) <= 1){
@@ -35,7 +37,7 @@ public class OutputToFile {
             createFileIfNotExists(filePath.toString());
             Files.write(filePath, (str + System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error writing to file.", e);
         }
     }
 

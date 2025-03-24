@@ -69,7 +69,7 @@ public class Downloader {//downloads translations and japanese char images to ex
                     // Attempt to create the directory
                     Files.createDirectories(dirPath);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("Error creating directory", e);
                 }
             }
 
@@ -117,8 +117,7 @@ public class Downloader {//downloads translations and japanese char images to ex
                 log.info("All files are up to date.");
             }
         } catch (IOException e) {
-            log.info("An error occurred: " + e.getMessage());
-            e.printStackTrace();
+            log.error("An error occurred: {}", e.getMessage(), e);
         }
     }
 
@@ -129,7 +128,7 @@ public class Downloader {//downloads translations and japanese char images to ex
                 // Attempt to create the directory
                 Files.createDirectories(dirPath);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("Error creating directory", e);
             }
         }
     }
@@ -237,7 +236,7 @@ public class Downloader {//downloads translations and japanese char images to ex
             zis.close();
             fis.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error unzipping file", e);
         }
     }
 }
