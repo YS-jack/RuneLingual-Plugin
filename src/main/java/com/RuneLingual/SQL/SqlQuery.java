@@ -368,7 +368,7 @@ public class SqlQuery implements Cloneable{
             return null;
         }
 
-        int[] specialSpaces = {32, 160, 8195, 8194, 8201, 8202, 8203, 12288};
+        int[] specialSpaces = {9, 32, 160, 8195, 8194, 8201, 8202, 8203, 12288};
         StringBuilder result = new StringBuilder();
 
         for (int i = 0; i < input.length(); i++) {

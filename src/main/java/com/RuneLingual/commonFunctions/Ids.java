@@ -69,6 +69,7 @@ public class Ids {
     private final int widgetIdGimGroupName = 47579137;
     private final int widgetIdClockGIM = 47644681;
     private final int widgetIdClockNonGIM = 46333960;
+    private final int widgetIdMusicCurrent = 15663113;
 
     //general interface
     private final int widgetIdSkillGuide = 14024705;
@@ -88,13 +89,13 @@ public class Ids {
 
     // dont translate at all
     private final Set<Integer> widgetIdNot2Translate = Set.of(
+            ComponentID.CHATBOX_INPUT,
             widgetIdCharacterSummaryName,
             ComponentID.IGNORE_LIST_FULL_CONTAINER,
-            //ComponentID.FRIENDS_CHAT_LIST,// mostly dont translate, but contains World # which could be translatedId	458764
-            //ComponentID.FRIENDS_CHAT_TITLE,// is translated when not in fc
-            //ComponentID.FRIENDS_CHAT_OWNER,// is translated when not in fc
             widgetIdGimGroupName, //gim group name in group tab
-            widgetIdClockGIM, widgetIdClockNonGIM
+            widgetIdClockGIM, widgetIdClockNonGIM,
+            ComponentID.MUSIC_SCROLL_CONTAINER // if music is not ignored here, having the music tab opened will drop fps
+            //widgetIdMusicCurrent // may need to be ignored if clue solver reads this widget's value
     );
 
     private final Set<Integer> widgetIdItemName = Set.of(
@@ -125,6 +126,8 @@ public class Ids {
     private final int gimMemberNameId = 47579142; // show only if type = 4 and left aligned
     private final int groupTabPvPGroupMemberId = 49938440;
     private final int groupingGroupMemberNameId = 4980752;
+    private final int settingsHoverTextId = 7602219;
+    private final int emotesHoverTextId = 14155781;
 
     // for English transcript to be split at <br> tags and added to the transcript
     // will reduce the number of translations needed
@@ -148,7 +151,9 @@ public class Ids {
     private final Set<Integer> widgetId2KeepBr = Set.of(
             prayerTabHoverTextId,
             spellbookTabHoverTextId,
-            addFriendButtonId, removeFriendButtonId
+            addFriendButtonId, removeFriendButtonId,
+            settingsHoverTextId,
+            emotesHoverTextId
     );
 
 //    private final Set<Integer> widgetId2SetLineHeight = Set.of(
@@ -166,13 +171,15 @@ public class Ids {
     );
 
     // ids of widgets to resize to match the text inside it, mostly for hover displays like prayer's hover descriptions
-    // sibling widgets = other widgets under the same parent, which contains text ( and should be type 4)
+    // sibling widgets = other widgets under the same parent, which contains text
     private void initWidget2ModDict() {
         // widget2ModDict.add(widgetId, error pixels, has Sibling Widget, fixed top, fixed bottom, fixed left, fixed right, top padding, bottom padding, left padding, right padding)
         widget2ModDict.add(attackStyleHoverTextId, 4, false, true, false, false, false, 1, 3, 2, 2); // spellbook tab's hover text
         widget2ModDict.add(skillsTabXpHoverTextId, 4, true, false, false, false, false, 3, 3, 3, 3); // skill tab's xp hover display
         widget2ModDict.add(prayerTabHoverTextId, 4,false, true, false, true, false, 3, 3, 3, 3);
         widget2ModDict.add(spellbookTabHoverTextId, 4,true, false, false, true, true, 2, 2, 2, 2);
+        widget2ModDict.add(settingsHoverTextId, 4, true, true, false, true, false, 2, 2, 2, 2);
+        widget2ModDict.add(emotesHoverTextId, 4, true, true, false, true, false, 2, 2, 2, 2);
     }
 
     private void initPartialTranslations() {

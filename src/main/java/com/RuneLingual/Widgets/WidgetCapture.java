@@ -56,8 +56,7 @@ public class WidgetCapture {
         int widgetId = widget.getId();
 
         // stop the recursion if the widget is hidden or should be ignored
-        List<Integer> widgetIdsToIgnore = Arrays.asList(ComponentID.CHATBOX_INPUT);
-        if (widget.isHidden() || widgetIdsToIgnore.contains(widgetId)) {
+        if (widget.isHidden() || ids.getWidgetIdNot2Translate().contains(widgetId)) {
             return;
         }
 
@@ -254,25 +253,8 @@ public class WidgetCapture {
         } else {
             widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
         }
-        widgetsUtilRLingual.changeLineSize(widget);
+        widgetsUtilRLingual.changeLineHeight(widget);
         widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget);
-
-
-        //below is for debugging
-//            int widgetId = widgetId;
-//            if(widgetId == 25034758){
-//                int widgetId2;
-//                for(int j = 0; j < 100; j++){
-//                    widget = widget.getParent();
-//                    if (widget == null) {
-//                        break;
-//                    }
-//                    widgetId2 = widgetId;
-//                }
-//                return;
-//            }
-//            // debug end
-
     }
 
     private String getTranslationFromQuery(SqlQuery sqlQuery, String originalText, String textToTranslate) {
@@ -370,11 +352,11 @@ public class WidgetCapture {
 //                (sqlQuery.getSource().equals(SqlVariables.sourceValue4FriendsTab.getValue())
 //        || sqlQuery.getSource().equals(SqlVariables.sourceValue4IgnoreTab.getValue())
 //        || sqlQuery.getSource().equals(SqlVariables.sourceValue4AccountManagementTab.getValue()))) {
-        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4GroupTab.getValue())){
+        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4MusicTab.getValue())){
             if (widget.getText() == null || !shouldTranslateWidget(widget)) {
                 return;
             }
-            String fileName = "GroupTab.txt";
+            String fileName = "MusicTab.txt";
             String textToDump = getEnglishColValFromWidget(widget);
 
             // for partial translation
