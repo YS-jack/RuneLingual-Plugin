@@ -89,7 +89,7 @@ public enum Colors {
         if (colorName.equals(green.getName())){
             return getColorFromHex(green.getHex());
         }
-        log.info("couldnt find color with the name : " + colorName);
+        log.error("couldn't find color with the name : {}", colorName);
         return getColorFromHex(white.getHex());
     }
 
