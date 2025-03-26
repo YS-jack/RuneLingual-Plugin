@@ -359,6 +359,14 @@ public class MenuCapture
 				menuTarget = translateQuestName(targetWordArray[0]);
 				return new String[]{menuTarget, newOption};
 			}
+			if(source.equals(SqlVariables.sourceValue4EmotesTab.getValue())) { // emote names are stored in category=interface, subcategory=mainTabs, source=emotesTab
+				menuTarget = translateEmoteName(targetWordArray[0]);
+				return new String[]{menuTarget, newOption};
+			}
+			if(source.equals(SqlVariables.sourceValue4MusicTab.getValue())) { // music names are stored in category=interface, subcategory=mainTabs, source=musicTab
+				menuTarget = translateMusicName(targetWordArray[0]);
+				return new String[]{menuTarget, newOption};
+			}
 			SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
 			targetSqlQuery.setEnglish(targetWordArray[0]);
 			targetSqlQuery.setCategory(SqlVariables.categoryValue4Name.getValue());
@@ -381,6 +389,36 @@ public class MenuCapture
 		TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
 		// color is not possible to obtain by simple means, so its just orange for now
 		return transformer.transform(questName, Colors.orange, generalMenuTransformOption, targetSqlQuery, false);
+	}
+	private String translateEmoteName(String emoteName) {
+		// emote names are stored in category=interface, subcategory=mainTabs, source=emotesTab
+		SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
+		targetSqlQuery.setEnglish(emoteName);
+		targetSqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
+		targetSqlQuery.setSubCategory(SqlVariables.subcategoryValue4MainTabs.getValue());
+		targetSqlQuery.setSource(SqlVariables.sourceValue4EmotesTab.getValue());
+
+		TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
+		return transformer.transform(emoteName, Colors.orange, generalMenuTransformOption, targetSqlQuery, false);
+	}
+	private String translateMusicName(String musicName) {
+		// music names are stored in category=interface, subcategory=mainTabs, source=musicTab
+		SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
+		targetSqlQuery.setEnglish(musicName);
+		targetSqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
+		targetSqlQuery.setSubCategory(SqlVariables.subcategoryValue4MainTabs.getValue());
+		targetSqlQuery.setSource(SqlVariables.sourceValue4MusicTab.getValue());
+		targetSqlQuery.setColor(Colors.orange);
+
+		TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
+		if(generalMenuTransformOption.equals(TransformOption.TRANSLATE_LOCAL)) {
+			// music name can have placeholder values for numbers such as arabian <Num0> for "arabian 2", "arabian 3"
+			String textToTranslate = SqlQuery.replaceNumbersWithPlaceholders(musicName);
+			targetSqlQuery.setEnglish(textToTranslate);
+			return transformer.transformWithPlaceholders(musicName, textToTranslate, generalMenuTransformOption, targetSqlQuery);
+		}
+		return transformer.transform(musicName, Colors.orange, generalMenuTransformOption, targetSqlQuery, false);
+
 	}
 
 	private String translatePlayerTargetPart(String[] targetWordArray, Colors[] targetColorArray) {
