@@ -17,8 +17,6 @@ public class Transformer {
     @Inject
     private RuneLingualPlugin plugin;
 
-    private final Colors colorObj = Colors.blue;
-
     public enum TransformOption {
         AS_IS,
         TRANSLATE_LOCAL,
@@ -178,6 +176,12 @@ public class Transformer {
             // needs char image and could have multiple colors
             String[] words = Colors.getWordArray(translatedText);
             Colors[] colorsArray = Colors.getColorArray(translatedText, sqlQuery.getColor());
+            if(colorsArray.length==0){
+                colorsArray = new Colors[words.length];
+                for(int i = 0; i < words.length; i++){
+                    colorsArray[i] = sqlQuery.getColor();
+                }
+            }
             StringBuilder charImage = new StringBuilder();
             //log.info("words length = " + words.length + ", colorsArray length =" + colorsArray.length);
             for(int i = 0; i < words.length; i++){

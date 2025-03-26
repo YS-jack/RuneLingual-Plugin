@@ -112,24 +112,21 @@ public class WidgetCapture {
                 ) {
                     String itemName = Colors.removeNonImgTags(widget.getText());
                     queryToPass.setItemName(itemName, textColor);
-            }
-            if (ids.getWidgetIdNpcName().contains(widgetId)) {
+            } else if (ids.getWidgetIdNpcName().contains(widgetId)) {
                 String npcName = Colors.removeNonImgTags(widget.getText());
                 queryToPass.setNpcName(npcName, textColor);
-            }
-            if (ids.getWidgetIdObjectName().contains(widgetId)) {
+            } else if (ids.getWidgetIdObjectName().contains(widgetId)) {
                 String objectName = Colors.removeNonImgTags(widget.getText());
                 queryToPass.setObjectName(objectName, textColor);
-            }
-            if (ids.getWidgetIdQuestName().contains(widgetId)) {
+            } else if (ids.getWidgetIdQuestName().contains(widgetId)) {
                 String questName = Colors.removeNonImgTags(widget.getText());
                 queryToPass.setQuestName(questName, textColor);
+            } else {
+                queryToPass.setColor(textColor);
             }
 
             // translate the widget text
             translateWidgetText(widget, queryToPass);
-
-            return;
         }
 
     }
@@ -196,7 +193,7 @@ public class WidgetCapture {
         int widgetId = widget.getId();
         String originalText = widget.getText();
         String textToTranslate = getEnglishColValFromWidget(widget);
-        String translatedText = null;
+        String translatedText;
         if (widgetsUtilRLingual.shouldPartiallyTranslate(widget)) {
             // for widgets like "Name: <playerName>" (found in accounts management tab), where only the part of the text should be translated
             // order:
@@ -276,7 +273,7 @@ public class WidgetCapture {
 
     private boolean isWidgetIdNot2Translate(Widget widget) {
         int widgetId = widget.getId();
-        boolean isFriendsListNames = ids.getFriendsTabPlayerNameTextId() == widgetId
+        boolean isFriendsListNames = ComponentID.FRIEND_LIST_NAMES_CONTAINER == widgetId
                     && widget.getXTextAlignment() == WidgetTextAlignment.LEFT;
         boolean isGimMemberNames = ids.getGimMemberNameId() == widgetId
                     && widget.getXTextAlignment() == WidgetTextAlignment.LEFT

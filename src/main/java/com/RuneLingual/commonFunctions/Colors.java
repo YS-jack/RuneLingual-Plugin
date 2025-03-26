@@ -200,12 +200,11 @@ public enum Colors {
 
     public static int countColorTagsAfterReformat(String wordAndColor) {//count number of color tags in a string
         wordAndColor = reformatColorWord(wordAndColor, Colors.white);
+        // remove <img=**> tags
+        wordAndColor = wordAndColor.replaceAll("<img=[0-9]*>", "");
         Pattern re = Pattern.compile("(?<=\\d)>|(?<=\\p{IsAlphabetic})>");
         String[] splitResult = re.split(wordAndColor);
-        if (splitResult.length == 0) {
-            return 0;
-        }
-        if (splitResult.length == 1 && splitResult[0].isEmpty()) {
+        if (splitResult.length <= 1) {
             return 0;
         }
         return re.split(wordAndColor).length - 1;

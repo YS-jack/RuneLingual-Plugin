@@ -118,7 +118,6 @@ public class Ids {
     private final int attackStyleHoverTextId = 38862892;
     private final int prayerTabHoverTextId = 35455015;
     private final int spellbookTabHoverTextId = 14287050;
-    private final int friendsTabPlayerNameTextId = ComponentID.FRIEND_LIST_NAMES_CONTAINER;
     private final int addFriendButtonId = 28114959;
     private final int removeFriendButtonId = 28114961;
     private final int skillsTabXpHoverTextId = 20971548;
