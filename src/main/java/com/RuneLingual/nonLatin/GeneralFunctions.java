@@ -66,7 +66,7 @@ public class GeneralFunctions {
                 if (hash == -99) {//if the char is not in the hashmap, append a question mark
                     imgTagStrings.append("?");
                     j += Character.isHighSurrogate(part.charAt(j)) ? 2 : 1;
-                    log.info("Char not found in hashmap: " + part.charAt(j));
+                    log.error("Char not found in hashmap: {}", part.charAt(j));
                 }
                 imgTagStrings.append("<img=");
                 imgTagStrings.append(chatIconManager.chatIconIndex(hash));

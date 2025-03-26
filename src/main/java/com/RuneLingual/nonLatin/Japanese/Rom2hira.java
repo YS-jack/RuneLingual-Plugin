@@ -38,8 +38,7 @@ public class Rom2hira {
                 }
             }
         } catch (IOException e) {
-            log.info("error creating hashmap for transform dict, for type : " + dirName);
-            e.printStackTrace();
+            log.error("error creating hashmap for transform dict, for type : {}", dirName, e);
         }
     }
 

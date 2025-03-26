@@ -96,7 +96,7 @@ public class SidePanel extends PluginPanel{
                    try {
                        Desktop.getDesktop().browse(new URI(url));
                    } catch (Exception ex) {
-                       ex.printStackTrace();
+                       log.error("Error opening link", ex);
                    }
                }
 

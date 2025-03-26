@@ -30,9 +30,8 @@ public class H2Manager {
         try {
             conn = DriverManager.getConnection(databaseUrl);
         } catch (Exception e) {
-            log.error("Error connecting to database: " + databaseUrl);
+            log.error("Error connecting to database: {}", databaseUrl, e);
             plugin.setTargetLanguage(LangCodeSelectableList.ENGLISH);
-            e.printStackTrace();
         }
         return conn;
     }
@@ -43,8 +42,7 @@ public class H2Manager {
                 plugin.getConn().close();
             }
         } catch (Exception e) {
-            log.error("Error closing database connection.");
-            e.printStackTrace();
+            log.error("Error closing database connection.", e);
         }
     }
 }

@@ -55,8 +55,7 @@ public class FileActions {
                 log.info("File already exists.");
             }
         } catch (IOException e) {
-            log.info("An error occurred.");
-            e.printStackTrace();
+            log.error("error creating file", e);
         }
     }
 
