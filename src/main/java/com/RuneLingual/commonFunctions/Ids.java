@@ -90,7 +90,7 @@ public class Ids {
 
     // dont translate at all
     private final Set<Integer> widgetIdNot2Translate = Set.of(
-            ComponentID.CHATBOX_INPUT,
+            ComponentID.CHATBOX_FRAME,
             widgetIdCharacterSummaryName,
             ComponentID.IGNORE_LIST_FULL_CONTAINER,
             widgetIdGimGroupName, //gim group name in group tab
@@ -165,12 +165,22 @@ public class Ids {
             houseOptionsHoverTextId, houseOptionsTextOnID, houseOptionsTextOffID
     );
 
-//    private final Set<Integer> widgetId2SetLineHeight = Set.of(
-//            46661634, // character summary tab's category texts
-//            35455018, // prayer tab's filter texts
-//            14287046, // spellbook tab filter texts
-//            addFriendButtonId, removeFriendButtonId // friends tab's add friend and remove friend button texts
-//    );
+    private final Set<Integer> widgetId2SetXTextAliLeft = Set.of(
+            10616841, // CHATBOX_TAB_GAME 's "Game" widget
+            10616845, // CHATBOX_TAB_PUBLIC 's "Public" widget
+            10616849, // CHATBOX_TAB_PRIVATE 's "Private" widget
+            10616853, // CHATBOX_TAB_CHANNEL 's "Channel" widget
+            10616857, // CHATBOX_TAB_CLAN 's "Clan" widget
+            10616861 // CHATBOX_TAB_TRADE 's "Trade" widget
+    );
+    private final Set<Integer> widgetId2SetXTextAliRight = Set.of(
+            10616842, // CHATBOX_TAB_GAME 's setting widget
+            10616846, // CHATBOX_TAB_PUBLIC 's setting widget
+            10616850, // CHATBOX_TAB_PRIVATE 's setting widget
+            10616854, // CHATBOX_TAB_CHANNEL 's setting widget
+            10616858, // CHATBOX_TAB_CLAN 's setting widget
+            10616862 // CHATBOX_TAB_TRADE 's setting widget
+    );
 
     // widget ids to change the width of, because some widget have room and also needs more
     // each value's meaning: Map<widgetId, Pair<newWidth, newHeight>>
@@ -185,7 +195,7 @@ public class Ids {
         // widget2ModDict.add(widgetId, error pixels, has Sibling Widget, fixed top, fixed bottom, fixed left, fixed right, top padding, bottom padding, left padding, right padding)
         widget2ModDict.add(attackStyleHoverTextId, 4, false, true, false, false, false, 1, 3, 2, 2); // spellbook tab's hover text
         widget2ModDict.add(skillsTabXpHoverTextId, 4, true, false, false, false, false, 3, 3, 3, 3); // skill tab's xp hover display
-        widget2ModDict.add(prayerTabHoverTextId, 4,false, true, false, true, false, 3, 3, 3, 3);
+        widget2ModDict.add(prayerTabHoverTextId, 4,false, true, false, false, false, 3, 3, 5, 0);
         widget2ModDict.add(spellbookTabHoverTextId, 4,true, false, false, true, true, 2, 2, 2, 2);
         widget2ModDict.add(settingsHoverTextId, 4, true, true, false, true, false, 2, 2, 2, 2);
         widget2ModDict.add(emotesHoverTextId, 4, true, true, false, true, false, 2, 2, 2, 2);
@@ -239,8 +249,6 @@ public class Ids {
 
         // add more partial translations here
     }
-
-
 
     public int getCombatOptionParentWidgetId() {
         Widget w = client.getWidget(ComponentID.COMBAT_LEVEL);

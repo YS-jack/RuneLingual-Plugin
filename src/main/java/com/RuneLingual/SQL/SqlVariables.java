@@ -32,6 +32,7 @@ public enum SqlVariables {
     subcategoryValue4Tab("genActions","sub_category"), // for general actions such as deposit all, sell-5, etc.
     subcategoryValue4GeneralUI("generalUI","sub_category"), // most if not all interfaces will have this subcategory value
     subcategoryValue4MainTabs("mainTabs","sub_category"), // for main tabs, such as combat options, skills, character summary, etc.
+    subCategoryValue4ChatButtons("chatButtons","sub_category"), // for chat buttons, such as report, trade, On, Off, Hide, etc.
 
 
     // possible source values

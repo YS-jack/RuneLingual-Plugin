@@ -62,9 +62,9 @@ public class WidgetCapture {
 
         // skip all chatbox widgets for now TODO: chatbox buttons should be translated
         int widgetGroup = WidgetUtil.componentToInterface(widgetId);
-        if (widgetGroup == InterfaceID.CHATBOX) {
-            return;
-        }
+//        if (widgetGroup == InterfaceID.CHATBOX && widget.getId() != ComponentID.CHATBOX_BUTTONS) {
+//            return;
+//        }
 
         modifySqlQuery4Widget(widget, sqlQuery);
 
@@ -78,9 +78,6 @@ public class WidgetCapture {
         for (Widget staticChild : widget.getStaticChildren()) {
             translateWidgetRecursive(staticChild, sqlQuery);
         }
-
-        // debug: if the widget is the target for dumping
-        ifIsDumpTarget_thenDump(widget, sqlQuery);
 
         // translate the widget text////////////////
         // dialogues are handled separately
@@ -131,9 +128,16 @@ public class WidgetCapture {
             } else {
                 queryToPass.setColor(textColor);
             }
-
+            // debug: if the widget is the target for dumping
+            ifIsDumpTarget_thenDump(widget, queryToPass);
             // translate the widget text
             translateWidgetText(widget, queryToPass);
+
+            if(ids.getWidgetId2SetXTextAliLeft().contains(widgetId)) {
+                widget.setXTextAlignment(WidgetTextAlignment.LEFT);
+            } else if (ids.getWidgetId2SetXTextAliRight().contains(widgetId)) {
+                widget.setXTextAlignment(WidgetTextAlignment.RIGHT);
+            }
         }
 
     }
@@ -143,6 +147,10 @@ public class WidgetCapture {
         int widgetId = widget.getId();
         if (widgetId == ids.getWidgetIdSkillGuide()) { //Id for parent of skill guide, or parent of element in list
             sqlQuery.setGeneralUI(SqlVariables.sourceValue4SkillGuideInterface.getValue());
+        }
+        if (widgetId == ComponentID.CHATBOX_BUTTONS) {
+            sqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
+            sqlQuery.setSubCategory(SqlVariables.subCategoryValue4ChatButtons.getValue());
         }
         /* example of using Sets:
         if (ids.getWidgetIdPlayerName().contains(widgetId)) {
@@ -210,7 +218,6 @@ public class WidgetCapture {
         } else if (!ids.getWidgetId2SplitTextAtBr().contains(widgetId)// for most cases
             && !ids.getWidgetId2KeepBr().contains(widgetId)) {
             translatedText = getTranslationFromQuery(sqlQuery, originalText, textToTranslate);
-
         } else if (ids.getWidgetId2SplitTextAtBr().contains(widgetId)){// for widgets that have <br> in the text and should be kept where they are, translate each line separately
             String[] textList = textToTranslate.split("<br>");
             String[] originalTextList = originalText.split("<br>");
@@ -355,32 +362,56 @@ public class WidgetCapture {
 //                (sqlQuery.getSource().equals(SqlVariables.sourceValue4FriendsTab.getValue())
 //        || sqlQuery.getSource().equals(SqlVariables.sourceValue4IgnoreTab.getValue())
 //        || sqlQuery.getSource().equals(SqlVariables.sourceValue4AccountManagementTab.getValue()))) {
-        if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4MusicTab.getValue())){
+        //if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4MusicTab.getValue())){
+        if (isChildWidgetOf(widget, ComponentID.CHATBOX_BUTTONS)){
             if (widget.getText() == null || !shouldTranslateWidget(widget)) {
                 return;
             }
-            String fileName = "MusicTab.txt";
+            String fileName = "chatButtons.txt";
             String textToDump = getEnglishColValFromWidget(widget);
 
             // for partial translation
             if (widgetsUtilRLingual.shouldPartiallyTranslateWidget(widget)) {
                 textToDump = widgetsUtilRLingual.getEnColVal4PartialTranslation(widget);
             }
-            //pastTranslationResults.add(widget.getText());
+            String category = sqlQuery.getCategory();
+            String subCategory = sqlQuery.getSubCategory();
+            String source = sqlQuery.getSource();
+            if (category == null) {
+                category = "";
+            }
+            if (subCategory == null) {
+                subCategory = "";
+            }
+            if (source == null) {
+                source = "";
+            }
+
             if (ids.getWidgetId2SplitTextAtBr().contains(widget.getId())) {
                 String[] textList = textToDump.split("<br>");
                 for (String text : textList) {
-                    appendIfNotExistToFile(text + "\t" + sqlQuery.getCategory() +
-                            "\t" + sqlQuery.getSubCategory() +
-                            "\t" + sqlQuery.getSource(), fileName);
+                    appendIfNotExistToFile(text + "\t" + category +
+                            "\t" + subCategory +
+                            "\t" + source, fileName);
                 }
             } else {
-                appendIfNotExistToFile(textToDump + "\t" + sqlQuery.getCategory() +
-                        "\t" + sqlQuery.getSubCategory() +
-                        "\t" + sqlQuery.getSource(), fileName);
+                appendIfNotExistToFile(textToDump + "\t" + category +
+                        "\t" + subCategory +
+                        "\t" + source, fileName);
             }
         }
 
+    }
+
+    private boolean isChildWidgetOf(Widget widget, int parentWidgetId) {
+        Widget parent = widget.getParent();
+        while (parent != null) {
+            if (parent.getId() == parentWidgetId) {
+                return true;
+            }
+            parent = parent.getParent();
+        }
+        return false;
     }
 }
 
