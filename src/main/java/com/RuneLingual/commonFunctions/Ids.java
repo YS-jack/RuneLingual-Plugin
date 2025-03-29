@@ -193,7 +193,7 @@ public class Ids {
     // sibling widgets = other widgets under the same parent, which contains text
     private void initWidget2ModDict() {
         // widget2ModDict.add(widgetId, error pixels, has Sibling Widget, fixed top, fixed bottom, fixed left, fixed right, top padding, bottom padding, left padding, right padding)
-        widget2ModDict.add(attackStyleHoverTextId, 4, false, true, false, false, false, 1, 3, 2, 2); // spellbook tab's hover text
+        widget2ModDict.add(attackStyleHoverTextId, 4, false, true, false, false, false, 4, 3, 2, 10); // spellbook tab's hover text
         widget2ModDict.add(skillsTabXpHoverTextId, 4, true, false, false, false, false, 3, 3, 3, 3); // skill tab's xp hover display
         widget2ModDict.add(prayerTabHoverTextId, 4,false, true, false, false, false, 3, 3, 5, 0);
         widget2ModDict.add(spellbookTabHoverTextId, 4,true, false, false, true, true, 2, 2, 2, 2);
