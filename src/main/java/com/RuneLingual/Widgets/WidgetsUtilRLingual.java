@@ -4,6 +4,7 @@ import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.Ids;
+import com.RuneLingual.commonFunctions.Transformer;
 import com.RuneLingual.nonLatin.GeneralFunctions;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
@@ -201,14 +202,23 @@ public class WidgetsUtilRLingual
 		}
 	}
 
-	public boolean shouldPartiallyTranslate(Widget widget) {
+	public boolean shouldPartiallyTranslateWidget(Widget widget) {
+		String enColVal = Transformer.getEnglishColValFromText(widget.getText());
 		return ids.getPartialTranslationManager().hasId(widget.getId())
-				&& ids.getPartialTranslationManager().stringMatchesEnColVal(widget.getText(), widget.getId());
+				&& ids.getPartialTranslationManager().stringMatchesEnColVal(enColVal, widget.getId());
+	}
+
+	public boolean shouldPartiallyTranslateText(String string) {
+		return ids.getPartialTranslationManager().stringMatchesEnColVal(string);
 	}
 
 	public String getEnColVal4PartialTranslation(Widget widget) {
 		int widgetId = widget.getId();
 		return ids.getPartialTranslationManager().getEnColVal(widgetId);
+	}
+
+	public String getMatchingEnColVal4PartialTranslation(String string) {
+		return ids.getPartialTranslationManager().getMatchingEnColVal(string);
 	}
 
 	// set height of line for specified widgets, because they can be too small

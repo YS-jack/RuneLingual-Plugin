@@ -187,9 +187,11 @@ public class Ids {
          * use PLAYER_NAME for any text that shouldn't be translated, ITEM_NAME for item names, etc.
          *
         partialTranslationManager.addPartialTranslation(
-                widgetId,
+                widgetId, (give any number if its not for widget)
                 List.of("fixed text part 1", "fixed text part 2", "fixed text part 3"),
                 List.of(placeholder_type1, placeholder_type2)
+                * );
+         (text = fixed text part 1 placeholder_type1 fixed text part 2 placeholder_type2 fixed text part 3)
          */
         partialTranslationManager.addPartialTranslation(
                 playerNameInAccManTab,
@@ -198,12 +200,22 @@ public class Ids {
         );
         partialTranslationManager.addPartialTranslation(
                 widgetIdPvPArenaNan,
-                List.of("You have currently loaded <col=ffb83f>", "</col>, which is not a PvP Arena group."),
+                List.of("You have currently loaded <colNum0>", "</col>, which is not a PvP Arena group."),
                 List.of(PLAYER_NAME)// clan name goes here
         );
         partialTranslationManager.addPartialTranslation(
                 widgetIdInOtherActivityChannel,
-                List.of("You are currently talking in the <col=ffffff>","</col> channel."),
+                List.of("You are currently talking in the <colNum0>","</col> channel."),
+                List.of(ANY_TRANSLATED)// activity name goes here
+        );
+        partialTranslationManager.addPartialTranslation(
+                0,
+                List.of("Join <colNum0>","</col> channel"),
+                List.of(ANY_TRANSLATED)// activity name goes here
+        );
+        partialTranslationManager.addPartialTranslation(
+                0,
+                List.of("Teleport to <colNum0>","</col>"),
                 List.of(ANY_TRANSLATED)// activity name goes here
         );
         // to add placeholder at the beginning of the text, add an empty string to the fixedTextParts

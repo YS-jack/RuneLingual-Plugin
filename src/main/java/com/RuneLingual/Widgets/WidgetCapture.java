@@ -194,13 +194,12 @@ public class WidgetCapture {
         String originalText = widget.getText();
         String textToTranslate = getEnglishColValFromWidget(widget);
         String translatedText;
-        if (widgetsUtilRLingual.shouldPartiallyTranslate(widget)) {
+        if (widgetsUtilRLingual.shouldPartiallyTranslateWidget(widget)) {
             // for widgets like "Name: <playerName>" (found in accounts management tab), where only the part of the text should be translated
             // order:
             // textToTranslate = "Name: <playerName>" -> translatedText = "名前: <playerName>" -> translatedText = "名前: Durial321"
-            //todo: complete this
             String translationWIthPlaceHolder = getTranslationFromQuery(sqlQuery, originalText, textToTranslate);
-            translatedText = ids.getPartialTranslationManager().translate(widget, translationWIthPlaceHolder, originalText, sqlQuery.getColor());
+            translatedText = ids.getPartialTranslationManager().translateWidget(widget, translationWIthPlaceHolder, originalText, sqlQuery.getColor());
         } else if (!ids.getWidgetId2SplitTextAtBr().contains(widgetId)// for most cases
             && !ids.getWidgetId2KeepBr().contains(widgetId)) {
             translatedText = getTranslationFromQuery(sqlQuery, originalText, textToTranslate);
@@ -236,7 +235,7 @@ public class WidgetCapture {
         }
         String originalWithoutBr = removeBrAndTags(originalText);
         String translationWithoutBr = removeBrAndTags(translatedText);
-        if(Objects.equals(translatedText, textToTranslate) // if the translation is the same as the original
+        if(Objects.equals(translatedText, originalText) // if the translation is the same as the original
                 || originalWithoutBr.equals(translationWithoutBr)){ // if the translation is the same as the original without <br>
             return;
         }
@@ -271,7 +270,7 @@ public class WidgetCapture {
                 && !isWidgetIdNot2Translate(widget);
     }
 
-    private boolean isWidgetIdNot2Translate(Widget widget) {
+    public boolean isWidgetIdNot2Translate(Widget widget) {
         int widgetId = widget.getId();
         boolean isFriendsListNames = ComponentID.FRIEND_LIST_NAMES_CONTAINER == widgetId
                     && widget.getXTextAlignment() == WidgetTextAlignment.LEFT;
@@ -319,13 +318,13 @@ public class WidgetCapture {
       * used when creating the dump file for manual translation
       * and when searching for English added manually originating from the dump file
      */
-    private String getEnglishColValFromWidget(Widget widget) {
+    public String getEnglishColValFromWidget(Widget widget) {
         String text = widget.getText();
         if (text == null) {
             return "";
         }
         // special case: if the text should only be partially translated
-        if (widgetsUtilRLingual.shouldPartiallyTranslate(widget)) {
+        if (widgetsUtilRLingual.shouldPartiallyTranslateWidget(widget)) {
             return widgetsUtilRLingual.getEnColVal4PartialTranslation(widget);
         }
 
@@ -357,19 +356,19 @@ public class WidgetCapture {
             String textToDump = getEnglishColValFromWidget(widget);
 
             // for partial translation
-            if (widgetsUtilRLingual.shouldPartiallyTranslate(widget)) {
+            if (widgetsUtilRLingual.shouldPartiallyTranslateWidget(widget)) {
                 textToDump = widgetsUtilRLingual.getEnColVal4PartialTranslation(widget);
             }
             //pastTranslationResults.add(widget.getText());
             if (ids.getWidgetId2SplitTextAtBr().contains(widget.getId())) {
                 String[] textList = textToDump.split("<br>");
                 for (String text : textList) {
-                    appendIfNotExistToFile(text + "\t\t" + sqlQuery.getCategory() +
+                    appendIfNotExistToFile(text + "\t" + sqlQuery.getCategory() +
                             "\t" + sqlQuery.getSubCategory() +
                             "\t" + sqlQuery.getSource(), fileName);
                 }
             } else {
-                appendIfNotExistToFile(textToDump + "\t\t" + sqlQuery.getCategory() +
+                appendIfNotExistToFile(textToDump + "\t" + sqlQuery.getCategory() +
                         "\t" + sqlQuery.getSubCategory() +
                         "\t" + sqlQuery.getSource(), fileName);
             }

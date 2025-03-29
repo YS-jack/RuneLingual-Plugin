@@ -215,7 +215,7 @@ public enum Colors {
         This function takes a string with color tags and returns a list of color names
         eg: <col=ff0000>Nex<col=ffffff> (level-1) -> ["red", "white"]
          */
-
+        strWithColor = strWithColor.replaceAll("<img=.+?>", ""); // remove <img=**> tags
         // if there are no color tags, return defaultColor
         if(countColorTagsAfterReformat(strWithColor) == 0){
             return new Colors[]{defaultColor};
@@ -293,7 +293,11 @@ public enum Colors {
         return str.replaceAll("<col[=a-zA-Z0-9]*?>|</col>|<img=[0-9]*>|<br>|<asis>|</asis>", "");
     }
 
-    public static String enumerateColorsInColWord(String colWord) {
+    /*
+     * returns: text with color tags that are enumerated instead of actual colors
+     * eg: <col=ff0000>Nex<col=ffffff> (level-1) -> <colNum0>Nex<colNum1> (level-1)
+     */
+    public static String getColorPlaceholdedColWord(String colWord) {
         Pattern re = Pattern.compile("<col[=a-zA-Z0-9]*?>");
         String[] parts = re.split(colWord);
         StringBuilder colorString = new StringBuilder();
@@ -306,6 +310,10 @@ public enum Colors {
         return colorString.toString();
     }
 
+    /*
+     * returns: list of strings found in the color tags
+     * eg: <col=ff0000>Nex<col=ffffff> (level-1) -> ["ff0000", "ffffff"]
+     */
     public static List<String> getColorTagsAsIs(String strWithColor) {
         // supports abnormal color tags such as <colHIGHLIGHT>, as long as its only numbers and alphabets, no symbols
         List<String> matches = new ArrayList<>();

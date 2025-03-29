@@ -2,10 +2,12 @@ package com.RuneLingual.commonFunctions;
 
 import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
+import com.RuneLingual.debug.OutputToFile;
 import com.RuneLingual.nonLatin.GeneralFunctions;
 import com.RuneLingual.SQL.SqlVariables;
 import com.RuneLingual.SQL.SqlQuery;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.widgets.Widget;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -16,6 +18,10 @@ import static com.RuneLingual.Widgets.PartialTranslationManager.protectPlacehold
 public class Transformer {
     @Inject
     private RuneLingualPlugin plugin;
+    private boolean outputUnknownToFile = true;
+    @Inject
+    private OutputToFile outputToFile;
+
 
     public enum TransformOption {
         AS_IS,
@@ -70,8 +76,9 @@ public class Transformer {
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
                 log.info("(engWithColor) No translation found for " + text + " ");
-                //log.info("query = " + sqlQuery.getSearchQuery());
+                log.info("query = " + sqlQuery.getSearchQuery());
                 plugin.getFailedTranslations().add(sqlQuery);
+                outputUnknown(sqlQuery);
                 return textAddColor(text, sqlQuery.getColor());
                 //translatedText = text;
             } else {
@@ -79,6 +86,7 @@ public class Transformer {
                     //translatedText = text;
                     log.info("{} has not been translated yet (engWithColor)", text);
                     plugin.getFailedTranslations().add(sqlQuery);
+                    outputUnknown(sqlQuery);
                     return textAddColor(text, sqlQuery.getColor());
                 } else { // text has been translated
                     translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
@@ -136,13 +144,14 @@ public class Transformer {
             sqlQuery.setEnglish(textWithPlaceholders);
             // if translating failed for this query before, return the original text with color
             if (plugin.getFailedTranslations().contains(sqlQuery)) {
-                return textWithPlaceholders;
+                return originalText;
             }
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, false);
             if(result.length == 0){
                 log.info("(withPlaceholders func) the following placeholder text doesn't exist in the English column :{}", textWithPlaceholders);
                 log.info("   query = {}", sqlQuery.getSearchQuery());
+                outputUnknown(sqlQuery);
                 // translatedText = text;
                 plugin.getFailedTranslations().add(sqlQuery);
                 return null;
@@ -150,6 +159,7 @@ public class Transformer {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
                     log.info("{} has not been translated yet (withPlaceholders func)", textWithPlaceholders);
+                    outputUnknown(sqlQuery);
                     plugin.getFailedTranslations().add(sqlQuery);
                     return null;
 
@@ -217,6 +227,7 @@ public class Transformer {
                 log.info("   query = {}", sqlQuery.getSearchQuery());
                 // translatedText = text;
                 plugin.getFailedTranslations().add(sqlQuery);
+                outputUnknown(sqlQuery);
                 return textAddColor(text, colors);
             } else {
                 for (String s : result) {
@@ -230,6 +241,7 @@ public class Transformer {
                     log.info("{} has not been translated yet (transform func)", text);
                     log.info("   query = {}", sqlQuery.getSearchQuery());
                     plugin.getFailedTranslations().add(sqlQuery);
+                    outputUnknown(sqlQuery);
                     return textAddColor(text, colors);
                 }
             }
@@ -338,6 +350,26 @@ public class Transformer {
             return Colors.surroundWithColorTag(text, color);
         }
         return text;
+    }
+
+    public static String getEnglishColValFromText(String str) {
+        if (str == null) {
+            return "";
+        }
+
+        str = SqlQuery.replaceSpecialSpaces(str);
+        str = Colors.getEnumeratedColorWord(str);
+        str = SqlQuery.replaceNumbersWithPlaceholders(str);
+        str = str.replace(" <br>", " ");
+        str = str.replace("<br> ", " ");
+        str = str.replace("<br>", " ");
+        return str;
+    }
+
+    private void outputUnknown(SqlQuery query){
+        if(outputUnknownToFile){
+            outputToFile.dumpGeneral(query.getEnglish(), query.getCategory(), query.getSubCategory(), query.getSource());
+        }
     }
 
 }

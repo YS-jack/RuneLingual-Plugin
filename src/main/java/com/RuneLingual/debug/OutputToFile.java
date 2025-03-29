@@ -19,7 +19,7 @@ public class OutputToFile {
         if (Colors.countColorTagsAfterReformat(target) <= 1){
             target = Colors.removeNonImgTags(target);
         }
-        target = Colors.enumerateColorsInColWord(target);
+        target = Colors.getColorPlaceholdedColWord(target);
         appendToFile(target + "\t" + SqlVariables.categoryValue4Name.getValue() + "\t" + subCategory + "\t" + source, "menuTarget_debug.txt");
     }
 
@@ -27,8 +27,24 @@ public class OutputToFile {
         if (Colors.countColorTagsAfterReformat(option) <= 1){
             option = Colors.removeNonImgTags(option);
         }
-        option = Colors.enumerateColorsInColWord(option);
+        option = Colors.getColorPlaceholdedColWord(option);
         appendToFile(option + "\t" + SqlVariables.categoryValue4Actions.getValue() + "\t" + subCategory + "\t" + source, "menuOption_debug.txt");
+    }
+
+    public void dumpGeneral(String english, String category, String subCategory, String source){
+        if (english == null || english.isEmpty()){
+            return;
+        }
+        if (category == null){
+            category = "";
+        }
+        if (subCategory == null){
+            subCategory = "";
+        }
+        if (source == null){
+            source = "";
+        }
+        appendToFile(english + "\t" + category + "\t" + subCategory + "\t" + source, "dumpGeneral_debug.txt");
     }
 
     public static void appendToFile(String str, String fileName){

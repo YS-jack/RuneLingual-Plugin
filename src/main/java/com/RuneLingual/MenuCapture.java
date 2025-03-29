@@ -1,5 +1,6 @@
 package com.RuneLingual;
 
+import com.RuneLingual.Widgets.WidgetsUtilRLingual;
 import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.Transformer;
 import com.RuneLingual.commonFunctions.Transformer.TransformOption;
@@ -20,9 +21,7 @@ import net.runelite.api.events.MenuOpened;
 import net.runelite.api.widgets.Widget;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -46,11 +45,15 @@ public class MenuCapture
 	private Set<Pair<MenuEntry, PendingTranslationType>> pendingApiTranslation = new HashSet<>();
 
 	private TransformOption menuOptionTransformOption = TransformOption.TRANSLATE_LOCAL;
+	@Inject
+	private OutputToFile outputToFile;
 
 	@Inject
 	public MenuCapture(RuneLingualPlugin plugin) {
 		this.plugin = plugin;
 	}
+	@Inject
+	private WidgetsUtilRLingual widgetsUtilRLingual;
 
 	private final Colors optionColor = Colors.white;
 
@@ -132,8 +135,8 @@ public class MenuCapture
 //			//printMenuEntry(currentMenu);
 //			if(!isNpcMenu(menuType) && !isObjectMenu(menuType)
 //					&& !isItemOnGround(menuType) && !isItemInWidget(currentMenu) && !isPlayerMenu(menuType)){
-//				//outputToFile.menuTarget(menuTarget,SqlVariables.menuInSubCategory.getValue(), "");
-//				//outputToFile.menuOption(menuOption,SqlVariables.menuInSubCategory.getValue(), "");
+//				outputToFile.menuTarget(menuTarget,SqlVariables.menuInSubCategory.getValue(), "");
+//				outputToFile.menuOption(menuOption,SqlVariables.menuInSubCategory.getValue(), "");
 //			}
 //		}
 
@@ -337,12 +340,31 @@ public class MenuCapture
 		} else {
 			source = getSourceNameFromMenu(currentMenu);
 		}
-
 		SqlQuery actionSqlQuery = new SqlQuery(this.plugin);
 		actionSqlQuery.setGenMenuAcitons(menuOption, optionColor);
 		actionSqlQuery.setSource(source);
 
-		newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
+		String optionToTranslate = Transformer.getEnglishColValFromText(menuOption);
+		actionSqlQuery.setEnglish(optionToTranslate);
+
+		if (!widgetsUtilRLingual.shouldPartiallyTranslateText(optionToTranslate)) {
+			newOption = transformer.transformWithPlaceholders(menuOption, optionToTranslate, menuOptionTransformOption, actionSqlQuery);
+		} else {
+			optionToTranslate = widgetsUtilRLingual.getMatchingEnColVal4PartialTranslation(optionToTranslate);
+			if (optionToTranslate == null) {
+				newOption = menuOption;
+			} else {
+				actionSqlQuery.setEnglish(optionToTranslate);
+				newOption = transformer.transformWithPlaceholders(menuOption, optionToTranslate, menuOptionTransformOption, actionSqlQuery);
+				if (newOption != null) {
+					newOption = plugin.getIds().getPartialTranslationManager().translateString(optionToTranslate, newOption, menuOption, optionColor);
+				}
+			}
+		}
+		if (newOption == null){ // if no translation was found, then return as is
+			newOption = menuOption;
+		}
+		// newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
 
 		// if it didnt find a new option (newOption = menuOption), search for any match
 		if(Colors.removeNonImgTags(newOption).equals(menuOption)){
@@ -367,15 +389,29 @@ public class MenuCapture
 				menuTarget = translateMusicName(targetWordArray[0]);
 				return new String[]{menuTarget, newOption};
 			}
+			// if the menu target is a widget not to translate (eg. player name) return as is
+			Widget widget = currentMenu.getWidget();
+			if (widget != null && this.plugin.getWidgetCapture().isWidgetIdNot2Translate(widget)) {
+				return new String[]{menuTarget, newOption};
+			}
 			SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
 			targetSqlQuery.setEnglish(targetWordArray[0]);
 			targetSqlQuery.setCategory(SqlVariables.categoryValue4Name.getValue());
 			targetSqlQuery.setSubCategory(SqlVariables.subcategoryValue4Menu.getValue());
 			targetSqlQuery.setSource(source);
+			targetSqlQuery.setColor(Colors.orange);
 
 			TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
 			Colors[] targetColorArray = Colors.getColorArray(menuTarget, Colors.orange); //default color is not the same as initial definition
-			newTarget = transformer.transform(targetWordArray, targetColorArray, generalMenuTransformOption, targetSqlQuery, false);
+			if(targetColorArray.length <= 1){
+				newTarget = transformer.transform(targetWordArray, targetColorArray, generalMenuTransformOption, targetSqlQuery, false);
+			} else {
+				String targetToTranslate = Transformer.getEnglishColValFromText(menuTarget);
+				newTarget = transformer.transformWithPlaceholders(menuTarget, targetToTranslate, generalMenuTransformOption, targetSqlQuery);
+				if (newTarget == null) { // if no translation was found, then return as is
+					newTarget = menuTarget;
+				}
+			}
 		}
 		return new String[]{newTarget, newOption};
 	}
@@ -413,9 +449,13 @@ public class MenuCapture
 		TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
 		if(generalMenuTransformOption.equals(TransformOption.TRANSLATE_LOCAL)) {
 			// music name can have placeholder values for numbers such as arabian <Num0> for "arabian 2", "arabian 3"
-			String textToTranslate = SqlQuery.replaceNumbersWithPlaceholders(musicName);
+			String textToTranslate = Transformer.getEnglishColValFromText(musicName);
 			targetSqlQuery.setEnglish(textToTranslate);
-			return transformer.transformWithPlaceholders(musicName, textToTranslate, generalMenuTransformOption, targetSqlQuery);
+			String newMusic = transformer.transformWithPlaceholders(musicName, textToTranslate, generalMenuTransformOption, targetSqlQuery);
+			if (newMusic == null){
+				newMusic = musicName;
+			}
+			return newMusic;
 		}
 		return transformer.transform(musicName, Colors.orange, generalMenuTransformOption, targetSqlQuery, false);
 
@@ -768,5 +808,12 @@ public class MenuCapture
 		}
 		return false;
 	}
+
+//	private void outputToDump(MenuEntry menu, SqlQuery query){
+//		String menuTarget = menu.getTarget();
+//		String menuOption = menu.getOption();
+//		outputToFile.dumpGeneral(menuTarget, query.getCategory(), query.getSubCategory(), query.getSource());
+//		outputToFile.dumpGeneral(menuOption, query.getCategory(), query.getSubCategory(), query.getSource());
+//	}
 
 }

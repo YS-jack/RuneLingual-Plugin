@@ -82,7 +82,7 @@ public class GeneralFunctions {
     public static Map<String, String> getPlaceholder2Content(String originalText, String placeholderText) {
         /*
         String originalText = "slay blue dragons in Taverley";
-        String enColVal = "slay <monster> in <location>";
+        String placeholderText = "slay <!monster> in <!location>";
         returns: {"monster": "blue dragons", "location": "Taverley"}
          */
         Map<String, String> result = new HashMap<>();
