@@ -70,6 +70,7 @@ public class Ids {
     private final int widgetIdClockGIM = 47644681;
     private final int widgetIdClockNonGIM = 46333960;
     private final int widgetIdMusicCurrent = 15663113;
+    private final int settingsSearchBarId = 8781833;
 
     //general interface
     private final int widgetIdSkillGuide = 14024705;
@@ -94,8 +95,9 @@ public class Ids {
             ComponentID.IGNORE_LIST_FULL_CONTAINER,
             widgetIdGimGroupName, //gim group name in group tab
             widgetIdClockGIM, widgetIdClockNonGIM,
-            ComponentID.MUSIC_SCROLL_CONTAINER // if music is not ignored here, having the music tab opened will drop fps
+            ComponentID.MUSIC_SCROLL_CONTAINER, // if music is not ignored here, having the music tab opened will drop fps
             //widgetIdMusicCurrent // may need to be ignored if clue solver reads this widget's value
+            settingsSearchBarId
     );
 
     private final Set<Integer> widgetIdItemName = Set.of(
@@ -127,6 +129,12 @@ public class Ids {
     private final int groupingGroupMemberNameId = 4980752;
     private final int settingsHoverTextId = 7602219;
     private final int emotesHoverTextId = 14155781;
+    private final int worldSwitcherHoverTextId = 4522010;
+    private final int worldSwitcherWorldActivityId = 4522003;
+    private final int houseOptionsHoverTextId = 24248346; // house options, from the settings tab, click house icon
+    private final int houseOptionsTextOnID = 24248322; // in house options, the "On" text (can get <br> tag in some languages)
+    private final int houseOptionsTextOffID = 24248323; // in house options, the "Off" text (can get <br> tag in some languages)
+
 
     // for English transcript to be split at <br> tags and added to the transcript
     // will reduce the number of translations needed
@@ -152,7 +160,9 @@ public class Ids {
             spellbookTabHoverTextId,
             addFriendButtonId, removeFriendButtonId,
             settingsHoverTextId,
-            emotesHoverTextId
+            emotesHoverTextId,
+            worldSwitcherHoverTextId, worldSwitcherWorldActivityId,
+            houseOptionsHoverTextId, houseOptionsTextOnID, houseOptionsTextOffID
     );
 
 //    private final Set<Integer> widgetId2SetLineHeight = Set.of(
@@ -179,6 +189,8 @@ public class Ids {
         widget2ModDict.add(spellbookTabHoverTextId, 4,true, false, false, true, true, 2, 2, 2, 2);
         widget2ModDict.add(settingsHoverTextId, 4, true, true, false, true, false, 2, 2, 2, 2);
         widget2ModDict.add(emotesHoverTextId, 4, true, true, false, true, false, 2, 2, 2, 2);
+        widget2ModDict.add(worldSwitcherHoverTextId, 4, true, true, false, true, false, 2, 2, 2, 0);
+        widget2ModDict.add(houseOptionsHoverTextId, 4, true, true, false, true, false, 5, 0, 2, 0);
     }
 
     private void initPartialTranslations() {
