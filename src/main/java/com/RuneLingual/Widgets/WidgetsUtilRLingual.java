@@ -66,10 +66,6 @@ public class WidgetsUtilRLingual
 
 	public void setWidgetText_ApiTranslation(Widget widget, String newText, Colors color){
 		final String newText_withoutBrAndTags = removeBrAndTags(newText);
-//		if(stringTranslatingInThread.contains(newText)) // skip if already translating with api
-//			return;
-//		stringTranslatingInThread.add(newText);
-
 		String translatedText = plugin.getDeepl().translate(newText_withoutBrAndTags, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
 		if(translatedText.equals(newText_withoutBrAndTags)) { // if the translation is the same as the original text, don't set the text
 			return;
@@ -80,7 +76,7 @@ public class WidgetsUtilRLingual
 		}
 		setWidgetText_NiceBr(widget, translatedText);
 		stringTranslatingInThread.remove(newText);
-
+		widget.setLineHeight(plugin.getConfig().getSelectedLanguage().getCharHeight());
 	}
 
 	private void setWidgetText_NiceBr_CharImages(Widget widget, String newText) { // todo: set to show overlay if the mouse is hovering and the widget is too small for the text to display

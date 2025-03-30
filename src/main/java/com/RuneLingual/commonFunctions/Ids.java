@@ -90,7 +90,8 @@ public class Ids {
 
     // dont translate at all
     private final Set<Integer> widgetIdNot2Translate = Set.of(
-            ComponentID.CHATBOX_FRAME,
+            ComponentID.CHATBOX_TRANSPARENT_BACKGROUND_LINES,
+            10617391,//some sort of background for chatbox
             widgetIdCharacterSummaryName,
             ComponentID.IGNORE_LIST_FULL_CONTAINER,
             widgetIdGimGroupName, //gim group name in group tab
