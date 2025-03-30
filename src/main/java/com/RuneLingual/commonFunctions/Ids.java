@@ -192,15 +192,14 @@ public class Ids {
     // ids of widgets to resize to match the text inside it, mostly for hover displays like prayer's hover descriptions
     // sibling widgets = other widgets under the same parent, which contains text
     private void initWidget2ModDict() {
-        // widget2ModDict.add(widgetId, error pixels, has Sibling Widget, fixed top, fixed bottom, fixed left, fixed right, top padding, bottom padding, left padding, right padding)
-        widget2ModDict.add(attackStyleHoverTextId, 4, false, true, false, false, false, 4, 3, 2, 10); // spellbook tab's hover text
+        widget2ModDict.add(attackStyleHoverTextId, 4, false, true, false, false, false, 2, 3, 2, 2);
         widget2ModDict.add(skillsTabXpHoverTextId, 4, true, false, false, false, false, 3, 3, 3, 3); // skill tab's xp hover display
-        widget2ModDict.add(prayerTabHoverTextId, 4,false, true, false, false, false, 3, 3, 5, 0);
+        widget2ModDict.add(prayerTabHoverTextId, 4,false, true, false, false, false, 3, 3, 2, 0);
         widget2ModDict.add(spellbookTabHoverTextId, 4,true, false, false, true, true, 2, 2, 2, 2);
-        widget2ModDict.add(settingsHoverTextId, 4, true, true, false, true, false, 2, 2, 2, 2);
-        widget2ModDict.add(emotesHoverTextId, 4, true, true, false, true, false, 2, 2, 2, 2);
-        widget2ModDict.add(worldSwitcherHoverTextId, 4, true, true, false, true, false, 2, 2, 2, 0);
-        widget2ModDict.add(houseOptionsHoverTextId, 4, true, true, false, true, false, 5, 0, 2, 0);
+        widget2ModDict.add(settingsHoverTextId, 4, false, true, false, false, false, 2, 2, 2, 2);
+        widget2ModDict.add(emotesHoverTextId, 4, false, true, false, false, false, 2, 2, 2, 2);
+        widget2ModDict.add(worldSwitcherHoverTextId, 4, false, false, false, false, false, 0, 2, 0, 2);
+        widget2ModDict.add(houseOptionsHoverTextId, 4, false, true, false, false, false, 2, 2, 2, 0);
     }
 
     private void initPartialTranslations() {

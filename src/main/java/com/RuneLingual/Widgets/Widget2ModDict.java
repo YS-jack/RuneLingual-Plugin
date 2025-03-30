@@ -145,7 +145,6 @@ public class Widget2ModDict {
             // set new size and position for parent and widget
             if (dirNotFixed == notFixedDir.HORIZONTAL) {
                 setWidgetWidthAbsolute(widget, newSize);
-
                 setWidgetWidthAbsolute(parentWidget, newParentSize);
             } else {
                 setWidgetHeightAbsolute(widget, newSize);
@@ -159,29 +158,29 @@ public class Widget2ModDict {
                     if (newParentPos < 0) {
                         newParentPos = 0;
                     }
-                    setWidgetRelativeXPos(parentWidget, newParentPos);
-                    setWidgetRelativeXPos(widget, originalPos);
+                    setWidgetRelativeXPos(parentWidget, newParentPos, 0);
+                    setWidgetRelativeXPos(widget, originalPos, widget2Mod.leftPadding);
                 } else if (widget2Mod.fixedLeft) {
-                    setWidgetRelativeXPos(parentWidget, originalParentPosition);
-                    setWidgetRelativeXPos(widget, originalPos);
+                    setWidgetRelativeXPos(parentWidget, originalParentPosition, 0);
+                    setWidgetRelativeXPos(widget, originalPos, widget2Mod.leftPadding);
                 } else { // if (widget2Mod.fixedRight)
                     int newParentPos = originalParentPosition - sizeDiff;
                     if (newParentPos < 0) {
                         newParentPos = 0;
                     }
-                    setWidgetRelativeXPos(parentWidget, newParentPos);
-                    setWidgetRelativeXPos(widget, originalPos);
+                    setWidgetRelativeXPos(parentWidget, newParentPos, 0);
+                    setWidgetRelativeXPos(widget, originalPos, widget2Mod.leftPadding);
                 }
             } else {
                 if (widget2Mod.fixedTop && widget2Mod.fixedBottom) {
-                    setWidgetRelativeYPos(parentWidget, originalParentPosition - sizeDiff / 2);
-                    setWidgetRelativeYPos(widget, originalPos);
+                    setWidgetRelativeYPos(parentWidget, originalParentPosition - sizeDiff / 2, 0);
+                    setWidgetRelativeYPos(widget, originalPos, widget2Mod.topPadding);
                 } else if (widget2Mod.fixedTop) {
-                    setWidgetRelativeYPos(parentWidget, originalParentPosition);
-                    setWidgetRelativeYPos(widget, originalPos);
+                    setWidgetRelativeYPos(parentWidget, originalParentPosition, 0);
+                    setWidgetRelativeYPos(widget, originalPos, widget2Mod.topPadding);
                 } else { // if (widget2Mod.fixedBottom)
-                    setWidgetRelativeYPos(parentWidget, originalParentPosition - sizeDiff);
-                    setWidgetRelativeYPos(widget, originalPos );
+                    setWidgetRelativeYPos(parentWidget, originalParentPosition - sizeDiff, 0);
+                    setWidgetRelativeYPos(widget, originalPos, widget2Mod.topPadding);
                 }
             }
 
@@ -198,11 +197,11 @@ public class Widget2ModDict {
 
                         // set new position for sibling
                         if (widget2Mod.fixedLeft && widget2Mod.fixedRight) {
-                            setWidgetRelativeXPos(sibling, originalSiblingPosition);
+                            setWidgetRelativeXPos(sibling, originalSiblingPosition, 0);
                         } else if (widget2Mod.fixedLeft) {
-                            setWidgetRelativeXPos(sibling, originalSiblingPosition);
+                            setWidgetRelativeXPos(sibling, originalSiblingPosition, 0);
                         } else { // if (widget2Mod.fixedRight)
-                            setWidgetRelativeXPos(sibling, originalSiblingPosition);
+                            setWidgetRelativeXPos(sibling, originalSiblingPosition,0);
                         }
                     } else {
                         // set new height for sibling
@@ -212,11 +211,11 @@ public class Widget2ModDict {
 
                         // set new position for sibling
                         if (widget2Mod.fixedTop && widget2Mod.fixedBottom) {
-                            setWidgetRelativeYPos(sibling, originalSiblingPosition);
+                            setWidgetRelativeYPos(sibling, originalSiblingPosition, 0);
                         } else if (widget2Mod.fixedTop) {
-                            setWidgetRelativeYPos(sibling, originalSiblingPosition);
+                            setWidgetRelativeYPos(sibling, originalSiblingPosition, 0);
                         } else { // if (widget2Mod.fixedBottom)
-                            setWidgetRelativeYPos(sibling, originalSiblingPosition);
+                            setWidgetRelativeYPos(sibling, originalSiblingPosition, 0);
                         }
                     }
                 }
@@ -253,13 +252,13 @@ public class Widget2ModDict {
                 if (dirToShift == Direction.LEFT) { // if shifting left, shift the widget itself by the difference
                     originalPos = getNewShiftedPos(originalPos, dirToShift, sizeDiff); // relative position
                 }
-                setWidgetRelativeXPos(widget, originalPos);
+                setWidgetRelativeXPos(widget, originalPos, 0);
             } else {
                 setWidgetHeightAbsolute(widget, newSize);
                 if (dirToShift == Direction.ABOVE) { // if shifting upwards, shift the widget itself by the difference
                     originalPos = getNewShiftedPos(originalPos, dirToShift, sizeDiff); // relative position
                 }
-                setWidgetRelativeYPos(widget, originalPos);
+                setWidgetRelativeYPos(widget, originalPos, 0);
             }
 
 
@@ -271,14 +270,14 @@ public class Widget2ModDict {
                 if (dirNotFixed == notFixedDir.HORIZONTAL) {
                     if (dirToShift == Direction.LEFT) {
                         int newParentX = originalParentPosition - sizeDiff;
-                        setWidgetRelativeXPos(parentWidget, newParentX);
+                        setWidgetRelativeXPos(parentWidget, newParentX, 0);
                     }
                     setWidgetWidthAbsolute(parentWidget, siblingCoverage);
 
                 } else {
                     if (dirToShift == Direction.ABOVE) {
                         int newParentY = originalParentPosition - sizeDiff;
-                        setWidgetRelativeYPos(parentWidget, newParentY);
+                        setWidgetRelativeYPos(parentWidget, newParentY, 0);
                     }
                     setWidgetHeightAbsolute(parentWidget, siblingCoverage);
                 }
@@ -296,12 +295,12 @@ public class Widget2ModDict {
 
                 if (isLeftOutside && isRightOutside) {
                     // parent size is bigger than parent's parent. need to make parent and sibling widgets smaller to fit. not checked
-                    setWidgetRelativeXPos(parentWidget, 0);
+                    setWidgetRelativeXPos(parentWidget, 0, 0);
                     setWidgetWidthAbsolute(parentWidget, grandPWidth);
                     setAllChildFitPar(parentWidget, notFixedDir.HORIZONTAL, widget2Mod);
                 }
                 if (isLeftOutside) {
-                    setWidgetRelativeXPos(parentWidget, 0);
+                    setWidgetRelativeXPos(parentWidget, 0, 0);
                     if (parentWidth > grandPWidth) {
                         // if the parent widget is larger than the parent, make it the same size as the parent
                         setWidgetWidthAbsolute(parentWidget, grandPWidth);
@@ -310,11 +309,11 @@ public class Widget2ModDict {
                 }
                 if (isRightOutside) {
                     if (parentWidth <= grandPWidth) {
-                        setWidgetRelativeXPos(parentWidget, grandPWidth - parentWidth);
+                        setWidgetRelativeXPos(parentWidget, grandPWidth - parentWidth, 0);
                         setWidgetWidthAbsolute(parentWidget, grandPWidth);
                     } else {
                         setWidgetWidthAbsolute(parentWidget, grandPWidth);
-                        setWidgetRelativeXPos(parentWidget, 0);
+                        setWidgetRelativeXPos(parentWidget, 0, 0);
                     }
                     setAllChildFitPar(parentWidget, notFixedDir.HORIZONTAL, widget2Mod);
                 }
@@ -324,12 +323,12 @@ public class Widget2ModDict {
                 boolean isTopOutside = parentWidget.getRelativeY() < 0;
                 boolean isBottomOutside = parentWidget.getRelativeY() + parentHeight > grandPHeight;
                 if (isTopOutside && isBottomOutside) { // need to make parent and sibling widgets smaller to fit, not checked
-                    setWidgetRelativeYPos(parentWidget, 0);
+                    setWidgetRelativeYPos(parentWidget, 0, 0);
                     setWidgetHeightAbsolute(parentWidget, grandPHeight);
                     setAllChildFitPar(parentWidget, notFixedDir.VERTICAL, widget2Mod);
                 }
                 if (isTopOutside) {
-                    setWidgetRelativeYPos(parentWidget, 0);
+                    setWidgetRelativeYPos(parentWidget, 0, 0);
                     if (parentHeight > grandPHeight) {
                         // if the parent widget is larger than the parent, make it the same size as the parent
                         setWidgetHeightAbsolute(parentWidget, grandPHeight);
@@ -337,7 +336,7 @@ public class Widget2ModDict {
                     setAllChildFitPar(parentWidget, notFixedDir.VERTICAL, widget2Mod);
                 }
                 if (isBottomOutside) {
-                    setWidgetRelativeYPos(parentWidget, grandPHeight - parentHeight);
+                    setWidgetRelativeYPos(parentWidget, grandPHeight - parentHeight, 0);
                     if (parentHeight > grandPHeight) {
                         // if the parent widget is larger than the parent, make it the same size as the parent
                         setWidgetHeightAbsolute(parentWidget, grandPHeight);
@@ -402,7 +401,7 @@ public class Widget2ModDict {
         } else {
             for (String line : lines) {
                 int imgCount = line.split("<img=").length - 1;
-                int nonImgCount = line.replaceAll("<.*>", "").length();
+                int nonImgCount = line.replaceAll("<.+?>", "").length();
                 int lineLength = imgCount * plugin.getConfig().getSelectedLanguage().getCharWidth() +
                         nonImgCount * LangCodeSelectableList.getLatinCharWidth(widget, LangCodeSelectableList.ENGLISH);
                 if (lineLength > longestLine) {
@@ -425,13 +424,13 @@ public class Widget2ModDict {
                 .revalidate();
     }
 
-    private void setWidgetRelativeXPos(Widget widget, int x) {
-        widget.setOriginalX(x)
+    private void setWidgetRelativeXPos(Widget widget, int x, int leftPadding) {
+        widget.setOriginalX(x + leftPadding)
                 .setXPositionMode(WidgetPositionMode.ABSOLUTE_LEFT)
                 .revalidate();
     }
-    private void setWidgetRelativeYPos(Widget widget, int y) {
-        widget.setOriginalY(y)
+    private void setWidgetRelativeYPos(Widget widget, int y, int topPadding) {
+        widget.setOriginalY(y + topPadding)
                 .setYPositionMode(WidgetPositionMode.ABSOLUTE_TOP)
                 .revalidate();
     }
@@ -649,8 +648,8 @@ public class Widget2ModDict {
 
         setWidgetHeightAbsolute(widget, newHeight);
         setWidgetWidthAbsolute(widget, newWidth);
-        setWidgetRelativeXPos(widget, newX);
-        setWidgetRelativeYPos(widget, newY);
+        setWidgetRelativeXPos(widget, newX, 0);
+        setWidgetRelativeYPos(widget, newY, 0);
 
     }
 
@@ -695,13 +694,13 @@ public class Widget2ModDict {
             int originalY = widget.getRelativeY();
             int newY = getNewShiftedPos(widget.getRelativeY(), dirToShift, diff); // relative position
             if (newY != originalY) {
-                setWidgetRelativeYPos(widget, newY);
+                setWidgetRelativeYPos(widget, newY, 0);
             }
         } else {
             int originalX = widget.getRelativeX();
             int newX = getNewShiftedPos(widget.getRelativeX(), dirToShift, diff); // relative position
             if (newX != originalX) {
-                setWidgetRelativeXPos(widget, newX);
+                setWidgetRelativeXPos(widget, newX, 0);
             }
         }
     }

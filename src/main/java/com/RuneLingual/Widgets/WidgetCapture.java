@@ -104,11 +104,16 @@ public class WidgetCapture {
             SqlQuery queryToPass = sqlQuery.copy();
             // replace sqlQuery if they are defined as item, npc, object, quest names
             Colors textColor = Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor()));
-            if (queryToPass.getCategory() == null) {
+            if (isChildWidgetOf(widget, ComponentID.CHATBOX_BUTTONS)) {
                 queryToPass.setCategory(SqlVariables.categoryValue4Interface.getValue());
-            }
-            if (queryToPass.getSubCategory() == null) {
-                queryToPass.setSubCategory(SqlVariables.subcategoryValue4GeneralUI.getValue());
+                queryToPass.setSubCategory(SqlVariables.subCategoryValue4ChatButtons.getValue());
+            } else {
+                if (queryToPass.getCategory() == null) {
+                    queryToPass.setCategory(SqlVariables.categoryValue4Interface.getValue());
+                }
+                if (queryToPass.getSubCategory() == null) {
+                    queryToPass.setSubCategory(SqlVariables.subcategoryValue4GeneralUI.getValue());
+                }
             }
 
             if (ids.getWidgetIdItemName().contains(widgetId)
@@ -147,10 +152,6 @@ public class WidgetCapture {
         int widgetId = widget.getId();
         if (widgetId == ids.getWidgetIdSkillGuide()) { //Id for parent of skill guide, or parent of element in list
             sqlQuery.setGeneralUI(SqlVariables.sourceValue4SkillGuideInterface.getValue());
-        }
-        if (widgetId == ComponentID.CHATBOX_BUTTONS) {
-            sqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
-            sqlQuery.setSubCategory(SqlVariables.subCategoryValue4ChatButtons.getValue());
         }
         /* example of using Sets:
         if (ids.getWidgetIdPlayerName().contains(widgetId)) {
