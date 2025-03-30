@@ -1,6 +1,8 @@
 package com.RuneLingual.prepareResources;
 
+import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
+import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.RuneLingual.commonFunctions.Ids;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -30,7 +32,8 @@ public class SpriteReplacer {
 
     public void initMap() {
         Ids ids = plugin.getIds();
-        String fileLoginBanner = plugin.getFileNameAndPath().getLocalLangFolder() + File.separator + "loginScreenSprite_" + plugin.getConfig().getSelectedLanguage().getLangCode() +".png";
+        LangCodeSelectableList lang = plugin.getConfig().getSelectedLanguage();
+        String fileLoginBanner = FileNameAndPath.getLocalLangFolder(lang) + File.separator + "loginScreenSprite_" + lang.getLangCode() +".png";
         int loginBannerId = ids.getLoginBannerId();
         fileNameToWidgetId.put(fileLoginBanner, loginBannerId);
     }

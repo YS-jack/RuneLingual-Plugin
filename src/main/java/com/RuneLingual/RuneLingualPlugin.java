@@ -231,12 +231,7 @@ public class RuneLingualPlugin extends Plugin {
         }
 
         chatInputRLingual.updateChatInput();
-
-
-        //clientThread.invokeLater(() -> {
         widgetCapture.translateWidget();
-        //});
-
     }
 
     @Subscribe
@@ -258,7 +253,6 @@ public class RuneLingualPlugin extends Plugin {
             return;
         }
         chatCapture.handleChatMessage(event);
-
     }
 
 
@@ -281,20 +275,19 @@ public class RuneLingualPlugin extends Plugin {
         // if language is changed
         if (targetLanguage != config.getSelectedLanguage()) {
             targetLanguage = config.getSelectedLanguage();
-
-            if (targetLanguage != LangCodeSelectableList.ENGLISH) {
+            spriteReplacer.resetWidgetSprite();
+            if (targetLanguage.hasLocalTranscript()) {
                 //close current connection
                 h2Manager.closeConn();
             }
-
             if (targetLanguage == LangCodeSelectableList.ENGLISH || !targetLanguage.hasLocalTranscript()) {
                 clientToolBar.removeNavigation(navButton);
-                spriteReplacer.resetWidgetSprite();
                 if(targetLanguage != LangCodeSelectableList.ENGLISH){
                     deepl = new Deepl(this, httpClient);
                 }
                 return;
             }
+
             databaseUrl = h2Manager.getUrl(targetLanguage);
             initLangFiles();
             conn = h2Manager.getConn(targetLanguage);

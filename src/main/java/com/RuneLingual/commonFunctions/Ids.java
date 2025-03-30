@@ -167,7 +167,7 @@ public class Ids {
             houseOptionsHoverTextId, houseOptionsTextOnID, houseOptionsTextOffID
     );
 
-    private final Set<Integer> widgetId2SetXTextAliLeft = Set.of(
+    private final Set<Integer> widgetIdChatButton2SetXTextAliLeft = Set.of(
             10616841, // CHATBOX_TAB_GAME 's "Game" widget
             10616845, // CHATBOX_TAB_PUBLIC 's "Public" widget
             10616849, // CHATBOX_TAB_PRIVATE 's "Private" widget
@@ -175,7 +175,7 @@ public class Ids {
             10616857, // CHATBOX_TAB_CLAN 's "Clan" widget
             10616861 // CHATBOX_TAB_TRADE 's "Trade" widget
     );
-    private final Set<Integer> widgetId2SetXTextAliRight = Set.of(
+    private final Set<Integer> widgetIdChatButton2SetXTextAliRight = Set.of(
             10616842, // CHATBOX_TAB_GAME 's setting widget
             10616846, // CHATBOX_TAB_PUBLIC 's setting widget
             10616850, // CHATBOX_TAB_PRIVATE 's setting widget

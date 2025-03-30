@@ -22,7 +22,6 @@ public class WidgetsUtilRLingual
 	private RuneLingualPlugin plugin;
 	@Inject
 	private GeneralFunctions generalFunctions;
-	private List<String> stringTranslatingInThread = new ArrayList<>();
 	@Inject
 	private Ids ids;
 
@@ -64,10 +63,11 @@ public class WidgetsUtilRLingual
 			setWidgetText_NiceBr_NoCharImages(widget, newText);
 	}
 
-	public void setWidgetText_ApiTranslation(Widget widget, String newText, Colors color){
-		final String newText_withoutBrAndTags = removeBrAndTags(newText);
-		String translatedText = plugin.getDeepl().translate(newText_withoutBrAndTags, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
-		if(translatedText.equals(newText_withoutBrAndTags)) { // if the translation is the same as the original text, don't set the text
+	public void setWidgetText_ApiTranslation(Widget widget, String originalText, Colors color){
+		final String text_withoutBrAndTags = removeBrAndTags(originalText);
+		String translatedText = plugin.getDeepl().translate(text_withoutBrAndTags, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
+		int originalLineHeight = widget.getLineHeight();
+		if(translatedText.equals(text_withoutBrAndTags)) { // if the translation is the same as the original text, don't set the text
 			return;
 		}
 
@@ -75,8 +75,7 @@ public class WidgetsUtilRLingual
 			translatedText = generalFunctions.StringToTags(translatedText, color);
 		}
 		setWidgetText_NiceBr(widget, translatedText);
-		stringTranslatingInThread.remove(newText);
-		widget.setLineHeight(plugin.getConfig().getSelectedLanguage().getCharHeight());
+		widget.setLineHeight(originalLineHeight);
 	}
 
 	private void setWidgetText_NiceBr_CharImages(Widget widget, String newText) { // todo: set to show overlay if the mouse is hovering and the widget is too small for the text to display

@@ -45,6 +45,9 @@ public class WidgetCapture {
     }
 
     public void translateWidget() {
+        if (plugin.getConfig().getInterfaceTextConfig() == RuneLingualConfig.ingameTranslationConfig.DONT_TRANSLATE) {
+            return;
+        }
         Widget[] roots = client.getWidgetRoots();
         SqlQuery sqlQuery = new SqlQuery(this.plugin);
         for (Widget root : roots) {
@@ -62,10 +65,6 @@ public class WidgetCapture {
 
         // skip all chatbox widgets for now TODO: chatbox buttons should be translated
         int widgetGroup = WidgetUtil.componentToInterface(widgetId);
-//        if (widgetGroup == InterfaceID.CHATBOX && widget.getId() != ComponentID.CHATBOX_BUTTONS) {
-//            return;
-//        }
-
         modifySqlQuery4Widget(widget, sqlQuery);
 
         // recursive call
@@ -85,22 +84,17 @@ public class WidgetCapture {
                 || widgetGroup == InterfaceID.DIALOG_PLAYER
                 || widgetGroup == InterfaceID.DIALOG_OPTION) {
             dialogTranslator.handleDialogs(widget);
+            alignIfChatButton(widget);
             return;
         }
 
-//        if (widgetId == 14287050 && shouldTranslateWidget(widget)) {
-//            log.info("original height: " + widget.getOriginalHeight());
-//            log.info("height mode: " + widget.getHeightMode());
-//            log.info("position mode: " + widget.getYPositionMode());
-//            widget.getXTextAlignment();
-//            log.info("text: " + widget.getText() + "\n\n");
-//            widget.setHeightMode(WidgetSizeMode.ABSOLUTE)
-//                    .setOriginalHeight(widget.getOriginalHeight() + 25)
-//                    .revalidate();
-//            return;
-//        }
-
         if(shouldTranslateWidget(widget)) {
+            if (plugin.getConfig().getInterfaceTextConfig() == RuneLingualConfig.ingameTranslationConfig.USE_API
+                 && plugin.getConfig().ApiConfig()) {
+                translateWidgetApi(widget);
+                return;
+            }
+
             SqlQuery queryToPass = sqlQuery.copy();
             // replace sqlQuery if they are defined as item, npc, object, quest names
             Colors textColor = Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor()));
@@ -142,13 +136,15 @@ public class WidgetCapture {
             // translate the widget text
             translateWidgetText(widget, queryToPass);
 
-            if(ids.getWidgetId2SetXTextAliLeft().contains(widgetId)) {
-                widget.setXTextAlignment(WidgetTextAlignment.LEFT);
-            } else if (ids.getWidgetId2SetXTextAliRight().contains(widgetId)) {
-                widget.setXTextAlignment(WidgetTextAlignment.RIGHT);
-            }
+            alignIfChatButton(widget);
         }
+    }
 
+    private void translateWidgetApi(Widget widget) {
+        String text = widget.getText();
+        Colors color = Colors.getColorArray(widget.getText(), Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor())))[0];
+        widgetsUtilRLingual.setWidgetText_ApiTranslation(widget, text, color);
+        widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget);
     }
 
     private void modifySqlQuery4Widget(Widget widget, SqlQuery sqlQuery) {
@@ -417,6 +413,15 @@ public class WidgetCapture {
             parent = parent.getParent();
         }
         return false;
+    }
+
+    private void alignIfChatButton(Widget widget) {
+        int widgetId = widget.getId();
+        if(ids.getWidgetIdChatButton2SetXTextAliLeft().contains(widgetId) && plugin.getConfig().getSelectedLanguage().isChatButtonHorizontal()) {
+            widget.setXTextAlignment(WidgetTextAlignment.LEFT);
+        } else if (ids.getWidgetIdChatButton2SetXTextAliRight().contains(widgetId) && plugin.getConfig().getSelectedLanguage().isChatButtonHorizontal()) {
+            widget.setXTextAlignment(WidgetTextAlignment.RIGHT);
+        }
     }
 }
 

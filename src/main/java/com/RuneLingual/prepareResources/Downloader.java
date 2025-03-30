@@ -62,8 +62,7 @@ public class Downloader {//downloads translations and japanese char images to ex
         final List<String> file_name_to_download = List.of("char_" + langCode + ".zip",
                 "latin2foreign_" + langCode + ".txt",
                 "foreign2foreign_" + langCode + ".txt"); // will download all files with these names, no error if it doesnt exist
-        localLangFolder = new File(localBaseFolder.getPath() + File.separator + langCode);
-        plugin.getFileNameAndPath().setLocalLangFolder(localLangFolder.getPath());
+        localLangFolder = new File(FileNameAndPath.getLocalLangFolder(langCodeSelectableList));
 
         createDir(localLangFolder.getPath());
         String LOCAL_HASH_NAME = "hashListLocal_" + langCode + ".txt";
