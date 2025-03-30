@@ -45,6 +45,9 @@ public class Transformer {
             plugin.getFailedTranslations().add(sqlQuery);
             return textAddColor(text, sqlQuery.getColor());
         }
+        if (option == TransformOption.TRANSLATE_LOCAL && !plugin.getConfig().getSelectedLanguage().hasLocalTranscript()){
+            return textAddColor(text, sqlQuery.getColor());
+        }
 
         String translatedText = "";
 
@@ -135,6 +138,9 @@ public class Transformer {
             plugin.getFailedTranslations().add(sqlQuery);
             return textWithPlaceholders;
         }
+        if (option == TransformOption.TRANSLATE_LOCAL && !plugin.getConfig().getSelectedLanguage().hasLocalTranscript()){
+            return textAddColor(originalText, sqlQuery.getColor());
+        }
 
         String translatedText = "";
 
@@ -209,7 +215,9 @@ public class Transformer {
             plugin.getFailedTranslations().add(sqlQuery);
             return textAddColor(text, colors);
         }
-
+        if (option == TransformOption.TRANSLATE_LOCAL && !plugin.getConfig().getSelectedLanguage().hasLocalTranscript()){
+            return textAddColor(text, colors);
+        }
         String translatedText = "";
 
         if(option == TransformOption.AS_IS){

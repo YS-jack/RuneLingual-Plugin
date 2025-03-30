@@ -275,8 +275,7 @@ public class RuneLingualPlugin extends Plugin {
 
     @Subscribe
     public void onConfigChanged(ConfigChanged event) {
-        if (!event.getGroup().equals(RuneLingualConfig.GROUP))
-        {
+        if (!event.getGroup().equals(RuneLingualConfig.GROUP)) {
             return;
         }
         // if language is changed
@@ -288,9 +287,12 @@ public class RuneLingualPlugin extends Plugin {
                 h2Manager.closeConn();
             }
 
-            if (targetLanguage == LangCodeSelectableList.ENGLISH) {
+            if (targetLanguage == LangCodeSelectableList.ENGLISH || !targetLanguage.hasLocalTranscript()) {
                 clientToolBar.removeNavigation(navButton);
                 spriteReplacer.resetWidgetSprite();
+                if(targetLanguage != LangCodeSelectableList.ENGLISH){
+                    deepl = new Deepl(this, httpClient);
+                }
                 return;
             }
             databaseUrl = h2Manager.getUrl(targetLanguage);

@@ -44,10 +44,21 @@ public class Downloader {//downloads translations and japanese char images to ex
 
     // returns if char image changed
     public void initDownloader() {
-        if (plugin.getConfig().getSelectedLanguage() == LangCodeSelectableList.ENGLISH) {
+        LangCodeSelectableList langCodeSelectableList = plugin.getConfig().getSelectedLanguage();
+        if (langCodeSelectableList == LangCodeSelectableList.ENGLISH) {
             return;
         }
-        final List<String> extensions_to_download = Arrays.asList("tsv", "zip", "png"); // will download all files with these extensions
+        final List<String> extensions_to_download = new ArrayList<>(); // will download all files with these extensions
+        if (langCodeSelectableList.needsCharImages()){
+            extensions_to_download.add("zip");
+        }
+        if (langCodeSelectableList.hasLocalTranscript()){
+            extensions_to_download.add("png");//for swapping sprites
+            extensions_to_download.add("tsv");
+        }
+        if (extensions_to_download.isEmpty()) {
+            return;
+        }
         final List<String> file_name_to_download = List.of("char_" + langCode + ".zip",
                 "latin2foreign_" + langCode + ".txt",
                 "foreign2foreign_" + langCode + ".txt"); // will download all files with these names, no error if it doesnt exist

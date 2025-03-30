@@ -83,8 +83,8 @@ public class DialogTranslator {
         if(widget.getText().contains("<img=")) {
             return;
         }
-        dialogOption = MenuCapture.getTransformOption(plugin.getConfig().getNpcDialogueConfig());
-        npcNameOption = MenuCapture.getTransformOption(plugin.getConfig().getNPCNamesConfig());
+        dialogOption = MenuCapture.getTransformOption(plugin.getConfig().getNpcDialogueConfig(), plugin.getConfig().getSelectedLanguage());
+        npcNameOption = MenuCapture.getTransformOption(plugin.getConfig().getNPCNamesConfig(), plugin.getConfig().getSelectedLanguage());
         if ((widget.getId() != npcNameWidgetId && dialogOption.equals(TransformOption.AS_IS))
                 || (widget.getId() == npcNameWidgetId && npcNameOption.equals(TransformOption.AS_IS))) {
             return;

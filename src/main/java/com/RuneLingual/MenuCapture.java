@@ -84,7 +84,7 @@ public class MenuCapture
 
 		// add to pending list if they haven't been translated yet
 
-		boolean isPending = addPendingApiTranslation(currentMenu, newOption, newTarget);
+		boolean isPending = addPendingMenuApiTranslation(currentMenu, newOption, newTarget);
 		if (isPending) {
 			return;
 		}
@@ -129,16 +129,7 @@ public class MenuCapture
 
 
 
-		menuOptionTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
-//		// for debug purposes
-//		if(!isWalkOrCancel(menuType)){
-//			//printMenuEntry(currentMenu);
-//			if(!isNpcMenu(menuType) && !isObjectMenu(menuType)
-//					&& !isItemOnGround(menuType) && !isItemInWidget(currentMenu) && !isPlayerMenu(menuType)){
-//				outputToFile.menuTarget(menuTarget,SqlVariables.menuInSubCategory.getValue(), "");
-//				outputToFile.menuOption(menuOption,SqlVariables.menuInSubCategory.getValue(), "");
-//			}
-//		}
+		menuOptionTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig(), plugin.getConfig().getSelectedLanguage());
 
 		String[] result;
 		// get translation for both target and option
@@ -212,7 +203,7 @@ public class MenuCapture
 		if(Colors.removeNonImgTags(menuTarget).isEmpty()) {
 			newTarget = "";
 		} else {
-			TransformOption menuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
+			TransformOption menuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig(), plugin.getConfig().getSelectedLanguage());
 			if(hasLevel(menuTarget)){
 				// if walk has a target with level, its a player
 				newTarget = translatePlayerTargetPart(targetWordArray, targetColorArray);
@@ -243,7 +234,7 @@ public class MenuCapture
 		String newTarget, newOption;
 		SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
 		SqlQuery actionSqlQuery = new SqlQuery(this.plugin);
-		TransformOption npcTransformOption = getTransformOption(this.plugin.getConfig().getNPCNamesConfig());
+		TransformOption npcTransformOption = getTransformOption(this.plugin.getConfig().getNPCNamesConfig(), plugin.getConfig().getSelectedLanguage());
 		if(npcTransformOption.equals(TransformOption.AS_IS)){
 			newTarget = menuTarget;
 		} else if(hasLevel(menuTarget)){
@@ -273,7 +264,7 @@ public class MenuCapture
 
 		Colors[] targetColorArray = Colors.getColorArray(menuTarget, Colors.lightblue); //default color is not the same as initial definition
 
-		TransformOption	objectTransformOption = getTransformOption(this.plugin.getConfig().getObjectNamesConfig());
+		TransformOption	objectTransformOption = getTransformOption(this.plugin.getConfig().getObjectNamesConfig(), plugin.getConfig().getSelectedLanguage());
 
 		String newTarget;
 		if(objectTransformOption.equals(TransformOption.AS_IS)){
@@ -294,7 +285,7 @@ public class MenuCapture
 
 		Colors[] targetColorArray = Colors.getColorArray(menuTarget, Colors.orange); //default color is not the same as initial definition
 
-		TransformOption itemTransformOption = getTransformOption(this.plugin.getConfig().getItemNamesConfig());
+		TransformOption itemTransformOption = getTransformOption(this.plugin.getConfig().getItemNamesConfig(), plugin.getConfig().getSelectedLanguage());
 		String newTarget;
 		if (itemTransformOption.equals(TransformOption.AS_IS)){
 			newTarget = menuTarget;
@@ -317,7 +308,7 @@ public class MenuCapture
 
 		Colors[] targetColorArray = Colors.getColorArray(menuTarget, Colors.orange); //default color is not the same as initial definition
 
-		TransformOption itemTransformOption = getTransformOption(this.plugin.getConfig().getItemNamesConfig());
+		TransformOption itemTransformOption = getTransformOption(this.plugin.getConfig().getItemNamesConfig(), plugin.getConfig().getSelectedLanguage());
 		String newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
 		if (Arrays.equals(targetWordArray, new String[]{"Use"}) && Arrays.equals(actionWordArray, new String[]{"Use"})){
 			// it comes from the use item on something menu, and only needs to translate the option
@@ -401,7 +392,7 @@ public class MenuCapture
 			targetSqlQuery.setSource(source);
 			targetSqlQuery.setColor(Colors.orange);
 
-			TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
+			TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig(), plugin.getConfig().getSelectedLanguage());
 			Colors[] targetColorArray = Colors.getColorArray(menuTarget, Colors.orange); //default color is not the same as initial definition
 			if(targetColorArray.length <= 1){
 				newTarget = transformer.transform(targetWordArray, targetColorArray, generalMenuTransformOption, targetSqlQuery, false);
@@ -422,7 +413,7 @@ public class MenuCapture
 		targetSqlQuery.setCategory(SqlVariables.categoryValue4Manual.getValue());
 		targetSqlQuery.setSubCategory(SqlVariables.subcategoryValue4Quest.getValue());
 
-		TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
+		TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig(), plugin.getConfig().getSelectedLanguage());
 		// color is not possible to obtain by simple means, so its just orange for now
 		return transformer.transform(questName, Colors.orange, generalMenuTransformOption, targetSqlQuery, false);
 	}
@@ -434,7 +425,7 @@ public class MenuCapture
 		targetSqlQuery.setSubCategory(SqlVariables.subcategoryValue4MainTabs.getValue());
 		targetSqlQuery.setSource(SqlVariables.sourceValue4EmotesTab.getValue());
 
-		TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
+		TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig(), plugin.getConfig().getSelectedLanguage());
 		return transformer.transform(emoteName, Colors.orange, generalMenuTransformOption, targetSqlQuery, false);
 	}
 	private String translateMusicName(String musicName) {
@@ -446,7 +437,7 @@ public class MenuCapture
 		targetSqlQuery.setSource(SqlVariables.sourceValue4MusicTab.getValue());
 		targetSqlQuery.setColor(Colors.orange);
 
-		TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig());
+		TransformOption generalMenuTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig(), plugin.getConfig().getSelectedLanguage());
 		if(generalMenuTransformOption.equals(TransformOption.TRANSLATE_LOCAL)) {
 			// music name can have placeholder values for numbers such as arabian <Num0> for "arabian 2", "arabian 3"
 			String textToTranslate = Transformer.getEnglishColValFromText(musicName);
@@ -539,7 +530,7 @@ public class MenuCapture
 		levelQuery.setPlayerLevel();
 		Transformer transformer = new Transformer(this.plugin);
 
-		TransformOption option = getTransformOption(this.plugin.getConfig().getGameMessagesConfig());
+		TransformOption option = getTransformOption(this.plugin.getConfig().getGameMessagesConfig(), plugin.getConfig().getSelectedLanguage());
 	//TODO: colours may need adjusting for () and level's digits
 		if(plugin.getConfig().getSelectedLanguage().needsCharImages()) // change color to simple color variants. eg: light green to green
 			color = color.getSimpleColor();
@@ -549,10 +540,14 @@ public class MenuCapture
 		return "  " + color.getColorTag() + openBracket  + levelTranslation + color.getColorTag() + lvAndCloseBracket;
 	}
 
-	public static TransformOption getTransformOption(ingameTranslationConfig conf) {
+	public static TransformOption getTransformOption(ingameTranslationConfig conf, LangCodeSelectableList lang) {
 		TransformOption transformOption;
 		if(conf.equals(ingameTranslationConfig.USE_LOCAL_DATA)){
-			transformOption = TransformOption.TRANSLATE_LOCAL;
+			if(lang.hasLocalTranscript()) {
+				transformOption = TransformOption.TRANSLATE_LOCAL;
+			} else {
+				transformOption = TransformOption.AS_IS;
+			}
 		} else if(conf.equals(ingameTranslationConfig.DONT_TRANSLATE)){
 			transformOption = TransformOption.AS_IS;
 		} else if(conf.equals(ingameTranslationConfig.USE_API)){
@@ -659,12 +654,13 @@ public class MenuCapture
 		MenuAction action = menuEntry.getType();
 		String target = menuEntry.getTarget();
 		target = Colors.removeNonImgTags(target);
-		if(target.isEmpty()){
+		if(target.isEmpty() || !plugin.getConfig().getSelectedLanguage().hasLocalTranscript()){
 			return false;
 		}
 		if (target.endsWith(" (Members)")) {
 			target = target.substring(0, target.length() - 10);
 		}
+
 
 		SqlQuery sqlQuery = new SqlQuery(this.plugin);
 		sqlQuery.setItemName(target, Colors.orange);
@@ -693,7 +689,7 @@ public class MenuCapture
 		return false;
 	}
 
-	private boolean addPendingApiTranslation(MenuEntry currentMenu, String newOption, String newTarget) {
+	private boolean addPendingMenuApiTranslation(MenuEntry currentMenu, String newOption, String newTarget) {
 		if (!plugin.getConfig().ApiConfig()){
 			return false;
 		}
@@ -707,8 +703,9 @@ public class MenuCapture
 				String oldOption_colTag = currentMenu.getOption();
 				String oldOption = Colors.removeNonImgTags(oldOption_colTag);
 				newOption = Colors.removeNonImgTags(newOption);
-				if ((oldOption.equals(newOption) && !oldOption.contains("<img="))// text didnt change after translation todo: need other way of telling if it has already been translated after other languages are added
-				|| colWordHasMatchingWords(oldOption_colTag, newOption)){ // or when separating words by colors, if any of the words match
+				boolean hasTranslatedBefore = plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(currentMenu.getOption()) != null;
+				if (!hasTranslatedBefore && (oldOption.equals(newOption) // is pending api translation
+				|| colWordHasMatchingWords(oldOption_colTag, newOption))){ // or when separating words by colors, if any of the words match
 					isOptionPending = true;
 					pendingType = PendingTranslationType.OPTION;
 					updateOption = false;
@@ -718,9 +715,9 @@ public class MenuCapture
 		String oldTarget_colTag = currentMenu.getTarget();
 		String oldTarget = Colors.removeNonImgTags(oldTarget_colTag);
 		newTarget = Colors.removeNonImgTags(newTarget);
-
-		if(oldTarget.equals(newTarget) && !oldTarget.contains("<img=")// text didnt change after translation todo: same as above
-				|| colWordHasMatchingWords(oldTarget_colTag, newTarget)){// or when separating words by colors, if any of the words match
+		boolean hasTranslatedBefore = plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(currentMenu.getTarget()) != null;
+		if(!hasTranslatedBefore && (oldTarget.equals(newTarget)  // is pending api translation
+				|| colWordHasMatchingWords(oldTarget_colTag, newTarget))){// or when separating words by colors, if any of the words match
 			if(!newTarget.isEmpty() && !newTarget.isBlank()){
 				isTargetPending = true;
 				pendingType = PendingTranslationType.TARGET;
@@ -801,8 +798,11 @@ public class MenuCapture
 	// returns true because "Magic" is the same in both texts
 	private boolean colWordHasMatchingWords(String oldText, String newText){
 		String[] oldWords = Colors.getWordArray(oldText);
+		if (oldWords.length < 2) {
+			return false;
+		}
 		for (String oldWord : oldWords) {
-			if (newText.contains(oldWord)){
+			if (newText.equals(oldWord)){
 				return true;
 			}
 		}
