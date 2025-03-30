@@ -12,6 +12,7 @@ import com.RuneLingual.Widgets.WidgetsUtilRLingual;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.RuneLingual.nonLatin.*;
 import com.RuneLingual.prepareResources.H2Manager;
+import com.RuneLingual.prepareResources.SpriteReplacer;
 import com.google.inject.Provides;
 
 import javax.annotation.Nullable;
@@ -167,6 +168,8 @@ public class RuneLingualPlugin extends Plugin {
     private int gameCycle;
     @Inject
     private OkHttpClient httpClient;
+    @Inject
+    SpriteReplacer spriteReplacer;
 
     @Getter
     Set<SqlQuery> failedTranslations = new HashSet<>();
@@ -195,6 +198,7 @@ public class RuneLingualPlugin extends Plugin {
 
         // load image files
         charImageInit.loadCharImages();
+        queueUpdateAllOverrides();
 
         // side panel
         startPanel();
@@ -286,6 +290,7 @@ public class RuneLingualPlugin extends Plugin {
 
             if (targetLanguage == LangCodeSelectableList.ENGLISH) {
                 clientToolBar.removeNavigation(navButton);
+                spriteReplacer.resetWidgetSprite();
                 return;
             }
             databaseUrl = h2Manager.getUrl(targetLanguage);
@@ -293,6 +298,7 @@ public class RuneLingualPlugin extends Plugin {
             conn = h2Manager.getConn(targetLanguage);
 
             clientToolBar.removeNavigation(navButton);
+            queueUpdateAllOverrides();
             if (targetLanguage.needsCharImages() && !pastLanguages.contains(targetLanguage)) {
                 charImageInit.loadCharImages();
             }
@@ -400,6 +406,23 @@ public class RuneLingualPlugin extends Plugin {
         }
     }
 
+    private void queueUpdateAllOverrides()
+    {
+        clientThread.invoke(() -> {
+            // Cross sprites and widget sprite cache are not setup until login screen
+            if (client.getGameState().getState() < GameState.LOGIN_SCREEN.getState()) {
+                return false;
+            }
+            updateAllOverrides();
+            return true;
+        });
+    }
+
+    private void updateAllOverrides() {
+        spriteReplacer.initMap();
+        spriteReplacer.replaceWidgetSprite();
+    }
+
     @Override
     protected void shutDown() throws Exception {
         clientToolBar.removeNavigation(navButton);
@@ -408,7 +431,7 @@ public class RuneLingualPlugin extends Plugin {
         overlayManager.remove(chatInputOverlay);
         overlayManager.remove(chatInputCandidateOverlay);
         h2Manager.closeConn();
-        log.info("RuneLingual plugin stopped!");
+        spriteReplacer.resetWidgetSprite();
     }
 
 

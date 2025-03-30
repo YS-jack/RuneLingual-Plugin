@@ -134,7 +134,8 @@ public class Ids {
     private final int houseOptionsHoverTextId = 24248346; // house options, from the settings tab, click house icon
     private final int houseOptionsTextOnID = 24248322; // in house options, the "On" text (can get <br> tag in some languages)
     private final int houseOptionsTextOffID = 24248323; // in house options, the "Off" text (can get <br> tag in some languages)
-
+    private final int loginScreenId = 24772610;
+    private final int loginBannerId = 24772687;
 
     // for English transcript to be split at <br> tags and added to the transcript
     // will reduce the number of translations needed

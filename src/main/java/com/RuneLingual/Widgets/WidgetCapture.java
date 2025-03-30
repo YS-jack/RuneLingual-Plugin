@@ -104,10 +104,14 @@ public class WidgetCapture {
             SqlQuery queryToPass = sqlQuery.copy();
             // replace sqlQuery if they are defined as item, npc, object, quest names
             Colors textColor = Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor()));
-            if (isChildWidgetOf(widget, ComponentID.CHATBOX_BUTTONS)) {
+            if (isChildWidgetOf(widget, ComponentID.CHATBOX_BUTTONS)) { // chat buttons
                 queryToPass.setCategory(SqlVariables.categoryValue4Interface.getValue());
                 queryToPass.setSubCategory(SqlVariables.subCategoryValue4ChatButtons.getValue());
-            } else {
+            } else if (isChildWidgetOf(widget, ids.getLoginScreenId())) { // login screen
+                queryToPass.setCategory(SqlVariables.categoryValue4Interface.getValue());
+                queryToPass.setSubCategory(SqlVariables.subCategoryValue4LoginScreen.getValue());
+            }
+            else {
                 if (queryToPass.getCategory() == null) {
                     queryToPass.setCategory(SqlVariables.categoryValue4Interface.getValue());
                 }
@@ -364,11 +368,11 @@ public class WidgetCapture {
 //        || sqlQuery.getSource().equals(SqlVariables.sourceValue4IgnoreTab.getValue())
 //        || sqlQuery.getSource().equals(SqlVariables.sourceValue4AccountManagementTab.getValue()))) {
         //if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4MusicTab.getValue())){
-        if (isChildWidgetOf(widget, ComponentID.CHATBOX_BUTTONS)){
+        if (isChildWidgetOf(widget, ids.getLoginScreenId())){
             if (widget.getText() == null || !shouldTranslateWidget(widget)) {
                 return;
             }
-            String fileName = "chatButtons.txt";
+            String fileName = "loginScreen.txt";
             String textToDump = getEnglishColValFromWidget(widget);
 
             // for partial translation

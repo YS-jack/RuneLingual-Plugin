@@ -47,7 +47,7 @@ public class Downloader {//downloads translations and japanese char images to ex
         if (plugin.getConfig().getSelectedLanguage() == LangCodeSelectableList.ENGLISH) {
             return;
         }
-        final List<String> extensions_to_download = Arrays.asList("tsv", "zip"); // will download all files with these extensions
+        final List<String> extensions_to_download = Arrays.asList("tsv", "zip", "png"); // will download all files with these extensions
         final List<String> file_name_to_download = List.of("char_" + langCode + ".zip",
                 "latin2foreign_" + langCode + ".txt",
                 "foreign2foreign_" + langCode + ".txt"); // will download all files with these names, no error if it doesnt exist

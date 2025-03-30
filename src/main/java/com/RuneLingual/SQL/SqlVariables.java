@@ -33,6 +33,7 @@ public enum SqlVariables {
     subcategoryValue4GeneralUI("generalUI","sub_category"), // most if not all interfaces will have this subcategory value
     subcategoryValue4MainTabs("mainTabs","sub_category"), // for main tabs, such as combat options, skills, character summary, etc.
     subCategoryValue4ChatButtons("chatButtons","sub_category"), // for chat buttons, such as report, trade, On, Off, Hide, etc.
+    subCategoryValue4LoginScreen("loginScreen","sub_category"),
 
 
     // possible source values
