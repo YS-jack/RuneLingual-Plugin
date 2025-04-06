@@ -46,7 +46,8 @@ public class WidgetCapture {
                 String re = "^[^\\p{Alpha}]+$";
                 if (validWidget.getText().matches(re))
                     continue;
-                Colors[] textColor = Colors.getColorArray(validWidget.getText(),Colors.black);
+                Colors widgetColor = Colors.fromInt(validWidget.getTextColor());
+                Colors[] textColor = Colors.getColorArray(validWidget.getText(),widgetColor);
                 // for now only translate interfaces and buttons with API
                 widgetsUtilRLingual.setWidgetText_ApiTranslation(validWidget, validWidget.getText(), textColor[0]);
 
