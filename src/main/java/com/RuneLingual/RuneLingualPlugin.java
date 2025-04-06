@@ -300,6 +300,7 @@ public class RuneLingualPlugin extends Plugin {
         }
         if(config.ApiConfig()){
             deepl.setUsageAndLimit();
+            deepl.getTranslationAttempt().clear();
         }
 
     }

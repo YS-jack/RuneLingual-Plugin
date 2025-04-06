@@ -24,6 +24,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 @Slf4j
@@ -46,6 +49,10 @@ public class Deepl {
     private PastTranslationManager deeplPastTranslationManager;
     private static final MediaType mediaType = MediaType.parse("Content-Type: application/json");
 
+    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    private final Object apiStateLock = new Object();
+    private volatile int apiStateVersion = 0; // Tracks the current state version of the API
 
     // add texts that has already been attempted to be translated.
     // this avoids translating same texts multiple times when ran in a thread, which will waste limited or paid word count
@@ -181,11 +188,16 @@ public class Deepl {
     }
 
     private void getResponseWithRetry(String url, RequestBody requestBody, ResponseCallback callback, int retryCount) {
-        if (!plugin.getConfig().ApiConfig()){
-            //log.info("API is disabled");
+        final int currentVersion;
+        synchronized (apiStateLock) {
+            currentVersion = apiStateVersion; // Capture the current version
+        }
+
+        if (!plugin.getConfig().ApiConfig()) {
             callback.onApiOff();
             return;
         }
+
         if (deeplKey == null || deeplKey.isEmpty()) {
             callback.onFailure(new IOException("API key is missing"));
             return;
@@ -204,20 +216,30 @@ public class Deepl {
             httpClient.newCall(request.build()).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException error) {
-                    if (!plugin.getConfig().ApiConfig()){
-                        callback.onApiOff();
-                        //log.info("API is disabled");
-                        return;
+                    synchronized (apiStateLock) {
+                        if (currentVersion != apiStateVersion || !plugin.getConfig().ApiConfig()) {
+                            //log.info("Discarding outdated failure callback due to API state change.");
+                            return;
+                        }
                     }
                     if (retryCount < 5) {
                         int delay = new Random().nextInt(8) + 3;
-                        //log.info("Retrying in " + delay + " seconds...");
-                        try {
-                            Thread.sleep(delay * 1000);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
+                        synchronized (apiStateLock) {
+                            if (currentVersion != apiStateVersion || !plugin.getConfig().ApiConfig()) {
+                                //log.info("Discarding outdated retry scheduling due to API state change.");
+                                return;
+                            }
                         }
-                        getResponseWithRetry(url, requestBody, callback, retryCount + 1);
+                        //log.info("on failure: Retrying API request in {} seconds (attempt {})", delay, retryCount + 1);
+                        scheduler.schedule(() -> {
+                            synchronized (apiStateLock) {
+                                if (currentVersion != apiStateVersion || !plugin.getConfig().ApiConfig()) {
+                                    //log.info("Discarding outdated retry execution due to API state change.");
+                                    return;
+                                }
+                            }
+                            getResponseWithRetry(url, requestBody, callback, retryCount + 1);
+                        }, delay, TimeUnit.SECONDS);
                     } else {
                         callback.onFailure(error);
                     }
@@ -225,24 +247,34 @@ public class Deepl {
 
                 @Override
                 public void onResponse(Call call, Response response) {
-                    try (ResponseBody responseBody = response.body()) {
-                        if (!plugin.getConfig().ApiConfig()){
-                            callback.onApiOff();
-                            //log.info("API is disabled");
+                    synchronized (apiStateLock) {
+                        if (currentVersion != apiStateVersion || !plugin.getConfig().ApiConfig()) {
+                            //log.info("Discarding outdated response callback due to API state change.");
                             return;
                         }
+                    }
+                    try (ResponseBody responseBody = response.body()) {
                         if (responseBody != null) {
                             String responseBodyString = responseBody.string();
                             if (response.code() == 429) { // Too Many Requests
                                 if (retryCount < 5) {
                                     int delay = new Random().nextInt(8) + 3;
-                                    //log.info("Too many requests. Retrying in " + delay + " seconds...");
-                                    try {
-                                        Thread.sleep(delay * 1000);
-                                    } catch (InterruptedException e) {
-                                        Thread.currentThread().interrupt();
+                                    synchronized (apiStateLock) {
+                                        if (currentVersion != apiStateVersion || !plugin.getConfig().ApiConfig()) {
+                                            //log.info("Discarding outdated retry scheduling due to API state change.");
+                                            return;
+                                        }
                                     }
-                                    getResponseWithRetry(url, requestBody, callback, retryCount + 1);
+                                    //log.info("on response: Retrying API request in {} seconds (attempt {})", delay, retryCount + 1);
+                                    scheduler.schedule(() -> {
+                                        synchronized (apiStateLock) {
+                                            if (currentVersion != apiStateVersion || !plugin.getConfig().ApiConfig()) {
+                                                //log.info("Discarding outdated retry execution due to API state change.");
+                                                return;
+                                            }
+                                        }
+                                        getResponseWithRetry(url, requestBody, callback, retryCount + 1);
+                                    }, delay, TimeUnit.SECONDS);
                                 } else {
                                     callback.onFailure(new IOException("Too many requests"));
                                 }
