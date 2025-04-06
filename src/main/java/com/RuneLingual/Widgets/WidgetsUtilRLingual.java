@@ -11,8 +11,6 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetSizeMode;
 
 import javax.inject.Inject;
-import java.util.List;
-import java.util.ArrayList;
 
 public class WidgetsUtilRLingual
 {
@@ -204,7 +202,7 @@ public class WidgetsUtilRLingual
 	}
 
 	public boolean shouldPartiallyTranslateText(String string) {
-		return ids.getPartialTranslationManager().stringMatchesEnColVal(string);
+		return ids.getPartialTranslationManager().doesStringMatchEnColVal(string);
 	}
 
 	public String getEnColVal4PartialTranslation(Widget widget) {

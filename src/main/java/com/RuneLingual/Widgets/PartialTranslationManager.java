@@ -290,7 +290,7 @@ public class PartialTranslationManager {
     }
 
     /*
-    * Check if the text matches the enColVal of the partial translation.
+    * Check if the widget text matches the enColVal of the partial translation.
     * Searches by id given at initialization.
     * eg. "slay blue dragons in Taverley" matches "slay <!NPC_NAME0> in <!LOCATION_NAME0>"
      */
@@ -306,11 +306,11 @@ public class PartialTranslationManager {
     }
 
     /*
-     * Check if the text matches the enColVal of the partial translation
+     * Check if the text matches the enColVal of the partial translation (doesnt need widget id)
      * Checks only text pattern
      * eg. "slay blue dragons in Taverley" matches "slay <!NPC_NAME0> in <!LOCATION_NAME0>"
      */
-    public boolean stringMatchesEnColVal(String text) {
+    public boolean doesStringMatchEnColVal(String text) {
         for(PartialTranslation partialTranslation : partialTranslations){
             // Escape special regex characters in the template except for the placeholder
             String regex = partialTranslation.getEnColVal().replaceAll("([\\\\.*+\\[\\](){}|^$])", "\\\\$1")

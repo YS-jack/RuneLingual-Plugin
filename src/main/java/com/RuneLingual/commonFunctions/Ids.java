@@ -231,12 +231,17 @@ public class Ids {
                 List.of("You are currently talking in the <colNum0>","</col> channel."),
                 List.of(ANY_TRANSLATED)// activity name goes here
         );
-        partialTranslationManager.addPartialTranslation(
+        partialTranslationManager.addPartialTranslation( // menu option for join button in group tab's activity tab
                 0,
                 List.of("Join <colNum0>","</col> channel"),
                 List.of(ANY_TRANSLATED)// activity name goes here
         );
-        partialTranslationManager.addPartialTranslation(
+        partialTranslationManager.addPartialTranslation( // menu option for leave button in group tab's activity tab, displayed after joining
+                0,
+                List.of("Leave <colNum0>","</col> channel"),
+                List.of(ANY_TRANSLATED)// activity name goes here
+        );
+        partialTranslationManager.addPartialTranslation( // menu option for teleport button in group tab's activity tab
                 0,
                 List.of("Teleport to <colNum0>","</col>"),
                 List.of(ANY_TRANSLATED)// activity name goes here
