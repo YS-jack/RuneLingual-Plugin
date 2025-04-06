@@ -156,7 +156,7 @@ public class DialogTranslator {
     // is not api translation
     private void handlePlayerDialog(Widget widget) {
         if (widget.getId() == playerContinueWidgetId) {
-            log.info(widget.getText());
+            //log.info(widget.getText());
             translateContinueWidget(widget);
             return;
         }
@@ -166,7 +166,7 @@ public class DialogTranslator {
 
 
             String npcName = getInteractingNpcName();
-            log.info("playerContent: " + playerContent + " with npc: " + npcName);
+            //log.info("playerContent: " + playerContent + " with npc: " + npcName);
 
             SqlQuery query = new SqlQuery(this.plugin);
             query.setDialogue(playerContent, npcName, true, defaultTextColor);
