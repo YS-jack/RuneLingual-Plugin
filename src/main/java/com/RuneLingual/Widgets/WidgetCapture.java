@@ -62,6 +62,10 @@ public class WidgetCapture {
         if (widget.isHidden() || ids.getWidgetIdNot2Translate().contains(widgetId)) {
             return;
         }
+        if (ids.getWidgetIdNot2ApiTranslate().contains(widgetId)
+                && plugin.getConfig().getInterfaceTextConfig() == RuneLingualConfig.ingameTranslationConfig.USE_API) {
+            return;
+        }
 
         // skip all chatbox widgets for now TODO: chatbox buttons should be translated
         int widgetGroup = WidgetUtil.componentToInterface(widgetId);
@@ -104,6 +108,9 @@ public class WidgetCapture {
             } else if (isChildWidgetOf(widget, ids.getLoginScreenId())) { // login screen
                 queryToPass.setCategory(SqlVariables.categoryValue4Interface.getValue());
                 queryToPass.setSubCategory(SqlVariables.subCategoryValue4LoginScreen.getValue());
+            } else if (isChildWidgetOf(widget, ids.getWidgetIdCA())) {
+                queryToPass.setCategory(SqlVariables.categoryValue4Interface.getValue());
+                queryToPass.setSubCategory(SqlVariables.subCategoryValue4CA.getValue());
             }
             else {
                 if (queryToPass.getCategory() == null) {
@@ -210,7 +217,12 @@ public class WidgetCapture {
         String originalText = widget.getText();
         String textToTranslate = getEnglishColValFromWidget(widget);
         String translatedText;
-        if (widgetsUtilRLingual.shouldPartiallyTranslateWidget(widget)) {
+        if (ids.getWidgetIdAnyTranslated().contains(widgetId)) {
+            sqlQuery.setCategory(null);
+            sqlQuery.setSubCategory(null);
+            sqlQuery.setSource(null);
+            translatedText = getTranslationFromQuery(sqlQuery, originalText, textToTranslate);
+        } else if (widgetsUtilRLingual.shouldPartiallyTranslateWidget(widget)) {
             // for widgets like "Name: <playerName>" (found in accounts management tab), where only the part of the text should be translated
             // order:
             // textToTranslate = "Name: <playerName>" -> translatedText = "名前: <playerName>" -> translatedText = "名前: Durial321"
@@ -338,10 +350,6 @@ public class WidgetCapture {
         if (text == null) {
             return "";
         }
-        // special case: if the text should only be partially translated
-        if (widgetsUtilRLingual.shouldPartiallyTranslateWidget(widget)) {
-            return widgetsUtilRLingual.getEnColVal4PartialTranslation(widget);
-        }
 
         text = SqlQuery.replaceSpecialSpaces(text);
         text = Colors.getEnumeratedColorWord(text);
@@ -352,6 +360,13 @@ public class WidgetCapture {
             text = text.replace("<br> ", " ");
             text = text.replace("<br>", " ");
         }
+
+        // special case: if the text should only be partially translated
+        if (widgetsUtilRLingual.shouldPartiallyTranslateWidget(widget)) {
+            String enColVal = ids.getPartialTranslationManager().getMatchingEnColVal(text);
+            return widgetsUtilRLingual.getEnColVal4PartialTranslation(widget, enColVal);
+        }
+
         return text;
     }
 
@@ -364,16 +379,16 @@ public class WidgetCapture {
 //        || sqlQuery.getSource().equals(SqlVariables.sourceValue4IgnoreTab.getValue())
 //        || sqlQuery.getSource().equals(SqlVariables.sourceValue4AccountManagementTab.getValue()))) {
         //if (sqlQuery.getSource() != null && sqlQuery.getSource().equals(SqlVariables.sourceValue4MusicTab.getValue())){
-        if (isChildWidgetOf(widget, ids.getLoginScreenId())){
+        if (isChildWidgetOf(widget, ids.getWidgetIdCA())){// change for new dump category
             if (widget.getText() == null || !shouldTranslateWidget(widget)) {
                 return;
             }
-            String fileName = "loginScreen.txt";
+            String fileName = "combAchvmt.txt"; // change for new dump category
             String textToDump = getEnglishColValFromWidget(widget);
 
             // for partial translation
             if (widgetsUtilRLingual.shouldPartiallyTranslateWidget(widget)) {
-                textToDump = widgetsUtilRLingual.getEnColVal4PartialTranslation(widget);
+                textToDump = widgetsUtilRLingual.getEnColVal4PartialTranslation(widget, ids.getPartialTranslationManager().getMatchingEnColVal(widget.getText()));
             }
             String category = sqlQuery.getCategory();
             String subCategory = sqlQuery.getSubCategory();
@@ -387,8 +402,10 @@ public class WidgetCapture {
             if (source == null) {
                 source = "";
             }
-
-            if (ids.getWidgetId2SplitTextAtBr().contains(widget.getId())) {
+            if (ids.getWidgetIdAnyTranslated().contains(widget.getId())) {
+                return;
+                //appendIfNotExistToFile(textToDump + "\t\t\t", fileName);
+            } else if (ids.getWidgetId2SplitTextAtBr().contains(widget.getId())) {
                 String[] textList = textToDump.split("<br>");
                 for (String text : textList) {
                     appendIfNotExistToFile(text + "\t" + category +
@@ -408,6 +425,17 @@ public class WidgetCapture {
         Widget parent = widget.getParent();
         while (parent != null) {
             if (parent.getId() == parentWidgetId) {
+                return true;
+            }
+            parent = parent.getParent();
+        }
+        return false;
+    }
+
+    private boolean isChildWidgetOf(Widget widget, Set<Integer> parentWidgetIds) {
+        Widget parent = widget.getParent();
+        while (parent != null) {
+            if (parentWidgetIds.contains(parent.getId())) {
                 return true;
             }
             parent = parent.getParent();

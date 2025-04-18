@@ -34,6 +34,7 @@ public enum SqlVariables {
     subcategoryValue4MainTabs("mainTabs","sub_category"), // for main tabs, such as combat options, skills, character summary, etc.
     subCategoryValue4ChatButtons("chatButtons","sub_category"), // for chat buttons, such as report, trade, On, Off, Hide, etc.
     subCategoryValue4LoginScreen("loginScreen","sub_category"),
+    subCategoryValue4CA("combAchvmt","sub_category"), // for combat achievements and achievement diary
 
 
     // possible source values

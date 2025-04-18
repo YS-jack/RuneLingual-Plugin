@@ -197,17 +197,21 @@ public class WidgetsUtilRLingual
 
 	public boolean shouldPartiallyTranslateWidget(Widget widget) {
 		String enColVal = Transformer.getEnglishColValFromText(widget.getText());
-		return ids.getPartialTranslationManager().hasId(widget.getId())
-				&& ids.getPartialTranslationManager().stringMatchesEnColVal(enColVal, widget.getId());
+		boolean hasId = ids.getPartialTranslationManager().hasId(widget.getId());
+		if (!hasId) {
+			return false;
+		}
+		boolean stringMatch = ids.getPartialTranslationManager().doesStringMatchEnColVal(enColVal);
+		return stringMatch;
 	}
 
 	public boolean shouldPartiallyTranslateText(String string) {
 		return ids.getPartialTranslationManager().doesStringMatchEnColVal(string);
 	}
 
-	public String getEnColVal4PartialTranslation(Widget widget) {
+	public String getEnColVal4PartialTranslation(Widget widget, String text) {
 		int widgetId = widget.getId();
-		return ids.getPartialTranslationManager().getEnColVal(widgetId);
+		return ids.getPartialTranslationManager().getEnColVal(widgetId, text);
 	}
 
 	public String getMatchingEnColVal4PartialTranslation(String string) {

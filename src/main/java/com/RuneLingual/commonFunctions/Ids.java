@@ -75,11 +75,6 @@ public class Ids {
     //general interface
     private final int widgetIdSkillGuide = 14024705;
 
-    // partial translations
-    private final int playerNameInAccManTab = 7143474;
-    private final int widgetIdPvPArenaNan = 49938440;//group tab, click PvP Arena button in top right while in an unrelated guest clan
-    private final int widgetIdInOtherActivityChannel = 4980752;// group tab, select an activity in drop down menu, click join, then select another activity
-
     /* example for adding set of widget ids
     private final Set<Integer> idSet4Raids_Colosseum = Set.of(
             1234, // widget id of parent containing text of display board for raids 1
@@ -96,10 +91,17 @@ public class Ids {
             ComponentID.IGNORE_LIST_FULL_CONTAINER,
             widgetIdGimGroupName, //gim group name in group tab
             widgetIdClockGIM, widgetIdClockNonGIM,
-            ComponentID.MUSIC_SCROLL_CONTAINER, // if music is not ignored here, having the music tab opened will drop fps
+            //ComponentID.MUSIC_SCROLL_CONTAINER, // if music is not ignored here, having the music tab opened will drop fps
             //widgetIdMusicCurrent // may need to be ignored if clue solver reads this widget's value
             settingsSearchBarId
     );
+
+    // dont translate with api
+    private final Set<Integer> widgetIdNot2ApiTranslate = Set.of(
+            ComponentID.MUSIC_SCROLL_CONTAINER // if music is not ignored here, having the music tab opened will drop fps
+
+    );
+
 
     private final Set<Integer> widgetIdItemName = Set.of(
             ComponentID.COMBAT_WEAPON_NAME // combat weapon name in combat options
@@ -115,6 +117,18 @@ public class Ids {
 
     private final Set<Integer> widgetIdQuestName = Set.of(
             26148871 // quest name in quest list
+    );
+
+    private final Set<Integer> widgetIdAnyTranslated = Set.of(// dont specify any categoriries
+            46923790 // the boss names in the "Combat Achievement - Bosses"
+    );
+
+    private final Set<Integer> widgetIdCA = Set.of(
+            46989312, // combat achievement overview
+            46858241, // combat achievement tasks
+            46923776, // combat achievement Bosses
+            46792705, // combat achievement Rewards
+            46727169 // combat achievement specific bosses
     );
 
     // other specific ids
@@ -204,6 +218,14 @@ public class Ids {
         widget2ModDict.add(houseOptionsHoverTextId, 4, false, true, false, false, false, 2, 2, 2, 0);
     }
 
+    // partial translations
+    private final int playerNameInAccManTab = 7143474;
+    private final int widgetIdPvPArenaNan = 49938440;//group tab, click PvP Arena button in top right while in an unrelated guest clan
+    private final int widgetIdInOtherActivityChannel = 4980752;// group tab, select an activity in drop down menu, click join, then select another activity
+    private final int playerNameInCombAch = 46989317;// the player name in "Overview" of combat achievements tab
+    private final int topBossInCombAch = 46989326;// the texts under Combat Profile section in "Overview" of combat achievements tab
+    private final int monsterTargetNameInCombAch = 46858252;// "Monster: ..." in combat achievements tab (tasks)
+
     private void initPartialTranslations() {
         /* use for when part of a text should not be translated / translated as item name, object name etc, and other parts should be translated by translator/api
          * for placeholder types, use PLAYER_NAME, ITEM_NAME, NPC_NAME, OBJECT_NAME, QUEST_NAME
@@ -246,6 +268,22 @@ public class Ids {
                 List.of("Teleport to <colNum0>","</col>"),
                 List.of(ANY_TRANSLATED)// activity name goes here
         );
+        partialTranslationManager.addPartialTranslation(
+                topBossInCombAch,
+                List.of("", " (<Num0>)"),
+                List.of(ANY_TRANSLATED)// boss names. ANY_TRANSLATED and not NPC_NAME because it's not always npc name, eg Wintertodt)
+        );
+        partialTranslationManager.addPartialTranslation(
+                playerNameInCombAch,
+                List.of("Combat Profile - "),
+                List.of(PLAYER_NAME)
+        );
+        partialTranslationManager.addPartialTranslation(
+                monsterTargetNameInCombAch,
+                List.of("Monster: <colNum0>","</col>"),
+                List.of(ANY_TRANSLATED)// monster name, but includes non npc names like "Royal Titans", "Wintertodt"
+        );
+
         // to add placeholder at the beginning of the text, add an empty string to the fixedTextParts
         // eg.  partialTranslationManager.addPartialTranslation(
         //                playerNameInAccManTab,

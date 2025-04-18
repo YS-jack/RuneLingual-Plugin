@@ -12,6 +12,7 @@ import net.runelite.api.widgets.Widget;
 
 import javax.inject.Inject;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Getter
@@ -206,15 +207,35 @@ public class PartialTranslationManager {
     public boolean hasId(int id){
         return partialTranslations.stream().anyMatch(partialTranslation -> partialTranslation.getId() == id);
     }
-    public String getEnColVal(int id){
-        return partialTranslations.stream()
+    public String getEnColVal(int id, String text) {
+        // Get a list of partial translations that match the given id
+        List<PartialTranslation> matchingTranslationsIds = partialTranslations.stream()
                 .filter(partialTranslation -> partialTranslation.getId() == id)
-                .findFirst()
-                .map(PartialTranslation::getEnColVal)
-                .orElse(null);
+                .collect(Collectors.toList());
+
+        // Iterate through the matching translations and find one that matches the text
+        for (PartialTranslation partialTranslation : matchingTranslationsIds) {
+            if (doesStringMatchEnColVal(text, partialTranslation.getEnColVal())) {
+                return partialTranslation.getEnColVal();
+            }
+        }
+
+        // Return null if no match is found
+        return null;
+    }
+
+    // Helper function to check if the text matches the enColVal pattern
+    private boolean doesStringMatchEnColVal(String text, String enColVal) {
+        if (text == null || enColVal == null) {
+            return false;
+        }
+        // Escape special regex characters in the template except for the placeholder
+        String regex = enColVal.replaceAll("([\\\\.*+\\[\\](){}|^$])", "\\\\$1")
+                .replaceAll("<!.+?>", ".*");
+        return text.matches(regex);
     }
     public String translateWidget(Widget widget, String translationWithPlaceHolder, String originalText, Colors defaultColor) {
-        String enColVal = getEnColVal(widget.getId());
+        String enColVal = getEnColVal(widget.getId(), widget.getText());
         return translate(enColVal, translationWithPlaceHolder, originalText, defaultColor);
     }
     public String translateString(String textToTranslate, String translationWithPlaceHolder, String originalText, Colors defaultColor) {
@@ -298,7 +319,7 @@ public class PartialTranslationManager {
         if(!hasId(id)){
             return false;
         }
-        String template = getEnColVal(id);
+        String template = getEnColVal(id, text);
         // Escape special regex characters in the template except for the placeholder
         String regex = template.replaceAll("([\\\\.*+\\[\\](){}|^$])", "\\\\$1")
                 .replaceAll("<!.+?>", ".*");
@@ -313,8 +334,7 @@ public class PartialTranslationManager {
     public boolean doesStringMatchEnColVal(String text) {
         for(PartialTranslation partialTranslation : partialTranslations){
             // Escape special regex characters in the template except for the placeholder
-            String regex = partialTranslation.getEnColVal().replaceAll("([\\\\.*+\\[\\](){}|^$])", "\\\\$1")
-                    .replaceAll("<!.+?>", ".*");
+            String regex = getRegex(partialTranslation);
             if(text.matches(regex)){
                 return true;
             }
@@ -323,14 +343,36 @@ public class PartialTranslationManager {
     }
 
     public String getMatchingEnColVal(String text) {
+        List<String> matchingEnColVals = getMatchingEnColValList(text);
+        if(matchingEnColVals != null && !matchingEnColVals.isEmpty()){
+            return matchingEnColVals.get(0);
+        }
+        // If no match is found, return null
+        return null;
+    }
+
+    public List<String> getMatchingEnColValList(String text) {
+        text = Colors.getEnumeratedColorWord(text);
+        List<String> matchingEnColVals = new ArrayList<>();
         for(PartialTranslation partialTranslation : partialTranslations){
             // Escape special regex characters in the template except for the placeholder
-            String regex = partialTranslation.getEnColVal().replaceAll("([\\\\.*+\\[\\](){}|^$])", "\\\\$1")
-                    .replaceAll("<!.+?>", ".*");
+            String regex = getRegex(partialTranslation);
+            regex = regex.replaceAll("<Num\\d>", "\\\\d+").replaceAll("<colNum\\d+>", "<colNum\\\\d+>");
             if(text.matches(regex)){
-                return partialTranslation.getEnColVal();
+                matchingEnColVals.add(partialTranslation.getEnColVal());
             }
         }
+        if(!matchingEnColVals.isEmpty()){
+            return matchingEnColVals;
+        }
         return null;
+    }
+
+    private String getRegex(PartialTranslation partialTranslation) {
+        String regex = partialTranslation.getEnColVal().replaceAll("([\\\\.*+\\[\\](){}|^$])", "\\\\$1")
+                .replaceAll("<!.+?>", ".*")
+                .replaceAll("<asis>", "")
+                .replaceAll("</asis>", "");
+        return regex;
     }
 }
