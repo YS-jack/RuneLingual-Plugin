@@ -93,10 +93,14 @@ public class SidePanel extends PluginPanel{
         label.addMouseListener(new MouseAdapter() {
                @Override
                public void mouseClicked(MouseEvent e) {
-                   try {
-                       Desktop.getDesktop().browse(new URI(url));
-                   } catch (Exception ex) {
-                       log.error("Error opening link", ex);
+                   if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                       try {
+                           Desktop.getDesktop().browse(new URI(url));
+                       } catch (Exception ex) {
+                           log.error("Error opening link", ex);
+                       }
+                   } else {
+                       log.error("Desktop browsing is not supported on this platform.");
                    }
                }
 

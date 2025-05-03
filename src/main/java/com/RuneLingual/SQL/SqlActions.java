@@ -185,4 +185,21 @@ public class SqlActions {
         return results.toArray(new String[0]);
     }
 
+    public static String[][] executePreparedStatement(PreparedStatement preparedStatement) throws SQLException {
+        try (ResultSet resultSet = preparedStatement.executeQuery()) {
+            ArrayList<String[]> results = new ArrayList<>();
+            int columnCount = resultSet.getMetaData().getColumnCount();
+
+            while (resultSet.next()) {
+                String[] row = new String[columnCount];
+                for (int i = 0; i < columnCount; i++) {
+                    row[i] = resultSet.getString(i + 1);
+                }
+                results.add(row);
+            }
+
+            return results.toArray(new String[0][0]);
+        }
+    }
+
 }
