@@ -74,6 +74,7 @@ public class Ids {
 
     //general interface
     private final int widgetIdSkillGuide = 14024705;
+    private final int rootWidgetId = 10747970;
 
     /* example for adding set of widget ids
     private final Set<Integer> idSet4Raids_Colosseum = Set.of(

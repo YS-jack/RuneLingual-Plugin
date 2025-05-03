@@ -261,7 +261,7 @@ public class SearchSection extends JPanel {
                 " = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(query);
         preparedStatement.setString(1, searchText.toLowerCase());
-        preparedStatement.setString(2, SqlVariables.nameInCategory.getValue());
+        preparedStatement.setString(2, SqlVariables.categoryValue4Name.getValue());
         return preparedStatement;
     }
 
@@ -276,7 +276,7 @@ public class SearchSection extends JPanel {
                 " = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(query);
         preparedStatement.setString(1, "%" + searchText.toLowerCase() + "%");
-        preparedStatement.setString(2, SqlVariables.nameInCategory.getValue());
+        preparedStatement.setString(2, SqlVariables.categoryValue4Name.getValue());
         return preparedStatement;
     }
 }

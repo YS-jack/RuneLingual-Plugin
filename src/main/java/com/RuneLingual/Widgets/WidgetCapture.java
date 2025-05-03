@@ -13,6 +13,7 @@ import net.runelite.api.Client;
 import net.runelite.api.widgets.*;
 
 import javax.inject.Inject;
+import java.awt.*;
 import java.util.*;
 
 import static com.RuneLingual.Widgets.WidgetsUtilRLingual.removeBrAndTags;
@@ -58,8 +59,9 @@ public class WidgetCapture {
     private void translateWidgetRecursive(Widget widget,SqlQuery sqlQuery) {
         int widgetId = widget.getId();
 
-        // stop the recursion if the widget is hidden or should be ignored
-        if (widget.isHidden() || ids.getWidgetIdNot2Translate().contains(widgetId)) {
+        // stop the recursion if the widget is hidden, outside the window or should be ignored
+        // without the isOutsideWindow check, client will lag heavily when opening deep widget hierarchy, like combat achievement task list
+        if (widget.isHidden() || isOutsideWindow(widget) || ids.getWidgetIdNot2Translate().contains(widgetId)) {
             return;
         }
         if (ids.getWidgetIdNot2ApiTranslate().contains(widgetId)
@@ -139,7 +141,7 @@ public class WidgetCapture {
                 queryToPass.setColor(textColor);
             }
             // debug: if the widget is the target for dumping
-            ifIsDumpTarget_thenDump(widget, queryToPass);
+            //ifIsDumpTarget_thenDump(widget, queryToPass);
             // translate the widget text
             translateWidgetText(widget, queryToPass);
 
@@ -334,8 +336,7 @@ public class WidgetCapture {
         String modifiedText = text.trim();
         modifiedText = Colors.removeAllTags(modifiedText);
         return !modifiedText.isEmpty()
-                && !widgetsUtilRLingual.isTranslatedWidget(text)
-                //&& !pastTranslationResults.contains(text)
+                && !pastTranslationResults.contains(text)
                 && modifiedText.matches(".*[a-zA-Z].*")
                 && !plugin.getConfig().getInterfaceTextConfig().equals(RuneLingualConfig.ingameTranslationConfig.DONT_TRANSLATE);
     }
@@ -450,6 +451,19 @@ public class WidgetCapture {
         } else if (ids.getWidgetIdChatButton2SetXTextAliRight().contains(widgetId) && plugin.getConfig().getSelectedLanguage().isChatButtonHorizontal()) {
             widget.setXTextAlignment(WidgetTextAlignment.RIGHT);
         }
+    }
+
+    private boolean isOutsideWindow(Widget widget) {
+        Widget canvasWidget = client.getWidget(ids.getRootWidgetId());
+        if (canvasWidget == null) {
+            return true;
+        }
+        Rectangle canvasRec = canvasWidget.getBounds();
+        Rectangle widgetRec = widget.getBounds();
+        return widgetRec.x + widgetRec.width < canvasRec.x
+                || widgetRec.x > canvasRec.x + canvasRec.width
+                || widgetRec.y + widgetRec.height < canvasRec.y
+                || widgetRec.y > canvasRec.y + canvasRec.height;
     }
 }
 

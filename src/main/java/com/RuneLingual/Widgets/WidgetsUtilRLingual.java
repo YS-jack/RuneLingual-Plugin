@@ -170,9 +170,6 @@ public class WidgetsUtilRLingual
 		String tmp = str.replaceAll("(?<=\\S)<br>(?=\\S)", " ");
 		return Colors.removeNonImgTags(tmp);
 	}
-	public boolean isTranslatedWidget(String text) {
-		return plugin.getWidgetCapture().pastTranslationResults.contains(text);
-	}
 
 	public void changeWidgetSize_ifNeeded(Widget widget) {
 		int widgetId = widget.getId();
