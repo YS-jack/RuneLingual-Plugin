@@ -225,13 +225,19 @@ public class PartialTranslationManager {
     }
 
     // Helper function to check if the text matches the enColVal pattern
+    // enColVal = "slay <!NPC_NAME0> in <!LOCATION_NAME1>"
+    // text = "slay blue dragons in Taverley"
     private boolean doesStringMatchEnColVal(String text, String enColVal) {
         if (text == null || enColVal == null) {
             return false;
         }
+        if(text.equals(enColVal)){
+            return true;
+        }
         // Escape special regex characters in the template except for the placeholder
         String regex = enColVal.replaceAll("([\\\\.*+\\[\\](){}|^$])", "\\\\$1")
-                .replaceAll("<!.+?>", ".*");
+                .replaceAll("<!.+?>", ".*")
+                .replaceAll("<colNum\\d+>", "<col=.*?>");
         return text.matches(regex);
     }
     public String translateWidget(Widget widget, String translationWithPlaceHolder, String originalText, Colors defaultColor) {

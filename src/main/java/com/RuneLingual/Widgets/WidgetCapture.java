@@ -228,8 +228,8 @@ public class WidgetCapture {
             // for widgets like "Name: <playerName>" (found in accounts management tab), where only the part of the text should be translated
             // order:
             // textToTranslate = "Name: <playerName>" -> translatedText = "名前: <playerName>" -> translatedText = "名前: Durial321"
-            String translationWIthPlaceHolder = getTranslationFromQuery(sqlQuery, originalText, textToTranslate);
-            translatedText = ids.getPartialTranslationManager().translateWidget(widget, translationWIthPlaceHolder, originalText, sqlQuery.getColor());
+            String translationWithPlaceHolder = getTranslationFromQuery(sqlQuery, originalText, textToTranslate);
+            translatedText = ids.getPartialTranslationManager().translateWidget(widget, translationWithPlaceHolder, originalText, sqlQuery.getColor());
         } else if (!ids.getWidgetId2SplitTextAtBr().contains(widgetId)// for most cases
             && !ids.getWidgetId2KeepBr().contains(widgetId)) {
             translatedText = getTranslationFromQuery(sqlQuery, originalText, textToTranslate);
