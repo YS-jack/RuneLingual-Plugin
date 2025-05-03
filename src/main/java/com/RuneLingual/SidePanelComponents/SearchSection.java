@@ -9,6 +9,9 @@ import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.SQL.*;
@@ -76,18 +79,14 @@ public class SearchSection extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 removeAllRows(tableModelEn);
-                String searchQuery = getExactMatchQuery(englishInput.getText(), SqlVariables.columnEnglish.getColumnName());
-                String searchAlikeQuery = getAlikeQuery(englishInput.getText(), SqlVariables.columnEnglish.getColumnName());
+                Connection connection = plugin.getConn(); // Reuse the connection without closing it
+                String[][] results = executeExactMatchQuery(connection, englishInput.getText(), SqlVariables.columnEnglish.getColumnName());
+                String[][] resultsAlike = executeAlikeQuery(connection, englishInput.getText(), SqlVariables.columnEnglish.getColumnName());
 
-                //log.info("Search Query: " + searchQuery);
-                SqlActions sqlActions = new SqlActions(plugin);
-                String[][] results = sqlActions.executeSearchQuery(searchQuery);
-                String[][] resultsAlike = sqlActions.executeSearchQuery(searchAlikeQuery);
-                //log.info("Results: " + results.length);
-                for(String[] result : results){
+                for (String[] result : results) {
                     tableModelEn.addRow(new String[]{result[0], result[1], result[2]});
                 }
-                for(String[] result : resultsAlike){
+                for (String[] result : resultsAlike) {
                     tableModelEn.addRow(new String[]{result[0], result[1], result[2]});
                 }
 
@@ -102,18 +101,14 @@ public class SearchSection extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 removeAllRows(tableModelForeign);
-                String searchQuery = getExactMatchQuery(foreignInput.getText(), SqlVariables.columnTranslation.getColumnName());
-                String searchAlikeQuery = getAlikeQuery(foreignInput.getText(), SqlVariables.columnTranslation.getColumnName());
+                Connection connection = plugin.getConn(); // Reuse the connection without closing it
+                String[][] results = executeExactMatchQuery(connection, foreignInput.getText(), SqlVariables.columnTranslation.getColumnName());
+                String[][] resultsAlike = executeAlikeQuery(connection, foreignInput.getText(), SqlVariables.columnTranslation.getColumnName());
 
-                //log.info("Search Query: " + searchQuery);
-                SqlActions sqlActions = new SqlActions(plugin);
-                String[][] results = sqlActions.executeSearchQuery(searchQuery);
-                String[][] resultsAlike = sqlActions.executeSearchQuery(searchAlikeQuery);
-                //log.info("Results: " + results.length);
-                for(String[] result : results){
+                for (String[] result : results) {
                     tableModelForeign.addRow(new String[]{result[1], result[0], result[2]});
                 }
-                for(String[] result : resultsAlike){
+                for (String[] result : resultsAlike) {
                     tableModelForeign.addRow(new String[]{result[1], result[0], result[2]});
                 }
 
@@ -165,30 +160,6 @@ public class SearchSection extends JPanel {
             textResult = "結果";
             textType = "タイプ";
         }// todo: add more languages as needed
-    }
-
-    private String getExactMatchQuery(String searchText, String searchColumnName) {
-        return "SELECT " +
-                SqlVariables.columnEnglish.getColumnName() + "," +
-                SqlVariables.columnTranslation.getColumnName() + "," +
-                SqlVariables.columnSubCategory.getColumnName() +
-                " FROM " + SqlActions.tableName +
-                " WHERE LOWER(" + searchColumnName + ")" +
-                " = '" + searchText.toLowerCase().replace("'","''") + "'" +
-                " AND " + SqlVariables.columnCategory.getColumnName() +
-                " = '" + SqlVariables.nameInCategory.getValue() +"'";
-    }
-
-    private String getAlikeQuery(String searchText, String searchColumnName) {
-        return "SELECT " +
-                SqlVariables.columnEnglish.getColumnName() + "," +
-                SqlVariables.columnTranslation.getColumnName() + "," +
-                SqlVariables.columnSubCategory.getColumnName() +
-                " FROM " + SqlActions.tableName +
-                " WHERE LOWER(" + searchColumnName + ")" +
-                " LIKE '%" + searchText.toLowerCase().replace("'","''") + "%'" +
-                " AND " + SqlVariables.columnCategory.getColumnName() +
-                " = '" + SqlVariables.nameInCategory.getValue() +"'";
     }
 
     private JTable addEnResultTable(){
@@ -262,4 +233,51 @@ public class SearchSection extends JPanel {
         return label;
     }
 
+    private String[][] executeExactMatchQuery(Connection connection, String searchText, String searchColumnName) {
+        try (PreparedStatement preparedStatement = prepareExactMatchStatement(connection, searchText, searchColumnName)) {
+            return SqlActions.executePreparedStatement(preparedStatement);
+        } catch (SQLException e) {
+            log.error("Error executing exact match query", e);
+            return new String[0][0];
+        }
+    }
+
+    private String[][] executeAlikeQuery(Connection connection, String searchText, String searchColumnName) {
+        try (PreparedStatement preparedStatement = prepareAlikeStatement(connection, searchText, searchColumnName)) {
+            return SqlActions.executePreparedStatement(preparedStatement);
+        } catch (SQLException e) {
+            log.error("Error executing alike query", e);
+            return new String[0][0];
+        }
+    }
+
+    private PreparedStatement prepareExactMatchStatement(Connection connection, String searchText, String searchColumnName) throws SQLException {
+        String query = "SELECT " +
+                SqlVariables.columnEnglish.getColumnName() + "," +
+                SqlVariables.columnTranslation.getColumnName() + "," +
+                SqlVariables.columnSubCategory.getColumnName() +
+                " FROM " + SqlActions.tableName +
+                " WHERE LOWER(" + searchColumnName + ") = ? AND " +
+                SqlVariables.columnCategory.getColumnName() +
+                " = ?";
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        preparedStatement.setString(1, searchText.toLowerCase());
+        preparedStatement.setString(2, SqlVariables.nameInCategory.getValue());
+        return preparedStatement;
+    }
+
+    private PreparedStatement prepareAlikeStatement(Connection connection, String searchText, String searchColumnName) throws SQLException {
+        String query = "SELECT " +
+                SqlVariables.columnEnglish.getColumnName() + "," +
+                SqlVariables.columnTranslation.getColumnName() + "," +
+                SqlVariables.columnSubCategory.getColumnName() +
+                " FROM " + SqlActions.tableName +
+                " WHERE LOWER(" + searchColumnName + ") LIKE ? AND " +
+                SqlVariables.columnCategory.getColumnName() +
+                " = ?";
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        preparedStatement.setString(1, "%" + searchText.toLowerCase() + "%");
+        preparedStatement.setString(2, SqlVariables.nameInCategory.getValue());
+        return preparedStatement;
+    }
 }

@@ -102,6 +102,7 @@ public class RuneLingualPlugin extends Plugin {
     @Getter
     private Downloader downloader;
     @Inject
+    @Getter
     private H2Manager h2Manager;
     @Inject
     @Getter
