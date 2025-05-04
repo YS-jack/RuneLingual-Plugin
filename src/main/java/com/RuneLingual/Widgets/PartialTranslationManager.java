@@ -167,23 +167,15 @@ public class PartialTranslationManager {
     }
 
     public static Colors getPlaceholderColor(String text, Colors defaultColor, Colors[] colors){
-        /* if the text ends with a color tag, return that color
-        * eg. in "slay <col=ff0000>blue dragons<col=ffffff> in Taverley" -> text = "slay <col=ff0000>", which ends with color tag, so return Colors.RED
-        */
-        if(text.matches(".*<col=[a-zA-Z0-9]*?>$")){
-            return Colors.getColorFromHex(text.substring(text.lastIndexOf("<col=") + 5, text.lastIndexOf(">")));
+        /*
+         * placeholder color will always be the last color in the array
+         * eg. text = "slay <colNum0>", colors = ["ff0000", "ffffff"] -> colNum0 is always the last color so return Color for ffffff
+         */
+
+        if (text.matches(".*<col.*?>$")) { // if the text ends with a color tag
+            return colors[colors.length-1]; // return the last color in the array
         }
 
-        /*
-         * the text can end in color placeholder tags, eg. "<colNum0>blue dragons<colNum1> in Taverley"
-         * in this case
-         * eg. text = "slay <colNum0>", colors = ["ff0000", "ffffff"] -> colNum0 is the first color so return Colors.RED
-         */
-        for (int i = 0; i < colors.length; i++) {
-            if(text.matches(".*<colNum" + i + ">$")){
-                return colors[i];
-            }
-        }
         return defaultColor;
     }
 
@@ -363,7 +355,6 @@ public class PartialTranslationManager {
         for(PartialTranslation partialTranslation : partialTranslations){
             // Escape special regex characters in the template except for the placeholder
             String regex = getRegex(partialTranslation);
-            regex = regex.replaceAll("<Num\\d>", "\\\\d+").replaceAll("<colNum\\d+>", "<colNum\\\\d+>");
             if(text.matches(regex)){
                 matchingEnColVals.add(partialTranslation.getEnColVal());
             }
@@ -378,7 +369,9 @@ public class PartialTranslationManager {
         String regex = partialTranslation.getEnColVal().replaceAll("([\\\\.*+\\[\\](){}|^$])", "\\\\$1")
                 .replaceAll("<!.+?>", ".*")
                 .replaceAll("<asis>", "")
-                .replaceAll("</asis>", "");
+                .replaceAll("</asis>", "")
+                .replaceAll("<Num\\d>", "\\\\d+")
+                .replaceAll("<colNum\\d+>", "<colNum\\\\d+>");
         return regex;
     }
 }

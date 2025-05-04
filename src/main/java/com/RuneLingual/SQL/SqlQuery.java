@@ -72,6 +72,12 @@ public class SqlQuery implements Cloneable{
         if(result.length == 0 && searchAlike){
             return new String[]{getPlaceholderMatches()};
         }
+        if(result.length == 0){
+            // search again ignoring cases
+            query = getSearchQuery_IgnoreCase();
+            query = query.replace("*", column.getColumnName());
+            result = plugin.getSqlActions().executeSearchQuery(query);
+        }
         String[] translations = new String[result.length];
         for (int i = 0; i < result.length; i++){
             translations[i] = result[i][0];
@@ -177,6 +183,35 @@ public class SqlQuery implements Cloneable{
         String query = "SELECT * FROM " + SqlActions.tableName + " WHERE ";
         if (english != null && !english.isEmpty()){
             query += SqlVariables.columnEnglish.getColumnName() + " = '" + english.replace("'","''") + "' AND ";
+        }
+        if (category != null && !category.isEmpty()){
+            query += SqlVariables.columnCategory.getColumnName() + " = '" + category + "' AND ";
+        }
+        if (subCategory != null && !subCategory.isEmpty()){
+            query += SqlVariables.columnSubCategory.getColumnName() + " = '" + subCategory + "' AND ";
+        }
+        if (source != null && !source.isEmpty()){
+            query += SqlVariables.columnSource.getColumnName() + " = '" + source + "' AND ";
+        }
+        if (translation != null && !translation.isEmpty()){
+            query += SqlVariables.columnTranslation.getColumnName() + " = '" + translation.replace("'","''") + "' AND ";
+        } //todo: add more here if columns to be filtered are added
+
+        if (query.endsWith("AND ")){
+            query = query.substring(0, query.length() - 5);
+            return query;
+        }
+        return null;
+    }
+
+    public String getSearchQuery_IgnoreCase() {
+        english = replaceSpecialSpaces(english);
+
+        // creates query that matches all non-empty fields
+        // returns null if no fields are filled
+        String query = "SELECT * FROM " + SqlActions.tableName + " WHERE UPPER(";
+        if (english != null && !english.isEmpty()){
+            query += SqlVariables.columnEnglish.getColumnName() + ") = UPPER('" + english.replace("'","''") + "') AND ";
         }
         if (category != null && !category.isEmpty()){
             query += SqlVariables.columnCategory.getColumnName() + " = '" + category + "' AND ";
