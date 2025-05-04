@@ -12,6 +12,9 @@ import javax.inject.Inject;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,6 +70,8 @@ public class PastTranslationManager {
                 return; // Exit the method if we can't create the directory
             }
             try {
+                Path filePath = Paths.get(pastTranslationFile);
+                Files.createDirectories(filePath.getParent());
                 Files.createFile(Paths.get(pastTranslationFile));
             } catch (FileAlreadyExistsException e) {
                 log.info("File already exists: " + pastTranslationFile);
