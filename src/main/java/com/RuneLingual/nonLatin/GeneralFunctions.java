@@ -86,7 +86,7 @@ public class GeneralFunctions {
         returns: {"monster": "blue dragons", "location": "Taverley"}
          */
         Map<String, String> result = new HashMap<>();
-        String[] fixedTexts = placeholderText.split("(?=<![^>]+>)|(?<=\\w>)"); // fixedTexts = ["slay ", "<!monster>", " in ", "<!location>"]
+        String[] fixedTexts = placeholderText.split("(?=<![^>]+>)|(?=<Num\\d+>)|(?<=\\w>)"); // fixedTexts = ["slay ", "<!monster>", " in ", "<!location>"]
 
         StringBuilder regex = new StringBuilder("^");
         List<String> placeholders = new ArrayList<>();
@@ -95,6 +95,8 @@ public class GeneralFunctions {
             if (segment.startsWith("<!") && segment.endsWith(">")) {
                 placeholders.add(segment.substring(2, segment.length() - 1));
                 regex.append("(.*)");
+            } else if(segment.matches("<Num\\d+>")) {
+                regex.append("(\\d+)"); // for <Num1>, <Num2>, etc.
             } else {
                 regex.append(Pattern.quote(segment));
             }

@@ -229,7 +229,8 @@ public class PartialTranslationManager {
         // Escape special regex characters in the template except for the placeholder
         String regex = enColVal.replaceAll("([\\\\.*+\\[\\](){}|^$])", "\\\\$1")
                 .replaceAll("<!.+?>", ".*")
-                .replaceAll("<colNum\\d+>", "<col=.*?>");
+                .replaceAll("<colNum\\d+>", "<col=.*?>")
+                .replaceAll("<Num\\d+>", "\\\\d+");
         return text.matches(regex);
     }
     public String translateWidget(Widget widget, String translationWithPlaceHolder, String originalText, Colors defaultColor) {
@@ -258,7 +259,7 @@ public class PartialTranslationManager {
         // from the originalText and enColVal, get the content of each placeholders
         // eg. <!NPC_NAME0> = blue dragons, <!LOCATION_NAME0> = Taverley
         String originalWithoutColNum = originalText.replaceAll("<[^!]+?>", ""); // remove all tags that doesn't start with <! (eg. <col=ffffff>), which means they are not placeholders for partial translation
-        String enColValWithoutColNum = enColVal.replaceAll("<[^!]+?>", "");
+        String enColValWithoutColNum = enColVal.replaceAll("(<col.*?>)|(</col>)", "");
         Map<String, String> placeholder2Content = GeneralFunctions.getPlaceholder2Content(originalWithoutColNum, enColValWithoutColNum); // {"NPC_NAME0": "blue dragons", "LOCATION_NAME0": "Taverley"}
 
         // translationWithPlaceholder's color tag is specific (eg. <col=ffffff>), but the text given at initialization is not (eg. <colNum0>)
@@ -276,7 +277,9 @@ public class PartialTranslationManager {
         // translate the content of each placeholders
         assert partialTranslation != null;
         List<String> phContent = new ArrayList<>(placeholder2Content.values()); // phContent = ["blue dragons", "Taverley"]
-
+        if(phContent.isEmpty()){
+            return Colors.surroundWithColorTag(originalText, defaultColor);
+        }
         List<String> translatedPlaceholders = partialTranslation.translateAllPlaceholders(phContent, defaultColor, colorArray); // translatedPlaceholders = ["青い竜", "ターベリー"]
 
         if (translatedPlaceholders == null) {
@@ -369,9 +372,9 @@ public class PartialTranslationManager {
         String regex = partialTranslation.getEnColVal().replaceAll("([\\\\.*+\\[\\](){}|^$])", "\\\\$1")
                 .replaceAll("<!.+?>", ".*")
                 .replaceAll("<asis>", "")
-                .replaceAll("</asis>", "")
-                .replaceAll("<Num\\d>", "\\\\d+")
-                .replaceAll("<colNum\\d+>", "<colNum\\\\d+>");
+                .replaceAll("</asis>", "");
+        regex = regex + "|" + regex.replaceAll("<Num\\d>", "\\\\d+")
+                                .replaceAll("<colNum\\d+>", "<col.+>");
         return regex;
     }
 }

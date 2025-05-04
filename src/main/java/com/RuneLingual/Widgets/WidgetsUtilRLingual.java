@@ -198,7 +198,7 @@ public class WidgetsUtilRLingual
 		if (!hasId) {
 			return false;
 		}
-		boolean stringMatch = ids.getPartialTranslationManager().doesStringMatchEnColVal(enColVal);
+		boolean stringMatch = ids.getPartialTranslationManager().doesStringMatchEnColVal(widget.getText());
 		return stringMatch;
 	}
 

@@ -71,6 +71,7 @@ public class Ids {
     private final int widgetIdClockNonGIM = 46333960;
     private final int widgetIdMusicCurrent = 15663113;
     private final int settingsSearchBarId = 8781833;
+    private final int widgetIdCombatAchSearchBar = 46923781;
 
     //general interface
     private final int widgetIdSkillGuide = 14024705;
@@ -94,7 +95,8 @@ public class Ids {
             widgetIdClockGIM, widgetIdClockNonGIM,
             //ComponentID.MUSIC_SCROLL_CONTAINER, // if music is not ignored here, having the music tab opened will drop fps
             //widgetIdMusicCurrent // may need to be ignored if clue solver reads this widget's value
-            settingsSearchBarId
+            settingsSearchBarId,
+            widgetIdCombatAchSearchBar
     );
 
     // dont translate with api
@@ -109,7 +111,8 @@ public class Ids {
     );
 
     private final Set<Integer> widgetIdNpcName = Set.of(
-
+            46923790, // the boss names in the "Combat Achievement - Bosses"
+            46727171 // the boss names in the "Combat Achievement - Specific Bosses"
     );
 
     private final Set<Integer> widgetIdObjectName = Set.of(
@@ -121,7 +124,7 @@ public class Ids {
     );
 
     private final Set<Integer> widgetIdAnyTranslated = Set.of(// dont specify any categoriries
-            46923790 // the boss names in the "Combat Achievement - Bosses"
+
     );
 
     private final Set<Integer> widgetIdCA = Set.of(
@@ -129,7 +132,8 @@ public class Ids {
             46858241, // combat achievement tasks
             46923776, // combat achievement Bosses
             46792705, // combat achievement Rewards
-            46727169 // combat achievement specific bosses
+            46727169, // combat achievement specific bosses
+            46858268  // combat achievement task filter drop down list
     );
 
     // other specific ids
@@ -226,6 +230,7 @@ public class Ids {
     private final int playerNameInCombAch = 46989317;// the player name in "Overview" of combat achievements tab
     private final int topBossInCombAch = 46989326;// the texts under Combat Profile section in "Overview" of combat achievements tab
     private final int monsterTargetNameInCombAch = 46858252;// "Monster: ..." in combat achievements tab (tasks)
+    private final int bossSpecificCA = 46727170;
 
     private void initPartialTranslations() {
         /* use for when part of a text should not be translated / translated as item name, object name etc, and other parts should be translated by translator/api
@@ -282,7 +287,12 @@ public class Ids {
         partialTranslationManager.addPartialTranslation(
                 monsterTargetNameInCombAch,
                 List.of("Monster: <colNum0>","</col>"),
-                List.of(ANY_TRANSLATED)// monster name, but includes non npc names like "Royal Titans", "Wintertodt"
+                List.of(NPC_NAME)// monster name, but includes non npc names like "Royal Titans", "Wintertodt"
+        );
+        partialTranslationManager.addPartialTranslation(
+                bossSpecificCA,
+                List.of("Combat Achievements - "),
+                List.of(NPC_NAME)// npc names include non-npcs like "chambers of zeric", "theatre of blood"
         );
 
         // to add placeholder at the beginning of the text, add an empty string to the fixedTextParts

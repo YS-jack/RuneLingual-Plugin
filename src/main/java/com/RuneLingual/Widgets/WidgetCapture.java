@@ -141,7 +141,7 @@ public class WidgetCapture {
                 queryToPass.setColor(textColor);
             }
             // debug: if the widget is the target for dumping
-            //ifIsDumpTarget_thenDump(widget, queryToPass);
+            ifIsDumpTarget_thenDump(widget, queryToPass);
             // translate the widget text
             translateWidgetText(widget, queryToPass);
 
@@ -364,7 +364,7 @@ public class WidgetCapture {
 
         // special case: if the text should only be partially translated
         if (widgetsUtilRLingual.shouldPartiallyTranslateWidget(widget)) {
-            String enColVal = ids.getPartialTranslationManager().getMatchingEnColVal(text);
+            String enColVal = ids.getPartialTranslationManager().getMatchingEnColVal(widget.getText());
             return widgetsUtilRLingual.getEnColVal4PartialTranslation(widget, enColVal);
         }
 
