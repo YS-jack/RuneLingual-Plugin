@@ -75,7 +75,6 @@ public void addSentenceToTab(String tabTitle, String sentence) {
             return;
         }
     }
-    log.info("No tab found with title: " + tabTitle);
 }
 
 

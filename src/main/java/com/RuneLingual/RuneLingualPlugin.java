@@ -167,7 +167,6 @@ public class RuneLingualPlugin extends Plugin {
 
     @Override
     protected void startUp() throws Exception {
-        log.info("Starting...");
         //get selected language
         targetLanguage = config.getSelectedLanguage();
         pastLanguages.add(targetLanguage);
