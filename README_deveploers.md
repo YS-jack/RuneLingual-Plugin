@@ -231,3 +231,11 @@ This will capture the text "Name: (player name)", replace the dynamic part with 
     );
     ```
     This will split the text at the `<br>` tags and translate the repetitive parts only once.
+
+### 7.2.4 Useful Tags
+I have implemented some tags to make the translation process easier.<br>The tags are as follows:
+  - The <b>asis</b> tag allows you to specify parts that should be displayed as is, without translation nor replaced with char iamges.<br>Usage: ```<asis>text to display as is</asis>```
+  - The <b>```<Num#>```</b> tag is a placeholder for numbers and represents a specific number, so it can contain any number.<br> This was implemented to reduce the number of translations that differ only by numbers.<br>This should be automatically be inserted inplace of numbers automatically.
+  - The <b>```<colNum#>```</b> tag is similar to the <Num#> tag above, but it contains color tag (which specifies colors for parts of texts) instead of numbers.<br> This should be closed with <b>```</col>```</b> tag.
+  - The ```<br>``` tag is a breakline tag, which will make split the line where the tag is placed, and make the part after ```<br>``` be placed in a new line.<br> <b>This will stop any automatic breakline from happening</b>.<br>To use ```<br>``` but still benefit from the automatic fucntion of inserting break line according to text length function the code has, use the next tag.
+  - The ```<autoBr> ... </autoBr>``` allows you to specify parts to insert break line automatically. This is used when you have break line code ```<br>``` in a translation, which stops automatic breaklines from being inserted, but still want the code to insert breakline automatically in other parts of the translation.<br>The part surrounded by ```<autoBr>``` and ```<noAutoBr>``` will have break lines inserted automatically.<br><b>Note</b>: you dont have to use this if there are no ```<br>``` tags in the translation.
