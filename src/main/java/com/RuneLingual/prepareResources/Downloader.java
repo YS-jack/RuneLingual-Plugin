@@ -153,6 +153,7 @@ public class Downloader {//downloads translations and japanese char images to ex
     private Map<String, String> readHashFile(Path filePath) throws IOException {
         Map<String, String> hashes = new HashMap<>();
         if (!Files.exists(filePath)) {
+            Files.createDirectories(filePath.getParent());
             Files.createFile(filePath);
         }
         try (BufferedReader reader = Files.newBufferedReader(filePath)) {

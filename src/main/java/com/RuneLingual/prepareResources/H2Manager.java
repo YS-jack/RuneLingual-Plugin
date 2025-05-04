@@ -27,9 +27,12 @@ public class H2Manager {
         String databaseUrl;
 
         databaseUrl = getUrl(targetLanguage);
-        plugin.setDatabaseUrl(databaseUrl);
         try {
+            // Explicitly load the H2 driver class
+            Class.forName("org.h2.Driver");
             conn = DriverManager.getConnection(databaseUrl);
+        } catch (ClassNotFoundException e) {
+            log.error("H2 Driver class not found.", e);
         } catch (Exception e) {
             log.error("Error connecting to database: {}", databaseUrl, e);
             plugin.setTargetLanguage(LangCodeSelectableList.ENGLISH);

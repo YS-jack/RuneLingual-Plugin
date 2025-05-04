@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,6 +63,8 @@ public class PastTranslationManager {
         } else {
             // if pastTranslationFile doesn't exist, create an empty one
             try {
+                Path filePath = Paths.get(pastTranslationFile);
+                Files.createDirectories(filePath.getParent());
                 Files.createFile(Paths.get(pastTranslationFile));
                 log.info("Created empty file: " + pastTranslationFile);
             } catch (IOException e) {
