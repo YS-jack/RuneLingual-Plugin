@@ -37,7 +37,12 @@ public class ChatBoxSection {
         addTab(tabbedPane, tabNameClan);
         addTab(tabbedPane, tabNameGIM);
 
-        sidePanel.add(tabbedPane);
+        // Wrap the tabbedPane in a panel with a fixed height
+        JPanel fixedHeightPanel = new JPanel(new BorderLayout());
+        fixedHeightPanel.setPreferredSize(new Dimension(400, 500)); // Set fixed width and height
+        fixedHeightPanel.add(tabbedPane, BorderLayout.CENTER);
+
+        sidePanel.add(fixedHeightPanel);
         sidePanel.setSize(400, 500);
         sidePanel.setVisible(true);
     }
