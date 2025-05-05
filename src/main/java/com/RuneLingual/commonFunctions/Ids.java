@@ -72,6 +72,7 @@ public class Ids {
     private final int widgetIdMusicCurrent = 15663113;
     private final int settingsSearchBarId = 8781833;
     private final int widgetIdCombatAchSearchBar = 46923781;
+    private final int widgetIdBehindLoginScreen = 10813441;
 
     //general interface
     private final int widgetIdSkillGuide = 14024705;
@@ -96,7 +97,8 @@ public class Ids {
             //ComponentID.MUSIC_SCROLL_CONTAINER, // if music is not ignored here, having the music tab opened will drop fps
             //widgetIdMusicCurrent // may need to be ignored if clue solver reads this widget's value
             settingsSearchBarId,
-            widgetIdCombatAchSearchBar
+            widgetIdCombatAchSearchBar,
+            widgetIdBehindLoginScreen
     );
 
     // dont translate with api
