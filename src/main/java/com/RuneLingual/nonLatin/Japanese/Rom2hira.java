@@ -21,15 +21,18 @@ public class Rom2hira {
 
     @Inject
     public Rom2hira() {
-        String charDir = FileNameAndPath.getLocalBaseFolder() + "/" +
+        String charFilePath = FileNameAndPath.getLocalBaseFolder() + "/" +
                 LangCodeSelectableList.日本語.getLangCode() +
                 "/latin2foreign_" + LangCodeSelectableList.日本語.getLangCode() + ".txt";
-        putCharToHash(char2char, charDir);
+        putCharToHash(char2char, charFilePath);
     }
 
-    private void putCharToHash(HashMap<String, String> hash, String dirName) {
+    private void putCharToHash(HashMap<String, String> hash, String filePath) {
+        FileNameAndPath.createDirectoryIfNotExists(FileNameAndPath.getLocalBaseFolder() + "/" +
+                LangCodeSelectableList.日本語.getLangCode());
+        FileNameAndPath.createFileIfNotExists(filePath);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader
-                (new FileInputStream(dirName), StandardCharsets.UTF_8))) {
+                (new FileInputStream(filePath), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split("\\|");
@@ -38,7 +41,7 @@ public class Rom2hira {
                 }
             }
         } catch (IOException e) {
-            log.error("error creating hashmap for transform dict, for type : {}", dirName, e);
+            log.error("error creating hashmap for transform dict, for type : {}", filePath, e);
         }
     }
 
