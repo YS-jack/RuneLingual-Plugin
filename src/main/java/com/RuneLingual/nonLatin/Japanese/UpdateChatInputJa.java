@@ -44,14 +44,14 @@ public class UpdateChatInputJa {
     @Inject
     public UpdateChatInputJa(RuneLingualPlugin plugin) {
         this.plugin = plugin;
-        String wordsDir = FileNameAndPath.getLocalBaseFolder() + "/" +
+        String wordFilePath = FileNameAndPath.getLocalBaseFolder() + "/" +
                 LangCodeSelectableList.日本語.getLangCode() +
                 "/foreign2foreign_" + LangCodeSelectableList.日本語.getLangCode() + ".txt";
-        putWordToHash(wordsDir);
-        log.info("created hashmap for transform dict, for type : " + wordsDir);
+        putWordToHash(wordFilePath);
+        log.info("created hashmap for transform dict, for type : " + wordFilePath);
     }
 
-    private void putWordToHash(String dirName) {
+    private void putWordToHash(String filePath) {
         /*
         * these files are in the format of "written,read,type,rank"
         * written is the kanji or katakana.
@@ -61,8 +61,12 @@ public class UpdateChatInputJa {
         *
         * The file itself is downloaded by Downloader, so are not jar files
         * */
+        // check if folder and file exists, if not, create it
+        FileNameAndPath.createDirectoryIfNotExists(FileNameAndPath.getLocalBaseFolder() + "/" +
+                LangCodeSelectableList.日本語.getLangCode());
+        FileNameAndPath.createFileIfNotExists(filePath);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader
-                (new FileInputStream(dirName), StandardCharsets.UTF_8))) {
+                (new FileInputStream(filePath), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
@@ -74,7 +78,7 @@ public class UpdateChatInputJa {
                 }
             }
         } catch (IOException e) {
-            log.error("error creating hashmap for transform dict, for type : {}", dirName, e);
+            log.error("error creating hashmap for transform dict, for type : {}", filePath, e);
         }
     }
 

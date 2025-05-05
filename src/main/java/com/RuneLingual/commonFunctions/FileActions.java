@@ -67,6 +67,9 @@ public class FileActions {
     public static String getFileNameInFolderStartsWith(String path, String fileName) {
         File folder = new File(path);
         File[] listOfFiles = folder.listFiles();
+        if (listOfFiles == null) {
+            return null;
+        }
         for (File file : listOfFiles) {
             if (file.isFile()) {
                 if (file.getName().startsWith(fileName)) {
