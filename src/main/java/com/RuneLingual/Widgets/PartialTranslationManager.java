@@ -371,8 +371,8 @@ public class PartialTranslationManager {
     private String getRegex(PartialTranslation partialTranslation) {
         String regex = partialTranslation.getEnColVal().replaceAll("([\\\\.*+\\[\\](){}|^$])", "\\\\$1")
                 .replaceAll("<!.+?>", ".*")
-                .replaceAll("<asis>", "")
-                .replaceAll("</asis>", "");
+                .replaceAll("<asis>|</asis>", "")
+                .replaceAll("<autoBr>|</autoBr>","");
         regex = regex + "|" + regex.replaceAll("<Num\\d>", "\\\\d+")
                                 .replaceAll("<colNum\\d+>", "<col.+>");
         return regex;

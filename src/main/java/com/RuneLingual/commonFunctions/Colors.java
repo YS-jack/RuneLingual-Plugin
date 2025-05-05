@@ -289,9 +289,6 @@ public enum Colors {
         return str.replaceAll("<.*?>", "");
     }
 
-    public static String removeColImgBrAsisTags(String str) {
-        return str.replaceAll("<col[=a-zA-Z0-9]*?>|</col>|<img=[0-9]*>|<br>|<asis>|</asis>", "");
-    }
 
     /*
      * returns: text with color tags that are enumerated instead of actual colors

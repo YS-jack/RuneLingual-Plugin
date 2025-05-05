@@ -101,8 +101,8 @@ public class Ids {
 
     // dont translate with api
     private final Set<Integer> widgetIdNot2ApiTranslate = Set.of(
-            ComponentID.MUSIC_SCROLL_CONTAINER // if music is not ignored here, having the music tab opened will drop fps
-
+            ComponentID.MUSIC_SCROLL_CONTAINER, // if music is not ignored here, having the music tab opened will drop fps
+            46858241 // combat achievement tasks
     );
 
 

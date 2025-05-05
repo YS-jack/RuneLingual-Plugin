@@ -40,7 +40,7 @@ public class WidgetsUtilRLingual
 	}
 
 	public void setWidgetText_NiceBr(Widget widget, String newText) {
-		if (newText.contains("<br>")) {
+		if (newText.contains("<br>") && !newText.contains("<autoBr>")) { // if the text already has <br> and not specified to insert br automatically, don't insert br
 			widget.setText(newText);
 			return;
 		}
@@ -76,14 +76,46 @@ public class WidgetsUtilRLingual
 		widget.setLineHeight(originalLineHeight);
 	}
 
-	private void setWidgetText_NiceBr_CharImages(Widget widget, String newText) { // todo: set to show overlay if the mouse is hovering and the widget is too small for the text to display
+	private void setWidgetText_NiceBr_CharImages(Widget widget, String newText) {
+		// if newText doesnt have <br> tag at all, insert br automatically
+		if (!newText.contains("<br>")) {
+			newText = newText.replaceAll("<autoBr>|</autoBr>", ""); // remove <autoBr> tags
+			newText = getWidgetText_NiceBr_CharImages(widget, newText);
+			widget.setText(newText);
+			return;
+		}
+		// if newText has <br> tag,
+		// insert br automatically if it's inside <autoBr> tags, or doesnt have <br> tag at all
+		String[] splitText = newText.split("(?=<autoBr>)|(?<=</autoBr>)");
+		StringBuilder newTextBuilder = new StringBuilder();
+		for (String part : splitText) {
+			if (part.contains("<autoBr>")) {
+				part = part.replaceAll("<autoBr>|</autoBr>", ""); // remove <autoBr> tags
+				part = getWidgetText_NiceBr_CharImages(widget, part);
+			}
+			newTextBuilder.append(part);
+		}
+		newText = newTextBuilder.toString();
+		// remove the first <br> if it's at the beginning of the text
+		if (newText.matches("^<br>.*")) {
+			newText = newText.substring(4);
+		}
+		// remove the last <br> if it's at the end of the text
+		if (newText.matches(".*<br>$")) {
+			newText = newText.substring(0, newText.length() - 4);
+		}
+		newText = newText.replaceAll("<br><br>", "<br>"); // remove double <br>
+		widget.setText(newText);
+	}
+
+	private String getWidgetText_NiceBr_CharImages(Widget widget, String text){
 		// Set the text of the widget, but insert br considering the width of the widget
 		int widgetWidth = widget.getWidth();
 		int foreignWidth = plugin.getConfig().getSelectedLanguage().getCharWidth();
 		int maxChars = widgetWidth / foreignWidth;
 		// if language uses charImages and needs space between words
 		if(plugin.getConfig().getSelectedLanguage().needsSpaceBetweenWords()) { // todo: test this when such language is added
-			String[] words = newText.split(" ");
+			String[] words = text.split(" ");
 			StringBuilder newTextBuilder = new StringBuilder();
 			int currentLineLength = 0;
 			for(String word : words) {
@@ -94,9 +126,9 @@ public class WidgetsUtilRLingual
 				newTextBuilder.append(word);
 				currentLineLength += word.length();
 			}
-			newText = newTextBuilder.toString();
+			text = newTextBuilder.toString();
 		} else { // if language uses charImages and doesn't need space between words
-			String[] letters = newText.split("(?<=>)");
+			String[] letters = text.split("(?<=>)");
 			StringBuilder newTextBuilder = new StringBuilder();
 			int currentLineLength = 0;
 			for(String letter : letters) {
@@ -107,15 +139,46 @@ public class WidgetsUtilRLingual
 				newTextBuilder.append(letter);
 				currentLineLength++;
 			}
-			newText = newTextBuilder.toString();
+			text = newTextBuilder.toString();
 		}
-		widget.setText(newText);
+		return text;
 	}
 
 	private void setWidgetText_NiceBr_NoCharImages(Widget widget, String newText) {
-		if (!newText.contains(" ")) { // if there are no spaces, don't insert br
+		// if newText doesnt have <br> tag at all, insert br automatically
+		if (!newText.contains("<br>")) {
+			newText = newText.replaceAll("<autoBr>|</autoBr>", ""); // remove <autoBr> tags
+			newText = getWidgetText_NiceBr_CharImages(widget, newText);
 			widget.setText(newText);
 			return;
+		}
+		// if newText has <br> tag,
+		// insert br automatically if it's inside <autoBr> tags, or doesnt have <br> tag at all
+		String[] splitText = newText.split("(?=<autoBr>)|(?<=</autoBr>)");
+		StringBuilder newTextBuilder = new StringBuilder();
+		for (String part : splitText) {
+			if (part.contains("<autoBr>")) {
+				part = part.replaceAll("<autoBr>|</autoBr>", ""); // remove <autoBr> tags
+				part = getWidgetText_NiceBr_NoCharImages(widget, part);
+			}
+			newTextBuilder.append(part);
+		}
+		newText = newTextBuilder.toString();
+		// remove the first <br> if it's at the beginning of the text
+		if (newText.matches("^<br>.*")) {
+			newText = newText.substring(4);
+		}
+		// remove the last <br> if it's at the end of the text
+		if (newText.matches(".*<br>$")) {
+			newText = newText.substring(0, newText.length() - 4);
+		}
+		newText = newText.replaceAll("<br><br>", "<br>"); // remove double <br>
+		widget.setText(newText);
+	}
+
+	private String getWidgetText_NiceBr_NoCharImages(Widget widget, String newText) {
+		if (!newText.contains(" ")) { // if there are no spaces, don't insert br
+			return newText;
 		}
 		// Set the text of the widget, but insert br considering the width of the widget
 		int widgetWidth = widget.getWidth();
@@ -162,7 +225,7 @@ public class WidgetsUtilRLingual
 		}
 		newText = newText.replaceAll("<br><br>", "<br>"); // remove double <br>
 
-		widget.setText(newText);
+		return newText;
 	}
 
 	public static String removeBrAndTags(String str) {
