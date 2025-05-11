@@ -1,5 +1,6 @@
 package com.RuneLingual.MouseOverlays;
 
+import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.MenuCapture;
@@ -103,7 +104,7 @@ public class MouseTooltipOverlay extends Overlay
     @Override
     public Dimension render(Graphics2D graphics)
     {
-        if (client.isMenuOpen())
+        if (client.isMenuOpen() || plugin.getTargetLanguage() == LangCodeSelectableList.ENGLISH)
         {
             return null;
         }
