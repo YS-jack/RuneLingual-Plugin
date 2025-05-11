@@ -77,7 +77,7 @@ public class SqlActions {
             while (indexes.next()) {
                 String indexName = indexes.getString("INDEX_NAME");
                 if ("ENGLISH_INDEX".equalsIgnoreCase(indexName)) {
-                    log.info("Index 'english_index' already exists. Skipping creation.");
+                    //"Index 'english_index' already exists. Skipping creation.
                     return;
                 }
             }

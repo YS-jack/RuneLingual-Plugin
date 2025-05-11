@@ -66,7 +66,6 @@ public class PastTranslationManager {
                 Path filePath = Paths.get(pastTranslationFile);
                 Files.createDirectories(filePath.getParent());
                 Files.createFile(Paths.get(pastTranslationFile));
-                log.info("Created empty file: " + pastTranslationFile);
             } catch (IOException e) {
                 log.error("Error creating file: " + e.getMessage(), e);
             }

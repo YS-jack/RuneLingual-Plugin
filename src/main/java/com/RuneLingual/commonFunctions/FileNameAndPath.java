@@ -26,9 +26,7 @@ public class FileNameAndPath {
         //create the file if it doesn't exist
         File file = new File(filePath);
         try {
-            if (file.createNewFile()) {
-                log.info("File created: {}", filePath);
-            } else {
+            if (!file.createNewFile()) {
                 log.error("File already exists: {}", filePath);
             }
         } catch (Exception e) {
