@@ -38,12 +38,22 @@ public class SqlActions {
         Connection conn = DriverManager.getConnection(this.plugin.getDatabaseUrl());
         this.plugin.setConn(conn);
 
-        // then create new table
+        // Check if the table already exists
+        DatabaseMetaData metaData = conn.getMetaData();
+        try (ResultSet tables = metaData.getTables(null, null, tableName.toUpperCase(), new String[]{"TABLE"})) {
+            if (tables.next()) {
+                //log.info("Table '{}' already exists. Skipping creation.", tableName);
+                return;
+            }
+        }
+
+        // Create the table if it does not exist
         String sql = "CREATE TABLE " + tableName + " ()";
 
-        try (Statement stmt = plugin.getConn().createStatement()) {
+        try (Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         } catch (SQLException e) {
+            log.error("Error creating table '{}'.", tableName, e);
             throw new RuntimeException(e);
         }
     }
@@ -56,15 +66,34 @@ public class SqlActions {
             processTsvFile(tsvFolderPath + File.separator + tsvFile);
         }
 
-        // index the english column
-        String sql = "CREATE INDEX english_index ON " + tableName + " ("+ SqlVariables.columnEnglish.getColumnName()
+        // Check if the index already exists
+        DatabaseMetaData metaData = null;
+        try {
+            metaData = this.plugin.getConn().getMetaData();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        try (ResultSet indexes = metaData.getIndexInfo(null, null, tableName.toUpperCase(), false, false)) {
+            while (indexes.next()) {
+                String indexName = indexes.getString("INDEX_NAME");
+                if ("ENGLISH_INDEX".equalsIgnoreCase(indexName)) {
+                    //"Index 'english_index' already exists. Skipping creation.
+                    return;
+                }
+            }
+        } catch (SQLException e) {
+            log.error("Error checking for existing index on " + tableName, e);
+        }
+
+        // Index the English column
+        String sql = "CREATE INDEX english_index ON " + tableName + " (" + SqlVariables.columnEnglish.getColumnName()
                 + ", " + SqlVariables.columnTranslation.getColumnName()
                 + ", " + SqlVariables.columnCategory.getColumnName()
-                + "," + SqlVariables.columnSubCategory.getColumnName()
-                + "," + SqlVariables.columnSource.getColumnName() + ")";
+                + ", " + SqlVariables.columnSubCategory.getColumnName()
+                + ", " + SqlVariables.columnSource.getColumnName() + ")";
         try (Statement stmt = this.plugin.getConn().createStatement()) {
             stmt.execute(sql);
-        }catch (SQLException e) {
+        } catch (SQLException e) {
             log.error("Error creating index on " + tableName, e);
         }
     }

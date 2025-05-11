@@ -17,7 +17,7 @@ import java.util.Map;
 
 import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.commonFunctions.FileActions;
-import com.RuneLingual.SidePanelComponents.SearchSection;
+import net.runelite.client.util.LinkBrowser;
 
 @Slf4j
 
@@ -95,7 +95,7 @@ public class SidePanel extends PluginPanel{
                public void mouseClicked(MouseEvent e) {
                    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                        try {
-                           Desktop.getDesktop().browse(new URI(url));
+                           LinkBrowser.browse(url);
                        } catch (Exception ex) {
                            log.error("Error opening link", ex);
                        }

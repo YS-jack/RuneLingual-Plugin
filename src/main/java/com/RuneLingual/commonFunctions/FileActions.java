@@ -59,11 +59,6 @@ public class FileActions {
         }
     }
 
-    public static Boolean checkFileExists(String fileName) {
-        File myObj = new File(fileName);
-        return myObj.exists();
-    }
-
     public static String getFileNameInFolderStartsWith(String path, String fileName) {
         File folder = new File(path);
         File[] listOfFiles = folder.listFiles();
