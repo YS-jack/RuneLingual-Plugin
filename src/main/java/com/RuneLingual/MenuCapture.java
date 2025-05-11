@@ -355,7 +355,6 @@ public class MenuCapture
 		if (newOption == null){ // if no translation was found, then return as is
 			newOption = menuOption;
 		}
-		// newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
 
 		// if it didnt find a new option (newOption = menuOption), search for any match
 		if(Colors.removeNonImgTags(newOption).equals(menuOption)){
@@ -366,6 +365,8 @@ public class MenuCapture
 
 		if(Colors.removeNonImgTags(menuTarget).isEmpty()) { // if it doesnt have a target
 			newTarget = "";
+		} else if (Colors.removeNonImgTags(menuTarget).matches("(\\d+)")){ // if target is a number, leave as is
+			newTarget = menuTarget;
 		} else {
 			// if it is in the quest tab, the values are in a different category/sub_category
 			if(source.equals(SqlVariables.sourceValue4QuestListTab.getValue())) {

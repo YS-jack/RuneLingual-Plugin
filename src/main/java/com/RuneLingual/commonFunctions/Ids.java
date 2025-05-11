@@ -296,6 +296,26 @@ public class Ids {
                 List.of("Combat Achievements - "),
                 List.of(NPC_NAME)// npc names include non-npcs like "chambers of zeric", "theatre of blood"
         );
+        partialTranslationManager.addPartialTranslation(
+                0,
+                List.of("Add friend "),
+                List.of(PLAYER_NAME)// for menu action in group tab, activity tab after joining an fc and right clicking player there
+        );
+        partialTranslationManager.addPartialTranslation(
+                0,
+                List.of("Add ignore "),
+                List.of(PLAYER_NAME)// for menu action in group tab, activity tab after joining an fc and right clicking player there
+        );
+        partialTranslationManager.addPartialTranslation(
+                0,
+                List.of("Remove friend "),
+                List.of(PLAYER_NAME)// for menu action in group tab, activity tab after joining an fc and right clicking player there
+        );
+        partialTranslationManager.addPartialTranslation(
+                0,
+                List.of("Remove ignore "),
+                List.of(PLAYER_NAME)// for menu action in group tab, activity tab after joining an fc and right clicking player there
+        );
 
         // to add placeholder at the beginning of the text, add an empty string to the fixedTextParts
         // eg.  partialTranslationManager.addPartialTranslation(
