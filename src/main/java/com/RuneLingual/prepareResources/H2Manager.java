@@ -18,7 +18,7 @@ public class H2Manager {
 
     public String getUrl(LangCodeSelectableList targetLanguage) {
         String databaseUrl = "jdbc:h2:" + FileNameAndPath.getLocalBaseFolder() + File.separator +
-                targetLanguage.getLangCode() + File.separator + FileNameAndPath.getLocalSQLFileName();
+                targetLanguage.getLangCode() + File.separator + FileNameAndPath.getLocalSQLFileName() + ";AUTO_SERVER=TRUE";
         return databaseUrl;
     }
 
