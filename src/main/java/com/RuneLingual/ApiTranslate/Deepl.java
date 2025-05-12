@@ -88,8 +88,8 @@ public class Deepl {
             return pastTranslation;
         }
 
-        // don't translate if text is empty, or has been attempted to translate
-        if (text.isEmpty() || translationAttempt.contains(text)) {
+        // don't translate if text is empty, or has been attempted to translate, or is a result of translation
+        if (text.isEmpty() || translationAttempt.contains(text) || deeplPastTranslationManager.getTranslationResults().contains(text)) {
             return text;
         }
         deeplKey = plugin.getConfig().getAPIKey();

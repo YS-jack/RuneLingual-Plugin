@@ -83,7 +83,6 @@ public class MenuCapture
 		String newOption = newMenus[1];
 
 		// add to pending list if they haven't been translated yet
-
 		boolean isPending = addPendingMenuApiTranslation(currentMenu, newOption, newTarget);
 		if (isPending) {
 			return;
@@ -131,9 +130,12 @@ public class MenuCapture
 
 		menuOptionTransformOption = getTransformOption(this.plugin.getConfig().getMenuOptionConfig(), plugin.getConfig().getSelectedLanguage());
 
+
 		String[] result;
 		// get translation for both target and option
-		if(isWalkOrCancel(menuType)){
+		if(menuOptionTransformOption == TransformOption.TRANSLATE_API) {
+			result = translateGeneralMenu(menuTarget, menuOption, actionWordArray, actionColorArray, targetWordArray, currentMenu);
+		} else if(isWalkOrCancel(menuType)){
 			result = translateWalkOrCancel(menuTarget, menuOption, actionWordArray, actionColorArray, targetWordArray, targetColorArray);
 		}
 		else if (isPlayerMenu(menuType)){
@@ -357,7 +359,7 @@ public class MenuCapture
 		}
 
 		// if it didnt find a new option (newOption = menuOption), search for any match
-		if(Colors.removeNonImgTags(newOption).equals(menuOption)){
+		if(Colors.removeNonImgTags(newOption).equals(menuOption) && menuOptionTransformOption.equals(TransformOption.TRANSLATE_LOCAL)) {
 			actionSqlQuery = new SqlQuery(this.plugin);
 			actionSqlQuery.setEnglish(menuOption);
 			newOption = transformer.transform(actionWordArray, actionColorArray, menuOptionTransformOption, actionSqlQuery, false);
@@ -697,38 +699,29 @@ public class MenuCapture
 		PendingTranslationType pendingType = null;
 		boolean isOptionPending = false;
 		boolean isTargetPending = false;
-		boolean updateTarget = true;
-		boolean updateOption = true;
 		if (plugin.getConfig().getMenuOptionConfig().equals(ingameTranslationConfig.USE_API)){
 			if(!newOption.isEmpty() && !newOption.isBlank()) {
 				String oldOption_colTag = currentMenu.getOption();
-				String oldOption = Colors.removeNonImgTags(oldOption_colTag);
-				newOption = Colors.removeNonImgTags(newOption);
-				boolean hasTranslatedBefore = plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(currentMenu.getOption()) != null;
-				if (!hasTranslatedBefore && (oldOption.equals(newOption) // is pending api translation
-				|| colWordHasMatchingWords(oldOption_colTag, newOption))){ // or when separating words by colors, if any of the words match
+				boolean haveTranslatedBefore = plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedBefore(oldOption_colTag);
+				if (!haveTranslatedBefore){ // when separating words by colors, if any of the words are not result of translation
 					isOptionPending = true;
 					pendingType = PendingTranslationType.OPTION;
-					updateOption = false;
 				}
 			}
 		}
 		String oldTarget_colTag = currentMenu.getTarget();
-		String oldTarget = Colors.removeNonImgTags(oldTarget_colTag);
 		newTarget = Colors.removeNonImgTags(newTarget);
-		boolean hasTranslatedBefore = plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(currentMenu.getTarget()) != null;
-		if(!hasTranslatedBefore && (oldTarget.equals(newTarget)  // is pending api translation
-				|| colWordHasMatchingWords(oldTarget_colTag, newTarget))){// or when separating words by colors, if any of the words match
+		boolean haveTranslatedBefore = plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedBefore(oldTarget_colTag);
+		if(!haveTranslatedBefore){// or when separating words by colors, if any of the words match
 			if(!newTarget.isEmpty() && !newTarget.isBlank()){
 				isTargetPending = true;
 				pendingType = PendingTranslationType.TARGET;
-				updateTarget = false;
 			}
 		}
-		if (updateOption){
+		if (!isOptionPending){
 			currentMenu.setOption(newOption);
 		}
-		if (updateTarget){
+		if (!isTargetPending){
 			currentMenu.setTarget(newTarget);
 		}
 		if (isOptionPending && isTargetPending){
@@ -762,23 +755,21 @@ public class MenuCapture
 
 	// if the menu text contains multiple colors, it won't be updated with this function (need to reopen the menu)
 	private boolean handlePendingMenu(MenuEntry menu, PendingTranslationType type){
-		String[] newMenus = translateMenuAction(menu);
-		String newTarget = newMenus[0];
-		String newOption = newMenus[1];
+		String oldOption = menu.getOption();
+		String oldTarget = menu.getTarget();
 		boolean remove = false;
-		if (type.equals(PendingTranslationType.BOTH) && !newOption.equals(menu.getOption()) && !newTarget.equals(menu.getTarget())
-		&& !colWordHasMatchingWords(menu.getOption(), newOption) && !colWordHasMatchingWords(menu.getTarget(), newTarget)){
+		String newOption = this.plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(oldOption);
+		String newTarget = this.plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(oldTarget);
+		if (type.equals(PendingTranslationType.BOTH) && newOption != null && newTarget != null){
 			remove = true;
 			menu.setOption(newOption);
 			menu.setTarget(newTarget);
 			swapOptionTarget(menu);
-		} else if (type.equals(PendingTranslationType.OPTION) && !newOption.equals(menu.getOption())
-				&& !colWordHasMatchingWords(menu.getOption(), newOption)){
+		} else if (type.equals(PendingTranslationType.OPTION) && newOption != null){
 			remove = true;
 			menu.setOption(newOption);
 			swapOptionTarget(menu);
-		} else if (type.equals(PendingTranslationType.TARGET) && !newTarget.equals(menu.getTarget())
-				&& !colWordHasMatchingWords(menu.getTarget(), newTarget)){
+		} else if (type.equals(PendingTranslationType.TARGET) && newTarget != null){
 			remove = true;
 			menu.setTarget(newTarget);
 			swapOptionTarget(menu);
@@ -787,27 +778,13 @@ public class MenuCapture
 	}
 
 	private void swapOptionTarget(MenuEntry menu){
+		if (!this.plugin.getTargetLanguage().needsSwapMenuOptionAndTarget()){
+			return;
+		}
 		String option = menu.getOption();
 		String target = menu.getTarget();
 		menu.setOption(target);
 		menu.setTarget(option);
-	}
-
-	// check if any words in old text matches words in new text
-	// eg: old text = <col=0>view<col=ff0000>Magic<col=0>Wiki
-	// new text = <col=0>表示<col=ff0000>Magic<col=0>ウィキ
-	// returns true because "Magic" is the same in both texts
-	private boolean colWordHasMatchingWords(String oldText, String newText){
-		String[] oldWords = Colors.getWordArray(oldText);
-		if (oldWords.length < 2) {
-			return false;
-		}
-		for (String oldWord : oldWords) {
-			if (newText.equals(oldWord)){
-				return true;
-			}
-		}
-		return false;
 	}
 
 //	private void outputToDump(MenuEntry menu, SqlQuery query){

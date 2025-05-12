@@ -259,8 +259,8 @@ public class Transformer {
         } else if(option == TransformOption.TRANSLATE_API){
             translatedText = this.plugin.getDeepl().translate(text,
                     LangCodeSelectableList.ENGLISH ,this.plugin.getConfig().getSelectedLanguage());
-            if(translatedText.equals(text)){
-                // if using api but the translation is the same as the original text, it's pending for translation
+            if(!this.plugin.getDeepl().getDeeplPastTranslationManager().getTranslationResults().contains(translatedText)){
+                // if using api and the returned text is not a translated text, it's pending for translation
                 return Colors.surroundWithColorTag(text,colors);
             }
         }

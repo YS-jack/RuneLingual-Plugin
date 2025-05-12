@@ -62,7 +62,7 @@ public class WidgetsUtilRLingual
 	}
 
 	public void setWidgetText_ApiTranslation(Widget widget, String originalText, Colors color){
-		final String text_withoutBrAndTags = removeBrAndTags(originalText);
+		final String text_withoutBrAndTags = Colors.removeNonImgTags(originalText);
 		String translatedText = plugin.getDeepl().translate(text_withoutBrAndTags, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
 		int originalLineHeight = widget.getLineHeight();
 		if(translatedText.equals(text_withoutBrAndTags)) { // if the translation is the same as the original text, don't set the text
