@@ -101,7 +101,9 @@ public class DialogTranslator {
         // if the widget is not npc name nor player name, and the config is set to use api translation
         else if (dialogOption.equals(TransformOption.TRANSLATE_API) && widget.getId() != playerNameWidgetId && widget.getId() != npcNameWidgetId) {
             String dialogText = widget.getText();
-
+            if(dialogText.isEmpty()) {
+                return;
+            }
             Colors[] textColor = {defaultTextColor};
             if(widget.getId() == npcContinueWidgetId || widget.getId() == playerContinueWidgetId)
                 textColor[0] = continueTextColor;

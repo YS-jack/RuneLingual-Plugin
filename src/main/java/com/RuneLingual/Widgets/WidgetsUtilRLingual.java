@@ -115,16 +115,22 @@ public class WidgetsUtilRLingual
 		int maxChars = widgetWidth / foreignWidth;
 		// if language uses charImages and needs space between words
 		if(plugin.getConfig().getSelectedLanguage().needsSpaceBetweenWords()) { // todo: test this when such language is added
-			String[] words = text.split(" ");
+			String[] words = text.split("(?=\\s)");
 			StringBuilder newTextBuilder = new StringBuilder();
 			int currentLineLength = 0;
 			for(String word : words) {
-				if(currentLineLength + word.length() > maxChars) {
+				int charCount = 0;
+				if(plugin.getConfig().getSelectedLanguage().needsCharImages()){
+					charCount = word.replaceAll("<img=[0-9]+>", "a").length(); // replace <img=??> tags with "a" and count the length
+				} else {
+					charCount = word.length();
+				}
+				if(currentLineLength + charCount > maxChars) {
 					newTextBuilder.append("<br>");
 					currentLineLength = 0;
 				}
 				newTextBuilder.append(word);
-				currentLineLength += word.length();
+				currentLineLength += charCount;
 			}
 			text = newTextBuilder.toString();
 		} else { // if language uses charImages and doesn't need space between words
