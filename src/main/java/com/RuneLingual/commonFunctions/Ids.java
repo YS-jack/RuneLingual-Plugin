@@ -59,7 +59,7 @@ public class Ids {
     private final int widgetIdPvPArena = PvpArenaSidepanel.UNIVERSE;
     private final int widgetIdFriendsTab = Friends.UNIVERSE;
     private final int widgetIdIgnoreTab = Ignore.UNIVERSE;
-    private final int widgetIdAccountManagementTab = 7143445;
+    private final int widgetIdAccountManagementTab = Account.CONTENT;
     private final int widgetIdSettingsTab = SettingsSide.UNIVERSE;
     private final int widgetIdEmotesTab = Emote.UNIVERSE;
     private final int widgetIdMusicTab = Music.UNIVERSE;
@@ -67,18 +67,18 @@ public class Ids {
     private final int widgetIdWorldSwitcherTab = Worldswitcher.UNIVERSE;
 
     // dont translate at all, except menu option
-    private final int widgetIdCharacterSummaryName = 46661633;
-    private final int widgetIdGimGroupName = 47579137;
-    private final int widgetIdClockGIM = 47644681;
-    private final int widgetIdClockNonGIM = 46333960;
-    private final int widgetIdMusicCurrent = 15663113;
-    private final int settingsSearchBarId = 8781833;
-    private final int widgetIdCombatAchSearchBar = 46923781;
-    private final int widgetIdBehindLoginScreen = 10813441;
+    private final int widgetIdCharacterSummaryName = AccountSummarySidepanel.SUMMARY_PLAYER_NAME;
+    private final int widgetIdGimGroupName = GimSidepanel.TITLE;
+    private final int widgetIdClockGIM = SideChannelsLarge.CLOCK;
+    private final int widgetIdClockNonGIM = SideChannels.CLOCK;
+    private final int widgetIdMusicCurrent = Music.NOW_PLAYING_TEXT;
+    private final int settingsSearchBarId = Settings.SEARCH_TEXT;
+    private final int widgetIdCombatAchSearchBar = CaBosses.SEARCH_TEXT;
+    private final int widgetIdBehindLoginScreen = ToplevelDisplay.LAYERS;
 
     //general interface
-    private final int widgetIdSkillGuide = 14024705;
-    private final int rootWidgetId = 10747970;
+    private final int widgetIdSkillGuide = SkillGuide.UNIVERSE;
+    private final int rootWidgetId = ToplevelPreEoc.GAMEFRAME;
 
     /* example for adding set of widget ids
     private final Set<Integer> idSet4Raids_Colosseum = Set.of(
@@ -90,10 +90,10 @@ public class Ids {
 
     // dont translate at all
     private final Set<Integer> widgetIdNot2Translate = Set.of(
-            ComponentID.CHATBOX_TRANSPARENT_BACKGROUND_LINES,
+            Chatbox.CHATDISPLAY,
             10617391,//some sort of background for chatbox
             widgetIdCharacterSummaryName,
-            ComponentID.IGNORE_LIST_FULL_CONTAINER,
+            Ignore.LIST_CONTAINER,
             widgetIdGimGroupName, //gim group name in group tab
             widgetIdClockGIM, widgetIdClockNonGIM,
             //ComponentID.MUSIC_SCROLL_CONTAINER, // if music is not ignored here, having the music tab opened will drop fps
@@ -105,18 +105,18 @@ public class Ids {
 
     // dont translate with api
     private final Set<Integer> widgetIdNot2ApiTranslate = Set.of(
-            ComponentID.MUSIC_SCROLL_CONTAINER, // if music is not ignored here, having the music tab opened will drop fps
-            46858241 // combat achievement tasks
+            Music.FRAME, // if music is not ignored here, having the music tab opened will drop fps
+            CaTasks.TASKS // combat achievement tasks
     );
 
 
     private final Set<Integer> widgetIdItemName = Set.of(
-            ComponentID.COMBAT_WEAPON_NAME // combat weapon name in combat options
+            CombatInterface.TITLE // combat weapon name in combat options
     );
 
     private final Set<Integer> widgetIdNpcName = Set.of(
-            46923790, // the boss names in the "Combat Achievement - Bosses"
-            46727171 // the boss names in the "Combat Achievement - Specific Bosses"
+            CaBosses.BOSSES_NAME, // the boss names in the "Combat Achievement - Bosses"
+            CaBoss.BOSS_NAME // the boss names in the "Combat Achievement - Specific Bosses"
     );
 
     private final Set<Integer> widgetIdObjectName = Set.of(
@@ -124,7 +124,7 @@ public class Ids {
     );
 
     private final Set<Integer> widgetIdQuestName = Set.of(
-            26148871 // quest name in quest list
+            Questlist.LIST // quest name in quest list
     );
 
     private final Set<Integer> widgetIdAnyTranslated = Set.of(// dont specify any categoriries
@@ -132,34 +132,34 @@ public class Ids {
     );
 
     private final Set<Integer> widgetIdCA = Set.of(
-            46989312, // combat achievement overview
-            46858241, // combat achievement tasks
-            46923776, // combat achievement Bosses
-            46792705, // combat achievement Rewards
-            46727169, // combat achievement specific bosses
-            46858268  // combat achievement task filter drop down list
+            CaOverview.INFINITY, // combat achievement overview
+            CaTasks.INFINITY, // combat achievement tasks
+            CaBosses.INFINITY, // combat achievement Bosses
+            CaRewards.INFINITY, // combat achievement Rewards
+            CaBoss.INFINITY, // combat achievement specific bosses
+            CaTasks.DROPDOWN_BOX  // combat achievement task filter drop down list
     );
 
     // other specific ids
-    private final int attackStyleHoverTextId = 38862892;
-    private final int prayerTabHoverTextId = 35455015;
-    private final int spellbookTabHoverTextId = 14287050;
-    private final int addFriendButtonId = 28114959;
-    private final int removeFriendButtonId = 28114961;
-    private final int skillsTabXpHoverTextId = 20971548;
-    private final int xpBarTopRightHoverTextId = 7995417;
-    private final int gimMemberNameId = 47579142; // show only if type = 4 and left aligned
-    private final int groupTabPvPGroupMemberId = 49938440;
-    private final int groupingGroupMemberNameId = 4980752;
-    private final int settingsHoverTextId = 7602219;
-    private final int emotesHoverTextId = 14155781;
-    private final int worldSwitcherHoverTextId = 4522010;
-    private final int worldSwitcherWorldActivityId = 4522003;
-    private final int houseOptionsHoverTextId = 24248346; // house options, from the settings tab, click house icon
-    private final int houseOptionsTextOnID = 24248322; // in house options, the "On" text (can get <br> tag in some languages)
-    private final int houseOptionsTextOffID = 24248323; // in house options, the "Off" text (can get <br> tag in some languages)
-    private final int loginScreenId = 24772610;
-    private final int loginBannerId = 24772687;
+    private final int attackStyleHoverTextId = CombatInterface.TOOLTIP;
+    private final int prayerTabHoverTextId = Prayerbook.TOOLTIP;
+    private final int spellbookTabHoverTextId = MagicSpellbook.TOOLTIP;
+    private final int addFriendButtonId = Friends.UNIVERSE_TEXT4;
+    private final int removeFriendButtonId = Friends.UNIVERSE_TEXT6;
+    private final int skillsTabXpHoverTextId = Stats.TOOLTIP;
+    private final int xpBarTopRightHoverTextId = XpDrops.TOOLTIP;
+    private final int gimMemberNameId = GimSidepanel.MEMBERS; // show only if type = 4 and left aligned
+    private final int groupTabPvPGroupMemberId = PvpArenaSidepanel.PLAYERLIST;
+    private final int groupingGroupMemberNameId = Grouping.PLAYERLIST;
+    private final int settingsHoverTextId = SettingsSide.TOOLTIP;
+    private final int emotesHoverTextId = Emote.TOOLTIP;
+    private final int worldSwitcherHoverTextId = Worldswitcher.TOOLTIP;
+    private final int worldSwitcherWorldActivityId = Worldswitcher.INFO;
+    private final int houseOptionsHoverTextId = PohOptions.TOOLTIP; // house options, from the settings tab, click house icon
+    private final int houseOptionsTextOnID = PohOptions.ROOT_TEXT2; // in house options, the "On" text (can get <br> tag in some languages)
+    private final int houseOptionsTextOffID = PohOptions.ROOT_TEXT3; // in house options, the "Off" text (can get <br> tag in some languages)
+    private final int loginScreenId = WelcomeScreen.CONTENT;
+    private final int loginBannerId = WelcomeScreen.BANNER_ARTCANVAS;
 
     // for English transcript to be split at <br> tags and added to the transcript
     // will reduce the number of translations needed
@@ -191,27 +191,27 @@ public class Ids {
     );
 
     private final Set<Integer> widgetIdChatButton2SetXTextAliLeft = Set.of(
-            10616841, // CHATBOX_TAB_GAME 's "Game" widget
-            10616845, // CHATBOX_TAB_PUBLIC 's "Public" widget
-            10616849, // CHATBOX_TAB_PRIVATE 's "Private" widget
-            10616853, // CHATBOX_TAB_CHANNEL 's "Channel" widget
-            10616857, // CHATBOX_TAB_CLAN 's "Clan" widget
-            10616861 // CHATBOX_TAB_TRADE 's "Trade" widget
+            Chatbox.CHAT_GAME_TEXT1, // CHATBOX_TAB_GAME 's "Game" widget
+            Chatbox.CHAT_PUBLIC_TEXT1, // CHATBOX_TAB_PUBLIC 's "Public" widget
+            Chatbox.CHAT_PRIVATE_TEXT1, // CHATBOX_TAB_PRIVATE 's "Private" widget
+            Chatbox.CHAT_FRIENDSCHAT_TEXT1, // CHATBOX_TAB_CHANNEL 's "Channel" widget
+            Chatbox.CHAT_CLAN_TEXT1, // CHATBOX_TAB_CLAN 's "Clan" widget
+            Chatbox.CHAT_TRADE_TEXT // CHATBOX_TAB_TRADE 's "Trade" widget
     );
     private final Set<Integer> widgetIdChatButton2SetXTextAliRight = Set.of(
-            10616842, // CHATBOX_TAB_GAME 's setting widget
-            10616846, // CHATBOX_TAB_PUBLIC 's setting widget
-            10616850, // CHATBOX_TAB_PRIVATE 's setting widget
-            10616854, // CHATBOX_TAB_CHANNEL 's setting widget
-            10616858, // CHATBOX_TAB_CLAN 's setting widget
-            10616862 // CHATBOX_TAB_TRADE 's setting widget
+            Chatbox.CHAT_GAME_FILTER, // CHATBOX_TAB_GAME 's setting widget
+            Chatbox.CHAT_PUBLIC_FILTER, // CHATBOX_TAB_PUBLIC 's setting widget
+            Chatbox.CHAT_PRIVATE_FILTER, // CHATBOX_TAB_PRIVATE 's setting widget
+            Chatbox.CHAT_FRIENDSCHAT_FILTER, // CHATBOX_TAB_CHANNEL 's setting widget
+            Chatbox.CHAT_CLAN_FILTER, // CHATBOX_TAB_CLAN 's setting widget
+            Chatbox.CHAT_TRADE_FILTER // CHATBOX_TAB_TRADE 's setting widget
     );
 
     // widget ids to change the width of, because some widget have room and also needs more
     // each value's meaning: Map<widgetId, Pair<newWidth, newHeight>>
     private final Map<Integer, Pair<Integer, Integer>> widgetId2FixedSize = Map.ofEntries(
         //Map.entry(widget_id, Pair.of(newWidth, newHeight))
-        Map.entry(16973826, Pair.of(110, null)) // the achievement diary tab's location names
+        Map.entry(AreaTask.TASKBOX, Pair.of(110, null)) // the achievement diary tab's location names
     );
 
     // ids of widgets to resize to match the text inside it, mostly for hover displays like prayer's hover descriptions
@@ -228,13 +228,13 @@ public class Ids {
     }
 
     // partial translations
-    private final int playerNameInAccManTab = 7143474;
-    private final int widgetIdPvPArenaNan = 49938440;//group tab, click PvP Arena button in top right while in an unrelated guest clan
-    private final int widgetIdInOtherActivityChannel = 4980752;// group tab, select an activity in drop down menu, click join, then select another activity
-    private final int playerNameInCombAch = 46989317;// the player name in "Overview" of combat achievements tab
-    private final int topBossInCombAch = 46989326;// the texts under Combat Profile section in "Overview" of combat achievements tab
-    private final int monsterTargetNameInCombAch = 46858252;// "Monster: ..." in combat achievements tab (tasks)
-    private final int bossSpecificCA = 46727170;
+    private final int playerNameInAccManTab = Account.NAME_TEXT;
+    private final int widgetIdPvPArenaNan = PvpArenaSidepanel.PLAYERLIST;//group tab, click PvP Arena button in top right while in an unrelated guest clan
+    private final int widgetIdInOtherActivityChannel = Grouping.PLAYERLIST;// group tab, select an activity in drop down menu, click join, then select another activity
+    private final int playerNameInCombAch = CaOverview.CA_PERSONAL_HEADER;// the player name in "Overview" of combat achievements tab
+    private final int topBossInCombAch = CaOverview.CA_PERSONAL_CONTENT;// CA overview > the texts on right side, under text with player name
+    private final int monsterTargetNameInCombAch = CaTasks.TASKS_MONSTER;// "Monster: ..." in combat achievements tab (tasks)
+    private final int bossSpecificCA = CaBoss.FRAME;// combat achievements - specific bosses' title at the top
 
     private void initPartialTranslations() {
         /* use for when part of a text should not be translated / translated as item name, object name etc, and other parts should be translated by translator/api
