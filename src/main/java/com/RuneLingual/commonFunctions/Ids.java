@@ -6,6 +6,8 @@ import lombok.Getter;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.gameval.InterfaceID;
+import net.runelite.api.gameval.InterfaceID.*;
 import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.Widget;
 
@@ -42,27 +44,27 @@ public class Ids {
 
     // Ids of widgets
     // main tabs
-    private final int widgetIdMainTabs = 10747976;
-    private final int widgetIdAttackStyleTab = 38862848;
-    private final int widgetIdSkillsTab = ComponentID.SKILLS_CONTAINER;
-    private final int widgetIdCharacterSummaryTab = ComponentID.CHARACTER_SUMMARY_CONTAINER;
-    private final int widgetIdQuestTab = ComponentID.QUEST_LIST_BOX;
-    private final int widgetIdAchievementDiaryTab = ComponentID.ACHIEVEMENT_DIARY_CONTAINER;
-    private final int widgetIdInventoryTab = ComponentID.INVENTORY_CONTAINER;
-    private final int widgetIdEquipmentTab = ComponentID.EQUIPMENT_INVENTORY_ITEM_CONTAINER;
-    private final int widgetIdPrayerTab = ComponentID.PRAYER_PARENT;
-    private final int widgetIdSpellBookTab = ComponentID.SPELLBOOK_PARENT;
-    private final int widgetIdGroupsTab = 47644672;
+    private final int widgetIdMainTabs = ToplevelPreEoc.SIDE_PANELS;
+    private final int widgetIdAttackStyleTab = CombatInterface.UNIVERSE;
+    private final int widgetIdSkillsTab = Stats.UNIVERSE;
+    private final int widgetIdCharacterSummaryTab = AccountSummarySidepanel.SUMMARY_CONTENTS;
+    private final int widgetIdQuestTab = Questlist.UNIVERSE;
+    private final int widgetIdAchievementDiaryTab = AreaTask.TASKBOX;
+    private final int widgetIdInventoryTab = Inventory.ITEMS;
+    private final int widgetIdEquipmentTab = Wornitems.UNIVERSE;
+    private final int widgetIdPrayerTab = Prayerbook.UNIVERSE;
+    private final int widgetIdSpellBookTab = MagicSpellbook.UNIVERSE;
+    private final int widgetIdGroupsTab = SideChannelsLarge.UNIVERSE;
     private final int widgetIdGroupTabNonGIM = 46333952;
-    private final int widgetIdPvPArena = 49938432;
-    private final int widgetIdFriendsTab = 28114944;
-    private final int widgetIdIgnoreTab = 28311552;
+    private final int widgetIdPvPArena = PvpArenaSidepanel.UNIVERSE;
+    private final int widgetIdFriendsTab = Friends.UNIVERSE;
+    private final int widgetIdIgnoreTab = Ignore.UNIVERSE;
     private final int widgetIdAccountManagementTab = 7143445;
-    private final int widgetIdSettingsTab = 7602176;
-    private final int widgetIdEmotesTab = ComponentID.EMOTES_WINDOW;
-    private final int widgetIdMusicTab = ComponentID.MUSIC_CONTAINER;
-    private final int widgetIdLogoutTab = 11927552;
-    private final int widgetIdWorldSwitcherTab = 4521984;
+    private final int widgetIdSettingsTab = SettingsSide.UNIVERSE;
+    private final int widgetIdEmotesTab = Emote.UNIVERSE;
+    private final int widgetIdMusicTab = Music.UNIVERSE;
+    private final int widgetIdLogoutTab = Logout.UNIVERSE;
+    private final int widgetIdWorldSwitcherTab = Worldswitcher.UNIVERSE;
 
     // dont translate at all, except menu option
     private final int widgetIdCharacterSummaryName = 46661633;

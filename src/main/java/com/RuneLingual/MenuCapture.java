@@ -7,6 +7,7 @@ import com.RuneLingual.commonFunctions.Transformer.TransformOption;
 import com.RuneLingual.SQL.SqlVariables;
 import com.RuneLingual.SQL.SqlQuery;
 
+import com.RuneLingual.nonLatin.GeneralFunctions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -709,13 +710,15 @@ public class MenuCapture
 				}
 			}
 		}
-		String oldTarget_colTag = currentMenu.getTarget();
-		newTarget = Colors.removeNonImgTags(newTarget);
-		boolean haveTranslatedBefore = plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedBefore(oldTarget_colTag);
-		if(!haveTranslatedBefore){// or when separating words by colors, if any of the words match
-			if(!newTarget.isEmpty() && !newTarget.isBlank()){
-				isTargetPending = true;
-				pendingType = PendingTranslationType.TARGET;
+		if(getMenuTargetOption(currentMenu).equals(TransformOption.TRANSLATE_API)) {
+			String oldTarget_colTag = currentMenu.getTarget();
+			newTarget = Colors.removeNonImgTags(newTarget);
+			boolean haveTranslatedBefore = plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedBefore(oldTarget_colTag);
+			if (!haveTranslatedBefore) {// or when separating words by colors, if any of the words match
+				if (!newTarget.isEmpty() && !newTarget.isBlank()) {
+					isTargetPending = true;
+					pendingType = PendingTranslationType.TARGET;
+				}
 			}
 		}
 		if (!isOptionPending){
@@ -760,6 +763,22 @@ public class MenuCapture
 		boolean remove = false;
 		String newOption = this.plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(oldOption);
 		String newTarget = this.plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(oldTarget);
+		if(plugin.getTargetLanguage().needsCharImages()) {
+			Colors targetColor, local_optionColor;
+			local_optionColor = Colors.white;
+			targetColor = Colors.getColorArray(oldTarget, Colors.orange)[0];
+			if(plugin.getTargetLanguage().needsSwapMenuOptionAndTarget()){
+				// swap the option and target colors
+				local_optionColor = targetColor;
+				targetColor = Colors.white;
+			}
+			if (newTarget != null) {
+				newTarget = transformer.stringToDisplayedString(newTarget, local_optionColor);
+			}
+			if (newOption != null) {
+				newOption = transformer.stringToDisplayedString(newOption, targetColor);
+			}
+		}
 		if (type.equals(PendingTranslationType.BOTH) && newOption != null && newTarget != null){
 			remove = true;
 			menu.setOption(newOption);
@@ -774,6 +793,8 @@ public class MenuCapture
 			menu.setTarget(newTarget);
 			swapOptionTarget(menu);
 		}
+
+
 		return remove;
 	}
 
@@ -785,6 +806,23 @@ public class MenuCapture
 		String target = menu.getTarget();
 		menu.setOption(target);
 		menu.setTarget(option);
+	}
+
+	private TransformOption getMenuTargetOption(MenuEntry menuEntry){
+		if(isNpcMenu(menuEntry.getType())){
+			return getTransformOption(this.plugin.getConfig().getNPCNamesConfig(), plugin.getConfig().getSelectedLanguage());
+		}
+		if(isObjectMenu(menuEntry.getType())){
+			return getTransformOption(this.plugin.getConfig().getObjectNamesConfig(), plugin.getConfig().getSelectedLanguage());
+		}
+		if(isItemOnGround(menuEntry.getType())){
+			return getTransformOption(this.plugin.getConfig().getItemNamesConfig(), plugin.getConfig().getSelectedLanguage());
+		}
+		if(isItemInWidget(menuEntry)){
+			return getTransformOption(this.plugin.getConfig().getItemNamesConfig(), plugin.getConfig().getSelectedLanguage());
+		}
+
+		return getTransformOption(this.plugin.getConfig().getMenuOptionConfig(), plugin.getConfig().getSelectedLanguage());
 	}
 
 //	private void outputToDump(MenuEntry menu, SqlQuery query){
