@@ -62,6 +62,15 @@ public interface RuneLingualConfig extends Config {
     )
     String SECTION_SPECIFIC_PLAYER_SETTINGS = "specificPlayerSettings";
 
+    final int offset_section6 = 100;
+    @ConfigSection(
+            name = "Debugging",
+            description = "Settings for Debugging",
+            position = offset_section6,
+            closedByDefault = true
+    )
+    String SECTION_DEBUGGING = "debugging";
+
     @ConfigItem(
             name = "\uD83D\uDDE3\uD83D\uDCAC\uD83C\uDF10",
             description = "Select the language to be translated to",
@@ -375,12 +384,36 @@ public interface RuneLingualConfig extends Config {
             name = "Local file location",
             description = "Location of the files to be translated",
             keyName = "fileLocation",
-            position = 200 + offset,
-            secret = true
+            position = 1 + offset_section6,
+            secret = true,
+            section = SECTION_DEBUGGING
     )
     default String getFileLocation() {
         return RuneLite.RUNELITE_DIR.getPath() + File.separator + "RuneLingual_resources";
     }
+
+    @ConfigItem(
+            name = "Use Custom Data",
+            description = "Use custom data for translations on github repository",
+            keyName = "useCustomData",
+            position = 2 + offset_section6,
+            section = SECTION_DEBUGGING
+    )
+    default boolean useCustomData() {
+        return false;
+    }
+
+    @ConfigItem(
+            name = "Use Custom Data URL",
+            description = "Change the user name part and public to draft if necessary. Do not include the language code. Right click 'reset' to get default url",
+            keyName = "customDataUrl",
+            position = 3 + offset_section6,
+            section = SECTION_DEBUGGING
+    )
+    default String getCustomDataUrl() {
+        return "https://raw.githubusercontent.com/YS-jack/Runelingual-Transcripts/original-main/public/";
+    }
+
 
     enum ingameTranslationConfig {
         USE_LOCAL_DATA,

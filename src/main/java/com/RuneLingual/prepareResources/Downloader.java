@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -69,6 +70,20 @@ public class Downloader {//downloads translations and japanese char images to ex
         String remote_sub_folder = "public"; //todo: this value is "draft" if reading from draft folder, "public" if reading from the public folder
         GITHUB_BASE_URL = "https://raw.githubusercontent.com/YS-jack/Runelingual-Transcripts/original-main/" +
                 remote_sub_folder + "/" + langCode + "/";
+
+        // if the plugin is configured to use custom data, use that instead of the default GitHub URL
+        // example of customDataUrl: https://raw.githubusercontent.com/YS-jack/Runelingual-Transcripts/original-main/draft/
+        String customDataUrl = plugin.getConfig().getCustomDataUrl();
+        if (!customDataUrl.endsWith("/")) {
+            customDataUrl = customDataUrl + "/";
+        }
+        customDataUrl = customDataUrl + langCode + "/";
+        if(plugin.getConfig().useCustomData() && isURLReachable(customDataUrl + "hashList_" + langCode + ".txt")) {
+            GITHUB_BASE_URL = customDataUrl;
+            log.info("Using custom data URL: " + GITHUB_BASE_URL);
+        } else {
+            log.error("Custom data URL is not reachable or not configured, using default GitHub URL: " + GITHUB_BASE_URL);
+        }
 
         String REMOTE_HASH_FILE = GITHUB_BASE_URL + "hashList_" + langCode + ".txt";
 
@@ -248,6 +263,20 @@ public class Downloader {//downloads translations and japanese char images to ex
             fis.close();
         } catch (IOException e) {
             log.error("Error unzipping file", e);
+        }
+    }
+
+    public static boolean isURLReachable(String urlString) {
+        try {
+            URL url = new URL(urlString);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("HEAD");
+            connection.setConnectTimeout(5000); // 5 seconds timeout
+            connection.setReadTimeout(5000);
+            int responseCode = connection.getResponseCode();
+            return (200 <= responseCode && responseCode < 400);
+        } catch (Exception e) {
+            return false;
         }
     }
 }
