@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.io.File;
 import java.util.*;
 
+import com.RuneLingual.commonFunctions.FileActions;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.RuneLingual.prepareResources.Downloader;
 import com.RuneLingual.RuneLingualPlugin;
@@ -204,7 +205,10 @@ public class SqlActions {
             return array;
         }
         catch (SQLException e) {
-            log.error("Error executing search query: {}", query, e);
+            log.error("Error executing search query: {}.\nDeleting hash file, restart plugin", query, e);
+            // delete the hash file. When the plugin restarts, it will download the latest files, replacing possible corrupted files.
+            String hashFilePath = FileActions.getHashFile(this.plugin.getConfig().getSelectedLanguage());
+            FileActions.deleteFile(hashFilePath);
         }
         return new String[0][0];
     }
@@ -245,5 +249,42 @@ public class SqlActions {
             return results.toArray(new String[0][0]);
         }
     }
+
+    public static boolean tableExists(Connection conn, String tableName) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ?")) {
+            stmt.setString(1, tableName.toUpperCase());
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public static boolean tableIsEmpty(Connection conn, String tableName) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "SELECT COUNT(*) FROM " + tableName)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() && rs.getInt(1) == 0;
+            }
+        }
+    }
+
+    public static boolean noTableExistsOrIsEmpty(Connection conn){
+        String tableName = SqlActions.tableName;
+        try {
+            if (!tableExists(conn, tableName) || tableIsEmpty(conn, tableName)) {
+                if(conn!=null) {
+                    conn.close();
+                }
+                return true;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return false;
+    }
+
+
+
 
 }

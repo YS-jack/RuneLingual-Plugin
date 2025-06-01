@@ -46,6 +46,8 @@ public class FileActions {
         }
     }
 
+
+
     public static void createFile(String fileName) {
         try {
             File myObj = new File(fileName);
@@ -73,6 +75,11 @@ public class FileActions {
             }
         }
         return null;
+    }
+
+    public static String getHashFile(LangCodeSelectableList lang) {
+        return FileNameAndPath.getLocalBaseFolder() + File.separator +
+                lang.getLangCode() + File.separator + "hashListLocal_" + lang.getLangCode() + ".txt";
     }
 
     public static List<String> getFileNamesWithExtension(String path, String extension){

@@ -2,6 +2,7 @@ package com.RuneLingual.prepareResources;
 
 import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualPlugin;
+import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.commonFunctions.FileActions;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import lombok.Getter;
@@ -16,6 +17,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -110,9 +113,9 @@ public class Downloader {//downloads translations and japanese char images to ex
                 String localHash = localHashes.get(entry.getKey());
                 String remoteHash = entry.getValue();
                 String remote_full_path = entry.getKey();
-                //log.info("remote_full_path: " + remote_full_path);
+                Connection conn = plugin.getH2Manager().getConn(plugin.getTargetLanguage());
 
-                if ((localHash == null || !localHash.equals(remoteHash)) // if the file is not in the local hash file or the hash value is different
+                if ((localHash == null || !localHash.equals(remoteHash) || SqlActions.noTableExistsOrIsEmpty(conn)) // if the file is not in the local hash file OR the hash value is different OR the table TRANSCRIPT exists but empty
                         && (fileExtensionIncludedIn(remote_full_path, extensions_to_download) // and if the file extension is in the list of extensions to download
                         || same_file_included(remote_full_path, file_name_to_download))) { // or if the file name is in the list of file names to download
 

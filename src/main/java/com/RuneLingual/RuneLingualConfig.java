@@ -413,8 +413,6 @@ public interface RuneLingualConfig extends Config {
     default String getCustomDataUrl() {
         return "https://raw.githubusercontent.com/YS-jack/Runelingual-Transcripts/original-main/public/";
     }
-
-
     enum ingameTranslationConfig {
         USE_LOCAL_DATA,
         USE_API,
