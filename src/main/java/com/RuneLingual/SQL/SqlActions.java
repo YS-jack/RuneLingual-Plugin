@@ -35,6 +35,11 @@ public class SqlActions {
     // private String databaseUrl = "jdbc:h2:" + downloader.getLocalLangFolder() + File.separator + databaseFileName;
 
     public void createTable() throws SQLException {
+        try {
+            Class.forName("org.h2.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         Connection conn = DriverManager.getConnection(this.plugin.getDatabaseUrl());
         this.plugin.setConn(conn);
 
@@ -60,6 +65,11 @@ public class SqlActions {
 
 
     public void tsvToSqlDatabase(String[] tsvFiles, String tsvFolderPath){
+        try {
+            Class.forName("org.h2.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         // note: table must exist before calling this function
 
         for (String tsvFile : tsvFiles) {
@@ -99,6 +109,11 @@ public class SqlActions {
     }
 
     private void processTsvFile(String tsvFilePath) {
+        try {
+            Class.forName("org.h2.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         log.info("Processing TSV file: " + tsvFilePath);
         try {
             List<String> lines = Files.readAllLines(Paths.get(tsvFilePath));
