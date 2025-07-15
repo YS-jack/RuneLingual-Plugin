@@ -28,7 +28,7 @@ public enum LangCodeSelectableList
     Nederlands("nl", "NL", "NL", 8, 14, 6, 6, false, false, false, false, true, false, false),
     PORTUGUÊS("pt", "PT-PT", "PT-PT", 8, 14, 6, 6, false, false, false, false, true, false, false),
     svenska("sv", "SV", "SV", 8, 14, 6, 6, false, false, false, false, true, false, false),
-    Türkçe("tr", "TR", "TR", 8, 14, 6, 6, false, false, false, false, true, false, false);
+    Türkçe("tr", "TR", "TR", 8, 14, 6, 6, false, false, false, false, true, false, true);
 
 
     // todo: add languages here
@@ -116,6 +116,14 @@ public enum LangCodeSelectableList
             return 7;
         }
         return langCode.getCharWidth();
+    }
+
+    public static String getAPIErrorMessage(LangCodeSelectableList langCode) {
+        if (langCode == LangCodeSelectableList.日本語) {
+            return "APIキーが無効、翻訳の上限が近い、\nもしくはリクエストが集中しています。";
+        } else {
+            return "The API key is invalid, the translation \nlimit is close, or requests are congested.";
+        }
     }
 }
 /*

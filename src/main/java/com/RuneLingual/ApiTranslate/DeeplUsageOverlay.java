@@ -54,15 +54,24 @@ public class DeeplUsageOverlay  extends Overlay {
                     .build());
             len = (deeplLimit.length()*2+10)*enCharSize;
         } else {
+            String errorMessage = LangCodeSelectableList.getAPIErrorMessage(config.getSelectedLanguage());
             panelComponent.setBackgroundColor(bgColorInvalid);
             panelComponent.getChildren().add(LineComponent.builder()
-                    .left("APIキーが無効です。APIキーが有効であることと\n上限に到達していないことを確認してください。")
+                    .left(errorMessage)
                     .build());
-            len = ("APIキーが無効です。APIキーが有効であることと".length()+2)*foreignCharSize;
-        }//TODO: make it display in the configured language
+            len = (getMaxLetters(errorMessage.split("\n"))+2)*foreignCharSize;
+        }
         panelComponent.setPreferredSize(new Dimension(len,0));
         return panelComponent.render(graphics);
     }
 
-
+    public static int getMaxLetters(String[] strings) {
+        int maxLength = 0;
+        for (String str : strings) {
+            if (str != null) {
+                maxLength = Math.max(maxLength, str.length());
+            }
+        }
+        return maxLength;
+    }
 }

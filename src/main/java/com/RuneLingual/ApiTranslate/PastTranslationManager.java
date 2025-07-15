@@ -100,7 +100,7 @@ public class PastTranslationManager {
      */
     public String getPastTranslation(String text) {
         // first check that the text is not a result of translation
-        if (translationResults.contains(text)) {
+        if (translationResults.contains(text) || text.isEmpty() || text.isBlank()) {
             return text;
         }
         // if its not a result of translation, check the past translation map

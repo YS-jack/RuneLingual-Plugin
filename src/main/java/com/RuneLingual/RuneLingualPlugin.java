@@ -2,6 +2,7 @@ package com.RuneLingual;
 
 import com.RuneLingual.ApiTranslate.*;
 import com.RuneLingual.ChatMessages.*;
+import com.RuneLingual.MouseOverlays.MenuEntryHighlightOverlay;
 import com.RuneLingual.MouseOverlays.MouseTooltipOverlay;
 import com.RuneLingual.SQL.SqlActions;
 import com.RuneLingual.SQL.SqlQuery;
@@ -152,6 +153,8 @@ public class RuneLingualPlugin extends Plugin {
     @Getter
     private ChatInputOverlay chatInputOverlay;
     @Inject
+    private MenuEntryHighlightOverlay menuEntryHighlightOverlay;
+    @Inject
     private ChatInputCandidateOverlay chatInputCandidateOverlay;
     @Inject
     private OverheadCapture overheadCapture;
@@ -195,6 +198,7 @@ public class RuneLingualPlugin extends Plugin {
         overlayManager.add(deeplUsageOverlay);
         overlayManager.add(chatInputOverlay);
         overlayManager.add(chatInputCandidateOverlay);
+        overlayManager.add(menuEntryHighlightOverlay);
 
         // load image files
         charImageInit.loadCharImages();
@@ -242,6 +246,8 @@ public class RuneLingualPlugin extends Plugin {
 
         menuCapture.handleOpenedMenu(event);
     }
+
+
 
 
     @Subscribe
@@ -426,6 +432,7 @@ public class RuneLingualPlugin extends Plugin {
         overlayManager.remove(deeplUsageOverlay);
         overlayManager.remove(chatInputOverlay);
         overlayManager.remove(chatInputCandidateOverlay);
+        overlayManager.remove(menuEntryHighlightOverlay);
         h2Manager.closeConn();
         spriteReplacer.resetWidgetSprite();
     }
