@@ -216,8 +216,10 @@ public enum Colors {
         eg: <col=ff0000>Nex<col=ffffff> (level-1) -> ["red", "white"]
          */
         strWithColor = strWithColor.replaceAll("<img=.+?>", ""); // remove <img=**> tags
-        // if there are no color tags, return defaultColor
-        if(countColorTagsAfterReformat(strWithColor) == 0){
+        // if there are no color tags,
+        // or if it contains placeholder for color, return defaultColor
+        if(countColorTagsAfterReformat(strWithColor) == 0 ||
+                strWithColor.contains("<colNum") || strWithColor.isEmpty()) {
             return new Colors[]{defaultColor};
         }
 

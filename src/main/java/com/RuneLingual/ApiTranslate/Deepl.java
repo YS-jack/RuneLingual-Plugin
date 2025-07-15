@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.RuneLite;
 import okhttp3.*;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -310,7 +311,7 @@ public class Deepl {
         JSONObject jsonObject = new JSONObject(response);
         if (jsonObject.has("translations")) {
             JSONArray translationsArray = jsonObject.getJSONArray("translations");
-            if (!translationsArray.isEmpty()) {
+            if (translationsArray != null && translationsArray.length() > 0) { // .length() > 0 is used instead of ! .isEmpty() because .isEmpty on JsonObject doesnt work on the runelite client for some reason
                 JSONObject translationObject = translationsArray.getJSONObject(0);
                 return translationObject.getString("text");
             }
@@ -324,12 +325,24 @@ public class Deepl {
             @Override
             public void onSuccess(String usage) {
                 if (usage.isEmpty()) {
+                    log.error("API response is empty.");
                     return;
                 }
-                JSONObject jsonObject = new JSONObject(usage);
-                deeplCount = jsonObject.getInt("character_count");
-                deeplLimit = jsonObject.getInt("character_limit");
-                //log.info("updated deepl count:" + deeplCount + "\nupdated deepl limit" + deeplLimit);
+                try {
+                    JSONObject jsonObject = new JSONObject(usage);
+                    if (jsonObject.has("character_count") && jsonObject.has("character_limit")) {
+                        keyValid = true;
+                        deeplCount = jsonObject.getInt("character_count");
+                        deeplLimit = jsonObject.getInt("character_limit");
+                        //log.info("Updated deepl count: " + deeplCount + "\nUpdated deepl limit: " + deeplLimit);
+                    } else {
+                        keyValid = false;
+                        log.error("Required keys not found in API response: " + usage);
+                    }
+                } catch (JSONException e) {
+                    keyValid = false;
+                    log.error("Failed to parse API response: " + usage, e);
+                }
             }
 
             @Override
