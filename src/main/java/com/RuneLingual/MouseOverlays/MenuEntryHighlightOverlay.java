@@ -51,31 +51,31 @@ public class MenuEntryHighlightOverlay extends Overlay {
     // only draw if the menu is open and the selected language needs character images
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (!client.isMenuOpen() || !plugin.getTargetLanguage().needsCharImages() || plugin.getTargetLanguage() == LangCodeSelectableList.ENGLISH) {
-            return null;
-        }
-
-        // get the x, y, width of the menu
-        int x = client.getMenu().getMenuX();
-        int y = client.getMenu().getMenuY();
-        int width = client.getMenu().getMenuWidth();
-        log.info("Menu X: {}, Y: {}, Width: {}", x, y, width);
-        panelComponent.getChildren().clear();
-        panelComponent.setPreferredLocation(new Point(x, y));
-        panelComponent.setPreferredSize(new Dimension(width,100));
-        Color bgColor = new Color(127, 82, 33);
-        Rectangle rectangle = new Rectangle(
-                x,
-                y,
-                width,
-                100
-        );
-        BackgroundComponent backgroundComponent = new BackgroundComponent(
-                bgColor,
-                rectangle,
-                true
-        );
-        backgroundComponent.render(graphics);
+//        if (!client.isMenuOpen() || !plugin.getTargetLanguage().needsCharImages() || plugin.getTargetLanguage() == LangCodeSelectableList.ENGLISH) {
+//            return null;
+//        }
+//
+//        // get the x, y, width of the menu
+//        int x = client.getMenu().getMenuX();
+//        int y = client.getMenu().getMenuY();
+//        int width = client.getMenu().getMenuWidth();
+//        log.info("Menu X: {}, Y: {}, Width: {}", x, y, width);
+//        panelComponent.getChildren().clear();
+//        panelComponent.setPreferredLocation(new Point(x, y));
+//        panelComponent.setPreferredSize(new Dimension(width,100));
+//        Color bgColor = new Color(127, 82, 33);
+//        Rectangle rectangle = new Rectangle(
+//                x,
+//                y,
+//                width,
+//                100
+//        );
+//        BackgroundComponent backgroundComponent = new BackgroundComponent(
+//                bgColor,
+//                rectangle,
+//                true
+//        );
+//        backgroundComponent.render(graphics);
         return null;
     }
 }
