@@ -106,6 +106,7 @@ public class PastTranslationManager {
         // if its not a result of translation, check the past translation map
         String translation = pastTranslations.getOrDefault(text, null);
         if (translation != null) {
+            translation = Transformer.unifySimilarChars(translation);
             return translation;
         }
 
@@ -119,6 +120,7 @@ public class PastTranslationManager {
         // if its not a result of translation, check the past translation map
         translation = pastTranslations.getOrDefault(text, null);
         if (translation != null) {
+            translation = Transformer.unifySimilarChars(translation);
             return translation;
         }
 
@@ -136,6 +138,7 @@ public class PastTranslationManager {
         // if its not a result of translation, check the past translation map
         translation = pastTranslations.getOrDefault(textWithColorTagRemoved, null);
         if (translation != null) {
+            translation = Transformer.unifySimilarChars(translation);
             return colTag.getColorTag() + translation;
         }
         return null;

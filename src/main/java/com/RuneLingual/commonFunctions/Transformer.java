@@ -7,7 +7,6 @@ import com.RuneLingual.nonLatin.GeneralFunctions;
 import com.RuneLingual.SQL.SqlVariables;
 import com.RuneLingual.SQL.SqlQuery;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.widgets.Widget;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -92,7 +91,7 @@ public class Transformer {
                     outputUnknown(sqlQuery);
                     return textAddColor(text, sqlQuery.getColor());
                 } else { // text has been translated
-                    translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
+                    translatedText = unifySimilarChars(result[0]); // convert full width characters to half width
                     translatedText = Colors.getOriginalColorWord(translatedText, colorTagsAsIs); // replace placeholders with original color tags
 //                    for(int i = 0; i < colorTagsAsIs.size(); i++){
 //                        translatedText = translatedText.replace("<colNum" + i + ">", colorTagsAsIs.get(i)); // replace placeholders with original color tags
@@ -170,7 +169,7 @@ public class Transformer {
                     return null;
 
                 } else { // text has been translated
-                    translatedText = convertFullWidthToHalfWidth(result[0]); // convert full width characters to half width
+                    translatedText = unifySimilarChars(result[0]); // convert full width characters to half width
                     translatedText = protectPlaceholderTags(translatedText); // protect placeholder tags like <!monster> from being turned into char images
                 }
             }
@@ -242,7 +241,7 @@ public class Transformer {
             } else {
                 for (String s : result) {
                     if(!s.isEmpty()) {
-                        translatedText = convertFullWidthToHalfWidth(s); // convert full width characters to half width
+                        translatedText = unifySimilarChars(s); // convert full width characters to half width
                         break;
                     }
                 }
@@ -324,7 +323,7 @@ public class Transformer {
         }
     }
 
-    public String convertFullWidthToHalfWidth(String fullWidthStr) {
+    public static String unifySimilarChars(String fullWidthStr) {
         String[][] fullWidthToHalfWidth = {
                 {"０", "0"}, {"１", "1"}, {"２", "2"}, {"３", "3"}, {"４", "4"}, {"５", "5"}, {"６", "6"}, {"７", "7"}, {"８", "8"}, {"９", "9"},
                 {"Ａ", "A"}, {"Ｂ", "B"}, {"Ｃ", "C"}, {"Ｄ", "D"}, {"Ｅ", "E"}, {"Ｆ", "F"}, {"Ｇ", "G"}, {"Ｈ", "H"}, {"Ｉ", "I"}, {"Ｊ", "J"},
@@ -336,7 +335,9 @@ public class Transformer {
                 {"！", "!"}, {"”", "\""}, {"＃", "#"}, {"＄", "$"}, {"％", "%"}, {"＆", "&"}, {"＇", "'"}, {"（", "("}, {"）", ")"}, {"＊", "*"},
                 {"＋", "+"}, {"，", ","}, {"－", "-"}, {"．", "."}, {"／", "/"}, {"：", ":"}, {"；", ";"}, {"＜", "<"}, {"＝", "="}, {"＞", ">"},
                 {"？", "?"}, {"＠", "@"}, {"［", "["}, {"＼", "\\"}, {"］", "]"}, {"＾", "^"}, {"＿", "_"}, {"｀", "`"}, {"｛", "{"}, {"｜", "|"},
-                {"｝", "}"}, {"　", " "},  {"！", "!"}//, {"～", "~"}
+                {"｝", "}"}, {"　", " "},  {"！", "!"},//, {"～", "~"}
+                // turkish letters
+                {"İ", "I"}, {"ı", "i"}, {"Ş", "S"}, {"ş", "s"}, {"Ğ", "G"}, {"ğ", "g"}, {"Ü", "U"}, {"ü", "u"}, {"Ö", "O"}, {"ö", "o"},
         };
         for (String[] pair : fullWidthToHalfWidth) {
             fullWidthStr = fullWidthStr.replace(pair[0], pair[1]);

@@ -152,6 +152,7 @@ public class DialogTranslator {
             query.setDialogue(npcContent, npcName, false, defaultTextColor);
             String translatedText = transformer.transform(npcContent, defaultTextColor, dialogOption, query, false);
             widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
+            widgetsUtilRLingual.changeLineHeight(widget);
         }
     }
 
@@ -174,6 +175,7 @@ public class DialogTranslator {
             query.setDialogue(playerContent, npcName, true, defaultTextColor);
             String translatedText = transformer.transform(playerContent, defaultTextColor, dialogOption, query, false);
             widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
+            widgetsUtilRLingual.changeLineHeight(widget);
         }
         // player name does not need to be translated
     }
@@ -194,6 +196,7 @@ public class DialogTranslator {
         query.setDialogue(dialogOption, getInteractingNpcName(), false, defaultTextColor);
         String translatedText = transformer.transform(dialogOption, defaultTextColor, this.dialogOption, query, false);
         widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
+        widgetsUtilRLingual.changeLineHeight(widget);
     }
 
     private String getInteractingNpcName() {

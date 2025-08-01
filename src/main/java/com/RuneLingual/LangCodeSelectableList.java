@@ -14,21 +14,21 @@ public enum LangCodeSelectableList
     NORSK("no", "NB", "NB", 8, 14, 6, 6, false, false, false, false, true, false, true),
     日本語("ja", "JA", "JA", 12, 12, 12, 15, true, true, true, true, false, true, true),
     Русский("ru", "RU", "RU", 8, 12, 6, 6, true, false, true, false, true, false, true),
-    český("cs", "CS", "CS", 8, 14, 6, 6, false, false, false, false, true, false, false),
-    dansk("da", "DA", "DA", 8, 14, 6, 6, false, false, false, false, true, false, false),
-    DEUTSCH("de", "DE", "DE", 8, 14, 6, 6, false, false, false, false, true, false, false),
-    ESPAÑOL("es", "ES", "ES", 8, 14, 6, 6, false, false, false, false, true, false, false),
-    eesti("et", "ET", "ET", 8, 14, 6, 6, false, false, false, false, true, false, false),
-    suomi("fi", "FI", "FI", 8, 14, 6, 6, false, false, false, false, true, false, false),
-    FRANÇAIS("fr", "FR", "FR", 8, 14, 6, 6, false, false, false, false, true, true, false),
+    český("cs", "CS", "CS", 7, 14, 6, 6, false, false, false, false, true, false, false),
+    dansk("da", "DA", "DA", 7, 14, 6, 6, false, false, false, false, true, false, false),
+    DEUTSCH("de", "DE", "DE", 7, 14, 6, 6, false, false, false, false, true, false, false),
+    ESPAÑOL("es", "ES", "ES", 7, 14, 6, 6, false, false, false, false, true, false, false),
+    eesti("et", "ET", "ET", 7, 14, 6, 6, false, false, false, false, true, false, false),
+    suomi("fi", "FI", "FI", 7, 14, 6, 6, false, false, false, false, true, false, false),
+    FRANÇAIS("fr", "FR", "FR", 7, 14, 6, 6, false, false, false, false, true, true, false),
     //hrvatski("hr", "HE", "HE", 8, 14, 6, 6, false, true, false, false, true, false, false), // only available in pro v2 api, todo: change code to check for this, then add this language
-    magyar("hu", "HU", "HU", 8, 14, 6, 6, false, false, false, false, true, false, false),
-    Indonesian("id", "ID", "ID", 8, 14, 6, 6, false, false, false, false, true, false, false),
-    italiano("it", "IT", "IT", 8, 14, 6, 6, false, false, false, false, true, false, false),
-    Nederlands("nl", "NL", "NL", 8, 14, 6, 6, false, false, false, false, true, false, false),
-    PORTUGUÊS("pt", "PT-PT", "PT-PT", 8, 14, 6, 6, false, false, false, false, true, false, false),
-    svenska("sv", "SV", "SV", 8, 14, 6, 6, false, false, false, false, true, false, false),
-    Türkçe("tr", "TR", "TR", 8, 14, 6, 6, false, false, false, false, true, false, true);
+    magyar("hu", "HU", "HU", 7, 14, 6, 6, false, false, false, false, true, false, false),
+    Indonesian("id", "ID", "ID", 7, 14, 6, 6, false, false, false, false, true, false, false),
+    italiano("it", "IT", "IT", 7, 14, 6, 6, false, false, false, false, true, false, false),
+    Nederlands("nl", "NL", "NL", 7, 14, 6, 6, false, false, false, false, true, false, false),
+    PORTUGUÊS("pt", "PT-PT", "PT-PT", 7, 14, 6, 6, false, false, false, false, true, false, false),
+    svenska("sv", "SV", "SV", 7, 14, 6, 6, false, false, false, false, true, false, false),
+    Türkçe("tr", "TR", "TR", 7, 14, 6, 6, false, false, false, false, true, false, true);
 
 
     // todo: add languages here
