@@ -28,7 +28,8 @@ public enum LangCodeSelectableList
     Nederlands("nl", "NL", "NL", 7, 14, 6, 6, false, false, false, false, true, false, false),
     PORTUGUÊS("pt", "PT-PT", "PT-PT", 7, 14, 6, 6, false, false, false, false, true, false, false),
     svenska("sv", "SV", "SV", 7, 14, 6, 6, false, false, false, false, true, false, false),
-    Türkçe("tr", "TR", "TR", 7, 14, 6, 6, false, false, false, false, true, false, true);
+    Türkçe("tr", "TR", "TR", 7, 14, 6, 6, false, false, false, false, true, false, true),
+    Polski("pl", "PL", "PL", 7, 14, 6, 6, false, false, false, false, true, false, false);
 
 
     // todo: add languages here

@@ -338,6 +338,9 @@ public class Transformer {
                 {"｝", "}"}, {"　", " "},  {"！", "!"},//, {"～", "~"}
                 // turkish letters
                 {"İ", "I"}, {"ı", "i"}, {"Ş", "S"}, {"ş", "s"}, {"Ğ", "G"}, {"ğ", "g"}, {"Ü", "U"}, {"ü", "u"}, {"Ö", "O"}, {"ö", "o"},
+                // polish letters
+                {"Ą", "A"}, {"ą", "a"}, {"Ć", "C"}, {"ć", "c"}, {"Ę", "E"}, {"ę", "e"}, {"Ł", "L"}, {"ł", "l"}, {"Ń", "N"}, {"ń", "n"},
+                {"Ś", "S"}, {"ś", "s"}, {"Ź", "Z"}, {"ź", "z"}, {"Ż", "Z"}, {"ż", "z"},//{"Ó", "O"}, {"ó", "o"},
         };
         for (String[] pair : fullWidthToHalfWidth) {
             fullWidthStr = fullWidthStr.replace(pair[0], pair[1]);
