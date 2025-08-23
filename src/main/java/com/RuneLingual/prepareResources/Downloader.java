@@ -142,7 +142,7 @@ public class Downloader {//downloads translations and japanese char images to ex
                     dataFormater.updateSqlFromTsv(localLangFolder.getPath(), tsvFileNames);
                 }
             } else {
-                log.info("All files are up to date.");
+                //log.info("All files are up to date.");
             }
         } catch (IOException e) {
             log.error("An error occurred: {}", e.getMessage(), e);
@@ -214,7 +214,7 @@ public class Downloader {//downloads translations and japanese char images to ex
         // filePath example: "draft\ja\actions_ja.xliff" this is the location of files relative to the GitHub repo root of RuneLite-Transcripts
         URL fileUrl = new URL(GITHUB_BASE_URL + remoteFullPath.replace("\\", "/"));
         Path localPath = Paths.get(localLangFolder.getPath(), remoteFullPath.replace("draft\\", ""));
-        log.info("updating file " + localPath);
+        //log.info("updating file " + localPath);
 
 
         // Check if the language directory exists, if not, create it
