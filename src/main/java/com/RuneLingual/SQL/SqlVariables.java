@@ -14,6 +14,7 @@ public enum SqlVariables {
     // possible category values
     categoryValue4Dialogue("dialogue","category"), // string value for "dialogue" in category column
     categoryValue4Examine("examine","category"),
+    categoryValue4GameMessage("gameText","category"), // for game text, such as "Welcome to old School RuneScape."
     categoryValue4Name("name","category"),
     categoryValue4Manual("manual","category"),//probably wont use
     categoryValue4Actions("actions","category"),

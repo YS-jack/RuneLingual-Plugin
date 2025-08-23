@@ -17,7 +17,6 @@ import java.awt.*;
 import java.util.*;
 
 import static com.RuneLingual.Widgets.WidgetsUtilRLingual.removeBrAndTags;
-import static com.RuneLingual.debug.OutputToFile.appendIfNotExistToFile;
 
 @Slf4j
 public class WidgetCapture {
@@ -375,6 +374,9 @@ public class WidgetCapture {
 
     // used for creating the English transcript used for manual translation
     private void ifIsDumpTarget_thenDump(Widget widget, SqlQuery sqlQuery) {
+        if (!plugin.getConfig().enableLoggingWidget()) {
+            return;
+        }
 //        if (sqlQuery.getSource() != null &&
 //                (sqlQuery.getSource().equals(SqlVariables.sourceValue4FriendsTab.getValue())
 //        || sqlQuery.getSource().equals(SqlVariables.sourceValue4IgnoreTab.getValue())
@@ -409,12 +411,12 @@ public class WidgetCapture {
             } else if (ids.getWidgetId2SplitTextAtBr().contains(widget.getId())) {
                 String[] textList = textToDump.split("<br>");
                 for (String text : textList) {
-                    appendIfNotExistToFile(text + "\t" + category +
+                    plugin.getOutputToFile().appendIfNotExistToFile(text + "\t" + category +
                             "\t" + subCategory +
                             "\t" + source, fileName);
                 }
             } else {
-                appendIfNotExistToFile(textToDump + "\t" + category +
+                plugin.getOutputToFile().appendIfNotExistToFile(textToDump + "\t" + category +
                         "\t" + subCategory +
                         "\t" + source, fileName);
             }

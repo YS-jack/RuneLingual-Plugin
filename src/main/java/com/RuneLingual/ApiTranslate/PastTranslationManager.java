@@ -80,7 +80,7 @@ public class PastTranslationManager {
                 Files.createDirectories(filePath.getParent());
                 Files.createFile(Paths.get(pastTranslationFile));
             } catch (FileAlreadyExistsException e) {
-                log.info("File already exists: " + pastTranslationFile);
+                //log.info("File already exists: " + pastTranslationFile);
             } catch (NoSuchFileException e) {
                 log.error("Unable to create file, directory doesn't exist: " + e.getMessage(), e);
             } catch (AccessDeniedException e) {

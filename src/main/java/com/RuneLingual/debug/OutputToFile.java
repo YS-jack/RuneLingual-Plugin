@@ -9,12 +9,24 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 
+import com.RuneLingual.RuneLingualPlugin;
+import com.RuneLingual.SQL.SqlQuery;
 import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.SQL.SqlVariables;
+import com.RuneLingual.prepareResources.Downloader;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.config.ConfigItem;
+
+import javax.inject.Inject;
 
 @Slf4j
 public class OutputToFile {
+    @Inject
+    private RuneLingualPlugin plugin;
+    @Inject
+    private Downloader downloader;
+    File outputFilePath;
+
     public void menuTarget(String target, String subCategory, String source){
         if (Colors.countColorTagsAfterReformat(target) <= 1){
             target = Colors.removeNonImgTags(target);
@@ -47,21 +59,55 @@ public class OutputToFile {
         appendToFile(english + "\t" + category + "\t" + subCategory + "\t" + source, "dumpGeneral_debug.txt");
     }
 
-    public static void appendToFile(String str, String fileName){
+    public void dumpGeneral(String english, String category, String subCategory, String source, String filename){
+        if (english == null || english.isEmpty()){
+            return;
+        }
+        if (category == null){
+            category = "";
+        }
+        if (subCategory == null){
+            subCategory = "";
+        }
+        if (source == null){
+            source = "";
+        }
+        appendToFile(english + "\t" + category + "\t" + subCategory + "\t" + source, filename);
+    }
+
+    public void dumpSql(SqlQuery sqlQuery, String fileName){
+        if (sqlQuery == null || sqlQuery.getEnglish() == null || sqlQuery.getEnglish().isEmpty()){
+            return;
+        }
+        dumpGeneral(sqlQuery.getEnglish(),
+                    sqlQuery.getCategory(),
+                    sqlQuery.getSubCategory(),
+                    sqlQuery.getSource(),
+                    fileName);
+    }
+
+    public void appendToFile(String str, String fileName){
         try {
-            createDirectoryIfNotExists("output");
-            Path filePath = Paths.get("output" + File.separator + fileName);
+            outputFilePath = new File(plugin.getDownloader().getLocalLangFolder() + File.separator + "logs");
+//            createDirectoryIfNotExists("output");
+//            Path filePath = Paths.get("output" + File.separator + fileName);
+            downloader.createDir(outputFilePath.getPath());
+            Path filePath = Paths.get(outputFilePath.getPath() + File.separator + fileName);
             createFileIfNotExists(filePath.toString());
+
             Files.write(filePath, (str + System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         } catch (IOException e) {
             log.error("Error writing to file.", e);
         }
     }
 
-    public static void appendIfNotExistToFile(String str, String fileName) {
+    public void appendIfNotExistToFile(String str, String fileName) {
         try {
-            createDirectoryIfNotExists("output");
-            Path filePath = Paths.get("output" + File.separator + fileName);
+            outputFilePath = new File(plugin.getDownloader().getLocalLangFolder() + File.separator + "logs");
+//            createDirectoryIfNotExists("output");
+//            Path filePath = Paths.get("output" + File.separator + fileName);
+            downloader.createDir(outputFilePath.getPath());
+            Path filePath = Paths.get(outputFilePath.getPath() + File.separator + fileName);
             createFileIfNotExists(filePath.toString());
 
             // Read all lines from the file

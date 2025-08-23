@@ -413,6 +413,40 @@ public interface RuneLingualConfig extends Config {
     default String getCustomDataUrl() {
         return "https://raw.githubusercontent.com/YS-jack/Runelingual-Transcripts/original-main/public/";
     }
+
+    @ConfigItem(
+            name = "Enable logging (Widgets)",
+            description = "Output untranslated widget texts to a file, which will be found in the local file location defined above.",
+            keyName = "enableLogging",
+            position = 4 + offset_section6,
+            section = SECTION_DEBUGGING
+    )
+    default boolean enableLoggingWidget() {
+        return false;
+    }
+
+    @ConfigItem(
+            name = "Enable logging (Game Messages)",
+            description = "Output untranslated game messages to a file, which will be found in the local file location defined above.",
+            keyName = "enableLoggingSql",
+            position = 5 + offset_section6,
+            section = SECTION_DEBUGGING
+    )
+    default boolean enableLoggingGameMessage() {
+        return true;
+    }
+
+    @ConfigItem(
+            name = "Enable logging (Any)",
+            description = "Output any untranslated to a file, which will be found in the local file location defined above.",
+            keyName = "enableLoggingChat",
+            position = 6 + offset_section6,
+            section = SECTION_DEBUGGING
+    )
+    default boolean enableLoggingAny() {
+        return false;
+    }
+
     enum ingameTranslationConfig {
         USE_LOCAL_DATA,
         USE_API,

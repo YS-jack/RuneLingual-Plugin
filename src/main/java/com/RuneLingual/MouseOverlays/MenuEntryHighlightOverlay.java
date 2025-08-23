@@ -59,7 +59,7 @@ public class MenuEntryHighlightOverlay extends Overlay {
 //        int x = client.getMenu().getMenuX();
 //        int y = client.getMenu().getMenuY();
 //        int width = client.getMenu().getMenuWidth();
-//        log.info("Menu X: {}, Y: {}, Width: {}", x, y, width);
+//        //log.info("Menu X: {}, Y: {}, Width: {}", x, y, width);
 //        panelComponent.getChildren().clear();
 //        panelComponent.setPreferredLocation(new Point(x, y));
 //        panelComponent.setPreferredSize(new Dimension(width,100));

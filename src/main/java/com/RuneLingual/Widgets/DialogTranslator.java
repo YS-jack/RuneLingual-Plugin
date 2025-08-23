@@ -128,7 +128,7 @@ public class DialogTranslator {
             default:
                 break;
         }
-        log.info("Unknown dialog widget: " + widget.getId());
+        //log.info("Unknown dialog widget: " + widget.getId());
     }
 
     // is not api translation

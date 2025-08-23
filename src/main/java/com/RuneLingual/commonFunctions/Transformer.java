@@ -18,8 +18,7 @@ public class Transformer {
     @Inject
     private RuneLingualPlugin plugin;
     private boolean outputUnknownToFile = true;
-    @Inject
-    private OutputToFile outputToFile;
+
 
 
     public enum TransformOption {
@@ -77,8 +76,8 @@ public class Transformer {
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
-                log.info("(engWithColor) No translation found for " + text + " ");
-                log.info("query = " + sqlQuery.getSearchQuery());
+                //log.info("(engWithColor) No translation found for " + text + " ");
+                //log.info("query = " + sqlQuery.getSearchQuery());
                 plugin.getFailedTranslations().add(sqlQuery);
                 outputUnknown(sqlQuery);
                 return textAddColor(text, sqlQuery.getColor());
@@ -86,7 +85,7 @@ public class Transformer {
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
-                    log.info("{} has not been translated yet (engWithColor)", text);
+                    //log.info("{} has not been translated yet (engWithColor)", text);
                     plugin.getFailedTranslations().add(sqlQuery);
                     outputUnknown(sqlQuery);
                     return textAddColor(text, sqlQuery.getColor());
@@ -154,8 +153,8 @@ public class Transformer {
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, false);
             if(result.length == 0){
-                log.info("(withPlaceholders func) the following placeholder text doesn't exist in the English column :{}", textWithPlaceholders);
-                log.info("   query = {}", sqlQuery.getSearchQuery());
+                //log.info("(withPlaceholders func) the following placeholder text doesn't exist in the English column :{}", textWithPlaceholders);
+                //log.info("   query = {}", sqlQuery.getSearchQuery());
                 outputUnknown(sqlQuery);
                 // translatedText = text;
                 plugin.getFailedTranslations().add(sqlQuery);
@@ -163,7 +162,7 @@ public class Transformer {
             } else {
                 if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
-                    log.info("{} has not been translated yet (withPlaceholders func)", textWithPlaceholders);
+                    //log.info("{} has not been translated yet (withPlaceholders func)", textWithPlaceholders);
                     outputUnknown(sqlQuery);
                     plugin.getFailedTranslations().add(sqlQuery);
                     return null;
@@ -232,8 +231,8 @@ public class Transformer {
 
             String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
             if(result.length == 0){
-                log.info("(transform func) the following text doesn't exist in the English column :{}", text);
-                log.info("   query = {}", sqlQuery.getSearchQuery());
+                //log.info("(transform func) the following text doesn't exist in the English column :{}", text);
+                //log.info("   query = {}", sqlQuery.getSearchQuery());
                 // translatedText = text;
                 plugin.getFailedTranslations().add(sqlQuery);
                 outputUnknown(sqlQuery);
@@ -247,8 +246,8 @@ public class Transformer {
                 }
                 if(translatedText.isEmpty()) { // text exists in database but hasn't been translated yet
                     //translatedText = text;
-                    log.info("{} has not been translated yet (transform func)", text);
-                    log.info("   query = {}", sqlQuery.getSearchQuery());
+                    //log.info("{} has not been translated yet (transform func)", text);
+                    //log.info("   query = {}", sqlQuery.getSearchQuery());
                     plugin.getFailedTranslations().add(sqlQuery);
                     outputUnknown(sqlQuery);
                     return textAddColor(text, colors);
@@ -381,8 +380,8 @@ public class Transformer {
     }
 
     private void outputUnknown(SqlQuery query){
-        if(outputUnknownToFile){
-            outputToFile.dumpGeneral(query.getEnglish(), query.getCategory(), query.getSubCategory(), query.getSource());
+        if(outputUnknownToFile && plugin.getConfig().enableLoggingAny()){
+            plugin.getOutputToFile().dumpGeneral(query.getEnglish(), query.getCategory(), query.getSubCategory(), query.getSource());
         }
     }
 

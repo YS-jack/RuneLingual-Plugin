@@ -52,9 +52,9 @@ public class FileActions {
         try {
             File myObj = new File(fileName);
             if (myObj.createNewFile()) {
-                log.info("File created: " + myObj.getName());
+                //log.info("File created: " + myObj.getName());
             } else {
-                log.info("File already exists.");
+                //log.info("File already exists.");
             }
         } catch (IOException e) {
             log.error("error creating file", e);
@@ -99,9 +99,9 @@ public class FileActions {
     public static void deleteFile(String fileName) {
         File myObj = new File(fileName);
         if (myObj.delete()) {
-            log.info("Deleted the file: " + myObj.getName());
+            //log.info("Deleted the file: " + myObj.getName());
         } else {
-            log.info("Failed to delete the file.");
+            //log.info("Failed to delete the file.");
         }
     }
 

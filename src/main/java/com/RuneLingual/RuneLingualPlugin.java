@@ -11,6 +11,7 @@ import com.RuneLingual.Widgets.Widget2ModDict;
 import com.RuneLingual.Widgets.WidgetCapture;
 import com.RuneLingual.Widgets.WidgetsUtilRLingual;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
+import com.RuneLingual.debug.OutputToFile;
 import com.RuneLingual.nonLatin.*;
 import com.RuneLingual.prepareResources.H2Manager;
 import com.RuneLingual.prepareResources.SpriteReplacer;
@@ -174,9 +175,13 @@ public class RuneLingualPlugin extends Plugin {
     private OkHttpClient httpClient;
     @Inject
     SpriteReplacer spriteReplacer;
+    @Inject
+    @Getter
+    OutputToFile outputToFile;
 
     @Getter
     Set<SqlQuery> failedTranslations = new HashSet<>();
+
 
     // stores selected languages during this session, to prevent re-initializing char images
     private final Set<LangCodeSelectableList> pastLanguages = new HashSet<>();
@@ -206,7 +211,7 @@ public class RuneLingualPlugin extends Plugin {
 
         // side panel
         startPanel();
-        log.info("RuneLingual started!");
+        //log.info("RuneLingual started!");
     }
 
     @Subscribe

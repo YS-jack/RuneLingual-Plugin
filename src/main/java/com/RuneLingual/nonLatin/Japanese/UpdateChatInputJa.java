@@ -48,7 +48,7 @@ public class UpdateChatInputJa {
                 LangCodeSelectableList.日本語.getLangCode() +
                 "/foreign2foreign_" + LangCodeSelectableList.日本語.getLangCode() + ".txt";
         putWordToHash(wordFilePath);
-        log.info("created hashmap for transform dict, for type : " + wordFilePath);
+        //log.info("created hashmap for transform dict, for type : " + wordFilePath);
     }
 
     private void putWordToHash(String filePath) {
@@ -74,7 +74,7 @@ public class UpdateChatInputJa {
                     FourValues fourValues = new FourValues(parts[0],parts[1],parts[2],Integer.parseInt(parts[3]));
                     japCharDS.add(fourValues);
                 } else {
-                    log.info("rom to jap.csv : not enough elements : "+parts.length);
+                    //log.info("rom to jap.csv : not enough elements : "+parts.length);
                 }
             }
         } catch (IOException e) {

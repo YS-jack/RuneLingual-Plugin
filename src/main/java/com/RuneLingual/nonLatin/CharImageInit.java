@@ -49,7 +49,7 @@ public class CharImageInit {
                 charIds.put(imageName, charID);
             } catch (Exception e){log.error("error:",e);}
         }
-        log.info("end of making character image hashmap");
+        //log.info("end of making character image hashmap");
     }
 
 

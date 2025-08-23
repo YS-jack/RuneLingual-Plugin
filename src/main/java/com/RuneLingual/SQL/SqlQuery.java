@@ -296,6 +296,39 @@ public class SqlQuery implements Cloneable{
         this.translation = null;
     }
 
+    public void setExamineTextItem(String en) {
+        this.english = en;
+        this.category = SqlVariables.categoryValue4Examine.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Item.getValue();
+        this.color = Colors.black;
+        this.source = null;
+        this.translation = null;
+    }
+    public void setExamineTextNPC(String en) {
+        this.english = en;
+        this.category = SqlVariables.categoryValue4Examine.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Npc.getValue();
+        this.color = Colors.black;
+        this.source = null;
+        this.translation = null;
+    }
+    public void setExamineTextObject(String en) {
+        this.english = en;
+        this.category = SqlVariables.categoryValue4Examine.getValue();
+        this.subCategory = SqlVariables.subcategoryValue4Obj.getValue();
+        this.color = Colors.black;
+        this.source = null;
+        this.translation = null;
+    }
+    public void setGameMessage(String en){
+        this.english = en;
+        this.category = SqlVariables.categoryValue4GameMessage.getValue();
+        this.subCategory = null;
+        this.color = Colors.black;
+        this.source = null;
+        this.translation = null;
+    }
+
     public void setMenuName(String en, Colors defaultColor){
         this.english = en;
         this.category = SqlVariables.categoryValue4Name.getValue();

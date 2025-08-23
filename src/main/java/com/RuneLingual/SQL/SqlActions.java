@@ -115,7 +115,7 @@ public class SqlActions {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-        log.info("Processing TSV file: " + tsvFilePath);
+        //log.info("Processing TSV file: " + tsvFilePath);
         try {
             List<String> lines = Files.readAllLines(Paths.get(tsvFilePath));
             String[] columnNames = lines.get(0).split("\t");
@@ -126,10 +126,10 @@ public class SqlActions {
             // Insert data
             for (int i = 1; i < lines.size(); i++) {
                 if(lines.get(i).split("\t").length > columnNames.length){
-                    log.info("Warning processing TSV file " + tsvFilePath + " at line " + i + " : " + lines.get(i));
-                    log.info("found more values than number of columns.");
-                    log.info("Column names: " + Arrays.toString(columnNames));
-                    log.info("Column values: " + Arrays.toString(lines.get(i).split("\t")));
+                    //log.info("Warning processing TSV file " + tsvFilePath + " at line " + i + " : " + lines.get(i));
+                    //log.info("found more values than number of columns.");
+                    //log.info("Column names: " + Arrays.toString(columnNames));
+                    //log.info("Column values: " + Arrays.toString(lines.get(i).split("\t")));
                 }
                 String[] fields = lines.get(i).split("\t", columnNames.length);
 

@@ -1,17 +1,16 @@
 package com.RuneLingual.ChatMessages;
 
 import com.RuneLingual.*;
-import com.RuneLingual.ApiTranslate.Deepl;
+import com.RuneLingual.SQL.SqlQuery;
 import com.RuneLingual.SidePanelComponents.ChatBoxSection;
 import com.RuneLingual.commonFunctions.Transformer;
+import com.RuneLingual.debug.OutputToFile;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.ChatMessage;
 
 import javax.inject.Inject;
-
-import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -28,7 +27,7 @@ public class ChatCapture
 {
     /* Captures chat messages from any source
     ignores npc dialog, as they are handled in DialogCapture*/
-    
+
     @Inject
     private Client client;
     @Inject
@@ -42,7 +41,8 @@ public class ChatCapture
     @Getter
     private Set<Pair<ChatMessage, Long>> pendingChatMessages = new HashSet<>(); // the untranslated message (by api) and time to expire
 
-    
+
+
     @Inject
     ChatCapture(RuneLingualConfig config, Client client, RuneLingualPlugin plugin)
     {
@@ -70,56 +70,131 @@ public class ChatCapture
         GROUP
     }
 
+    private enum chatMessageType {
+        MODCHAT,
+        PUBLICCHAT,
+        PRIVATECHAT,
+        PRIVATECHATOUT,
+        MODPRIVATECHAT,
+        FRIENDSCHAT,
+        CLAN_CHAT,
+        CLAN_GUEST_CHAT,
+        AUTOTYPER,
+        MODAUTOTYPER,
+        CLAN_GIM_CHAT,
+    }
+
 
     public void handleChatMessage(ChatMessage chatMessage) throws Exception {
         ChatMessageType type = chatMessage.getType();
         MessageNode messageNode = chatMessage.getMessageNode();
         String message = chatMessage.getMessage();// e.g.<col=6800bf>Some cracks around the cave begin to ooze water.
-        //log.info("Chat message received: " + message + " | type: " + type.toString() + " | name: " + chatMessage.getName());
-        String name = chatMessage.getName(); // getName always returns player name
-        TransformOption translationOption;
+//        String sender = chatMessage.getSender();
+//        //log.info("Chat message received: " + message + " | type: " + type.toString() + " | name: " + chatMessage.getName() + " | sender: " + sender);
+        TransformOption translationOption = null;
 
-        switch (chatMessage.getType()) {
-            case MESBOX: // dont support this, yet
-            case DIALOG: // will be treated in dialogCapture
-                return;
-            default:
-                translationOption = getTranslationOption(chatMessage);
+        // if the message is from a player, get the translation option from the config
+        for (chatMessageType chatType : chatMessageType.values()) {
+            if (chatType.name().equals(type.name())) {
+                translationOption = getChatTranslationOption(chatMessage);
+                break;
+            }
+        }
+        // translate player chat messages
+        if(translationOption != null) {
+            chatColorManager.setMessageColor(chatMessage.getMessageNode().getType());
+            switch (translationOption) {
+                case AS_IS:
+                    return;
+                case TRANSLATE_LOCAL:
+                    localTranslator(message, messageNode, chatMessage);
+                    break;
+                case TRANSLATE_API:
+                    if (plugin.getConfig().ApiConfig())
+                        onlineTranslator(message, messageNode, chatMessage);
+                    break;
+                case TRANSFORM: // ex: konnnitiha -> こんにちは
+                    chatTransformer(message, messageNode, chatMessage);
+                    break;
+            }
+            return;
         }
 
-        //log.info("Translation option: " + translationOption.toString());
-        chatColorManager.setMessageColor(chatMessage.getMessageNode().getType());
-        switch (translationOption) {
-            case AS_IS:
-                return;
-            case TRANSLATE_LOCAL:
+        // if the message is not from a player, use the game messages config
+        if (config.getGameMessagesConfig() == RuneLingualConfig.ingameTranslationConfig.USE_API) {
+            translationOption = TransformOption.TRANSLATE_API;
+        } else if (config.getGameMessagesConfig() == RuneLingualConfig.ingameTranslationConfig.USE_LOCAL_DATA) {
+            translationOption = TransformOption.TRANSLATE_LOCAL;
+        } else {
+            translationOption = TransformOption.AS_IS;
+        }
+
+        // translate game texts
+        if (translationOption == TransformOption.TRANSLATE_API) {
+            if(!plugin.getConfig().ApiConfig()) {
+                translationOption = TransformOption.TRANSLATE_LOCAL; // if api is not enabled, use local translation
+            } else {
+                onlineTranslator(message, messageNode, chatMessage);
+            }
+        }
+        if (translationOption == TransformOption.TRANSLATE_LOCAL) {
+            if(!plugin.getConfig().getSelectedLanguage().hasLocalTranscript()) {
+                translationOption = TransformOption.AS_IS; // if transform is selected, but no local transcript is available, do not transform
+            } else {
                 localTranslator(message, messageNode, chatMessage);
-                break;
-            case TRANSLATE_API:
-                if(plugin.getConfig().ApiConfig())
-                    onlineTranslator(message, messageNode, chatMessage);
-                break;
-            case TRANSFORM: // ex: konnnitiha -> こんにちは
-                chatTransformer(message, messageNode, chatMessage);
-                break;
+            }
+        }
+        if (translationOption == TransformOption.AS_IS) {
+            return;
         }
 
     }
-    
+
     private void localTranslator(String message, MessageNode node, ChatMessage chatMessage)
     {
-        // todo after adding transcripts for this type of message
         addMsgToSidePanel(chatMessage, message);
+
+        Transformer transformer = new Transformer(plugin);
+        SqlQuery sqlQuery = new SqlQuery(plugin);
+        ChatMessageType type = chatMessage.getType();
+        String translatedMessage;
+
+        // if the text is an examine text, set query text as it is (not generalized), and also set subCategory
+        if(type == ChatMessageType.ITEM_EXAMINE || type == ChatMessageType.NPC_EXAMINE || type == ChatMessageType.OBJECT_EXAMINE) {
+            if(type == ChatMessageType.ITEM_EXAMINE) {
+                sqlQuery.setExamineTextItem(message);
+            } else if(type == ChatMessageType.NPC_EXAMINE) {
+                sqlQuery.setExamineTextNPC(message);
+            } else  {
+                sqlQuery.setExamineTextObject(message);
+            }
+        } else { // if its not an examine text, generalize the message then set query text
+            String generalizedMessage = Transformer.getEnglishColValFromText(message);
+            sqlQuery.setGameMessage(generalizedMessage);
+        }
+            translatedMessage = transformer.transformWithPlaceholders(message, sqlQuery.getEnglish(), TransformOption.TRANSLATE_LOCAL, sqlQuery);
+
+            // if the message is not translated, output to file if the config is set to do so
+            if(translatedMessage == null || translatedMessage.equals(sqlQuery.getEnglish()) || translatedMessage.equals(message) || translatedMessage.isEmpty()) {
+                if(translatedMessage == null // translated messages are returned as null the first time it is detected as untranslated
+                        && plugin.getFailedTranslations().contains(sqlQuery) && config.enableLoggingGameMessage()
+                        && type != ChatMessageType.OBJECT_EXAMINE// dont log examine texts as it will be added in other ways
+                        && type != ChatMessageType.NPC_EXAMINE
+                        && type != ChatMessageType.ITEM_EXAMINE) {
+                    plugin.getOutputToFile().dumpSql(sqlQuery, "untranslated_game_messages_" + plugin.getTargetLanguage().getLangCode() + ".txt");
+                }
+                return; // if the message is not translated, do not replace it
+            }
+        replaceChatMessage(translatedMessage, node);
     }
     
     private void onlineTranslator(String message, MessageNode node, ChatMessage chatMessage)
     {
-        if(plugin.getDeepl().getDeeplCount() + message.length() + 1000 > plugin.getDeepl().getDeeplLimit())
-        {
-            log.info("DeepL limit reached, cannot translate message.");
+        if(plugin.getDeepl().getDeeplCount() + message.length() + 1000 > plugin.getDeepl().getDeeplLimit()) {
+            //log.info("DeepL limit reached, cannot translate message.");
             return;
         }
-
+        //log.info("attempting to translate message: " + message);
         String translation = plugin.getDeepl().translate(message, LangCodeSelectableList.ENGLISH, config.getSelectedLanguage());
 
         // if the translation is the same as the original message, don't replace it
@@ -181,7 +256,8 @@ public class ChatCapture
         plugin.getPanel().getChatBoxSection().addSentenceToTab(chatType, messageToAdd);
     }
 
-    private TransformOption getTranslationOption(ChatMessage chatMessage) {
+
+    private TransformOption getChatTranslationOption(ChatMessage chatMessage) {
         String playerName = Colors.removeAllTags(chatMessage.getName());
         if (isInConfigList(playerName, config.getSpecificDontTranslate()))
             return TransformOption.AS_IS;
@@ -304,7 +380,7 @@ public class ChatCapture
             case 1337:
                 return ChatCapture.openChatbox.CLOSED;
             default:
-                log.info("Chatbox not found, defaulting to all");
+                //log.info("Chatbox not found, defaulting to all");
                 return ChatCapture.openChatbox.ALL;
         }
     }
@@ -323,7 +399,7 @@ public class ChatCapture
             case 4:
                 return chatModes.GROUP;
             default:
-                log.info("Chat mode not found, defaulting to public");
+                //log.info("Chat mode not found, defaulting to public");
                 return chatModes.PUBLIC;
         }
     }
@@ -384,10 +460,11 @@ public class ChatCapture
             MessageNode node = chatMessage.getMessageNode();
             String message = chatMessage.getMessage();
 
-            String translation = plugin.getDeepl().translate(message, LangCodeSelectableList.ENGLISH, config.getSelectedLanguage());
+            //String translation = plugin.getDeepl().translate(message, LangCodeSelectableList.ENGLISH, config.getSelectedLanguage());
+            String translation = plugin.getDeepl().getDeeplPastTranslationManager().getPastTranslation(message);
 
             // if the translation is the same as the original message, don't replace
-            if(translation.equals(message)){
+            if(translation == null || translation.equals(message) || translation.isEmpty()) {
                 continue;
             }
 

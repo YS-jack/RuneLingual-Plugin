@@ -83,7 +83,7 @@ public class Downloader {//downloads translations and japanese char images to ex
         customDataUrl = customDataUrl + langCode + "/";
         if(plugin.getConfig().useCustomData() && isURLReachable(customDataUrl + "hashList_" + langCode + ".txt")) {
             GITHUB_BASE_URL = customDataUrl;
-            log.info("Using custom data URL: " + GITHUB_BASE_URL);
+            //log.info("Using custom data URL: " + GITHUB_BASE_URL);
         } else {
             log.error("Custom data URL is not reachable or not configured, using default GitHub URL: " + GITHUB_BASE_URL);
         }
@@ -149,7 +149,7 @@ public class Downloader {//downloads translations and japanese char images to ex
         }
     }
 
-    private void createDir(String path) {
+    public void createDir(String path) {
         Path dirPath = Paths.get(path);
         if (!Files.exists(dirPath)) {
             try {
@@ -234,7 +234,7 @@ public class Downloader {//downloads translations and japanese char images to ex
 
     public void unzip(String zipFilePath, String destDir) {
         FileActions.deleteFolder(destDir + File.separator + "char_" + langCode);
-        log.info("unzipping " + zipFilePath + " to " + destDir);
+        //log.info("unzipping " + zipFilePath + " to " + destDir);
         File dir = new File(destDir);
         // create output directory if it doesn't exist
         if (!dir.exists()) dir.mkdirs();

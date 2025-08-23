@@ -26,7 +26,7 @@ public class DataFormater {
     private SqlActions sqlActions;
 
     public void updateSqlFromTsv(String localLangFolder, String[] tsvFileNames){
-        log.info("Updating SQL database from TSV files.");
+        //log.info("Updating SQL database from TSV files.");
         String SQLFilePath = localLangFolder + File.separator + FileNameAndPath.getLocalSQLFileName() + ".mv.db";
         String SQLFilePath2 = localLangFolder + File.separator + FileNameAndPath.getLocalSQLFileName() + ".trace.db";
 
@@ -38,7 +38,7 @@ public class DataFormater {
         }
         try {
             sqlActions.createTable();
-            log.info("Table created.");
+            //log.info("Table created.");
             sqlActions.tsvToSqlDatabase(tsvFileNames, localLangFolder);
         } catch (Exception e) {
             log.error("Error creating table.",e);
