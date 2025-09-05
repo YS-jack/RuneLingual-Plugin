@@ -9,10 +9,12 @@ import com.RuneLingual.nonLatin.GeneralFunctions;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.NPC;
 import net.runelite.api.widgets.InterfaceID;
 import net.runelite.api.widgets.Widget;
+import net.runelite.api.gameval.InterfaceID.*;
 
 import javax.inject.Inject;
 
@@ -34,23 +36,23 @@ public class DialogTranslator {
 
     // player widget ids
     @Getter
-    private final int playerNameWidgetId = 14221316;
+    private final int playerNameWidgetId = ChatRight.NAME;
     @Getter
-    private final int playerContinueWidgetId = 14221317;
+    private final int playerContinueWidgetId = ChatRight.CONTINUE;
     @Getter
-    private final int playerContentWidgetId = 14221318;
+    private final int playerContentWidgetId = ChatRight.TEXT;
 
     // npc widget ids
     @Getter
-    private final int npcNameWidgetId = 15138820;
+    private final int npcNameWidgetId = ChatLeft.NAME;
     @Getter
-    private final int npcContinueWidgetId = 15138821;
+    private final int npcContinueWidgetId = ChatLeft.CONTINUE;
     @Getter
-    private final int npcContentWidgetId = 15138822;
+    private final int npcContentWidgetId = ChatLeft.TEXT;
 
     // dialog option widget ids
     @Getter
-    private final int dialogOptionWidgetId = 14352385; // each and every line of the option dialogue has this id, even the red "select an option" text
+    private final int dialogOptionWidgetId = Chatmenu.OPTIONS; // each and every line of the option dialogue has this id, even the red "select an option" text
 
 
     private final Colors defaultTextColor = Colors.black;

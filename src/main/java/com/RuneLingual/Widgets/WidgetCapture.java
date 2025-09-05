@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.*;
+import net.runelite.api.gameval.InterfaceID.*;
 
 import javax.inject.Inject;
 import java.awt.*;
@@ -45,7 +46,8 @@ public class WidgetCapture {
     }
 
     public void translateWidget() {
-        if (plugin.getConfig().getInterfaceTextConfig() == RuneLingualConfig.ingameTranslationConfig.DONT_TRANSLATE) {
+        if (plugin.getConfig().getInterfaceTextConfig() == RuneLingualConfig.ingameTranslationConfig.DONT_TRANSLATE
+         && plugin.getConfig().getNpcDialogueConfig() == RuneLingualConfig.ingameTranslationConfig.DONT_TRANSLATE) {
             return;
         }
         Widget[] roots = client.getWidgetRoots();
@@ -63,12 +65,10 @@ public class WidgetCapture {
         if (widget.isHidden() || (!isInLobby() && isOutsideWindow(widget)) || ids.getWidgetIdNot2Translate().contains(widgetId)) {
             return;
         }
-        if (ids.getWidgetIdNot2ApiTranslate().contains(widgetId)
-                && plugin.getConfig().getInterfaceTextConfig() == RuneLingualConfig.ingameTranslationConfig.USE_API) {
+        if (ids.getWidgetIdNot2ApiTranslate().contains(widgetId)) {
             return;
         }
 
-        // skip all chatbox widgets for now TODO: chatbox buttons should be translated
         int widgetGroup = WidgetUtil.componentToInterface(widgetId);
         modifySqlQuery4Widget(widget, sqlQuery);
 
@@ -85,9 +85,9 @@ public class WidgetCapture {
 
         // translate the widget text////////////////
         // dialogues are handled separately
-        if (widgetGroup == InterfaceID.DIALOG_NPC
-                || widgetGroup == InterfaceID.DIALOG_PLAYER
-                || widgetGroup == InterfaceID.DIALOG_OPTION) {
+        if (widgetGroup == WidgetUtil.componentToInterface(ChatLeft.NAME)
+                || widgetGroup == WidgetUtil.componentToInterface(ChatRight.NAME)
+                || widgetGroup == WidgetUtil.componentToInterface(Chatmenu.OPTIONS)) {
             dialogTranslator.handleDialogs(widget);
             alignIfChatButton(widget);
             return;
@@ -96,7 +96,7 @@ public class WidgetCapture {
         if(shouldTranslateWidget(widget)) {
             if (plugin.getConfig().getInterfaceTextConfig() == RuneLingualConfig.ingameTranslationConfig.USE_API
                  && plugin.getConfig().ApiConfig()) {
-                translateWidgetApi(widget);
+                //translateWidgetApi(widget); //todo: disabled until mass api translation is seamless
                 return;
             }
 
