@@ -181,7 +181,7 @@ public class ChatCapture
                         && type != ChatMessageType.OBJECT_EXAMINE// dont log examine texts as it will be added in other ways
                         && type != ChatMessageType.NPC_EXAMINE
                         && type != ChatMessageType.ITEM_EXAMINE) {
-                    plugin.getOutputToFile().dumpSql(sqlQuery, "untranslated_game_messages_" + plugin.getTargetLanguage().getLangCode() + ".txt");
+                    plugin.getOutputToFile().dumpSql(sqlQuery, "untranslated_game_messages.txt");
                 }
                 return; // if the message is not translated, do not replace it
             }

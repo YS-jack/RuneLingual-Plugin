@@ -72,7 +72,7 @@ public class OutputToFile {
         if (source == null){
             source = "";
         }
-        appendToFile(english + "\t" + category + "\t" + subCategory + "\t" + source, filename);
+        appendIfNotExistToFile(english + "\t" + category + "\t" + subCategory + "\t" + source, filename);
     }
 
     public void dumpSql(SqlQuery sqlQuery, String fileName){
@@ -88,7 +88,7 @@ public class OutputToFile {
 
     public void appendToFile(String str, String fileName){
         try {
-            outputFilePath = new File(plugin.getDownloader().getLocalLangFolder() + File.separator + "logs");
+            outputFilePath = new File(Downloader.getLocalBaseFolder() + File.separator + "logs");
 //            createDirectoryIfNotExists("output");
 //            Path filePath = Paths.get("output" + File.separator + fileName);
             downloader.createDir(outputFilePath.getPath());
@@ -103,7 +103,7 @@ public class OutputToFile {
 
     public void appendIfNotExistToFile(String str, String fileName) {
         try {
-            outputFilePath = new File(plugin.getDownloader().getLocalLangFolder() + File.separator + "logs");
+            outputFilePath = new File(Downloader.getLocalBaseFolder() + File.separator + "logs");
 //            createDirectoryIfNotExists("output");
 //            Path filePath = Paths.get("output" + File.separator + fileName);
             downloader.createDir(outputFilePath.getPath());

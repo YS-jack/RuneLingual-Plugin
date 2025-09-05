@@ -28,7 +28,8 @@ import java.util.zip.ZipInputStream;
 
 @Slf4j
 public class Downloader {//downloads translations and japanese char images to external file
-    private static final File localBaseFolder = FileNameAndPath.getLocalBaseFolder();
+    @Getter
+    public static final File localBaseFolder = FileNameAndPath.getLocalBaseFolder();
     @Inject
     private RuneLingualPlugin plugin;
     @Getter
