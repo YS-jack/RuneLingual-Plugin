@@ -134,7 +134,7 @@ public class MenuCapture
 
 		String[] result;
 		// get translation for both target and option
-		if(menuOptionTransformOption == TransformOption.TRANSLATE_API) {
+		if(menuOptionTransformOption == TransformOption.TRANSLATE_API && !isPlayerMenu(menuType) && !isWalkOrCancel(menuType)) {
 			result = translateGeneralMenu(menuTarget, menuOption, actionWordArray, actionColorArray, targetWordArray, currentMenu);
 		} else if(isWalkOrCancel(menuType)){
 			result = translateWalkOrCancel(menuTarget, menuOption, actionWordArray, actionColorArray, targetWordArray, targetColorArray);
@@ -384,7 +384,7 @@ public class MenuCapture
 				menuTarget = translateMusicName(targetWordArray[0]);
 				return new String[]{menuTarget, newOption};
 			}
-			// if the menu target is a widget not to translate (eg. player name) return as is
+			// if the menu target is a widget not to translate (e.g. player name in widgets) return as is
 			Widget widget = currentMenu.getWidget();
 			if (widget != null && this.plugin.getWidgetCapture().isWidgetIdNot2Translate(widget)) {
 				return new String[]{menuTarget, newOption};
@@ -457,8 +457,7 @@ public class MenuCapture
 	}
 
 	private String translatePlayerTargetPart(String[] targetWordArray, Colors[] targetColorArray) {
-
-		//leave name as is (but still give to transformer to replace to char image if needed)
+		//leave name as is
 		if(!targetWordArray[0].matches("^<img=.*>$")) { // doesn't have icons before their names
 			String playerName = targetWordArray[0];
 			String translatedName = transformer.transform(playerName, Colors.white, TransformOption.AS_IS, null, false);
@@ -469,17 +468,16 @@ public class MenuCapture
 			}
 		} else {
 			// contains icons before their names, such as clan rank symbols
-			StringBuilder newName = new StringBuilder();
+			StringBuilder name = new StringBuilder();
 			String levelString = "  (level-0)";
 			for(int i = 0; i < targetWordArray.length; i++){
 				if(i == targetWordArray.length - 1){ // the last element of targetWordArray is always the level part
 					levelString = targetWordArray[i];
 					break;
 				}
-				newName.append(targetWordArray[i]);
+				name.append(targetWordArray[i]);
 			}
-			String translatedName = transformer.transform(newName.toString(), Colors.white, TransformOption.AS_IS, null, false);
-			return translatedName + getLevelTranslation(levelString, targetColorArray[targetWordArray.length - 1]);
+			return name + getLevelTranslation(levelString, targetColorArray[targetWordArray.length - 1]);
 		}
 	}
 
@@ -528,20 +526,44 @@ public class MenuCapture
 	}
 
 	private String getLevelTranslation(String levelString, Colors color) {
-		// translates combat level, such as "  (level-15)"
-		SqlQuery levelQuery = new SqlQuery(this.plugin);
-		String level = levelString.replaceAll("[^0-9]", "");
-		levelQuery.setPlayerLevel();
-		Transformer transformer = new Transformer(this.plugin);
+		if(plugin.getConfig().getMenuOptionConfig() == ingameTranslationConfig.DONT_TRANSLATE) {
+			return levelString;
+		} else if(plugin.getConfig().getMenuOptionConfig() == ingameTranslationConfig.USE_LOCAL_DATA) {
+			// translates combat level, such as "  (level-15)"
+			SqlQuery levelQuery = new SqlQuery(this.plugin);
+			String level = levelString.replaceAll("[^0-9]", "");
+			levelQuery.setPlayerLevel();
+			Transformer transformer = new Transformer(this.plugin);
 
-		TransformOption option = getTransformOption(this.plugin.getConfig().getGameMessagesConfig(), plugin.getConfig().getSelectedLanguage());
-	//TODO: colours may need adjusting for () and level's digits
-		if(plugin.getConfig().getSelectedLanguage().needsCharImages()) // change color to simple color variants. eg: light green to green
-			color = color.getSimpleColor();
-		String levelTranslation = transformer.transform(levelQuery.getEnglish(), color, option, levelQuery, false);
-		String openBracket = transformer.transform("(", color, TransformOption.AS_IS, null, false);
-		String lvAndCloseBracket = transformer.transform(level+")", color, TransformOption.AS_IS, null, false);
-		return "  " + color.getColorTag() + openBracket  + levelTranslation + color.getColorTag() + lvAndCloseBracket;
+			TransformOption option = getTransformOption(this.plugin.getConfig().getGameMessagesConfig(), plugin.getConfig().getSelectedLanguage());
+			//TODO: colours may need adjusting for () and level's digits
+			if(plugin.getConfig().getSelectedLanguage().needsCharImages()) // change color to simple color variants. eg: light green to green
+				color = color.getSimpleColor();
+			String levelTranslation = transformer.transform(levelQuery.getEnglish(), color, option, levelQuery, false);
+			String openBracket = transformer.transform("(", color, TransformOption.AS_IS, null, false);
+			String lvAndCloseBracket = transformer.transform(level+")", color, TransformOption.AS_IS, null, false);
+			return "  " + color.getColorTag() + openBracket  + levelTranslation + color.getColorTag() + lvAndCloseBracket;
+		} else if(plugin.getConfig().getMenuOptionConfig() == ingameTranslationConfig.USE_API) {
+			String numberPart = levelString.replaceAll("[^0-9]", "");
+			String translation4Level = plugin.getDeepl().translate("level %d", LangCodeSelectableList.ENGLISH, plugin.getTargetLanguage());
+			if(translation4Level == null || translation4Level.isEmpty() || translation4Level.equals(levelString)) {
+				return levelString;
+			} else {
+				if(plugin.getConfig().getSelectedLanguage().needsCharImages()) { // change color to simple color variants. eg: light green to green
+					color = color.getSimpleColor();
+					GeneralFunctions generalFunctions = plugin.getGeneralFunctions();
+					String placeholderPart = generalFunctions.StringToTags("%d", color);
+					translation4Level = " (" + generalFunctions.StringToTags(translation4Level, color) + ")";
+					translation4Level = translation4Level.replace(placeholderPart, numberPart);
+					translation4Level = Colors.surroundWithColorTag(translation4Level, color);
+				} else {
+					translation4Level = " (" + translation4Level.replace("%d", numberPart) + ")";
+					translation4Level = Colors.surroundWithColorTag(translation4Level, color);
+				}
+				return translation4Level;
+			}
+		}
+		return levelString;
 	}
 
 	public static TransformOption getTransformOption(ingameTranslationConfig conf, LangCodeSelectableList lang) {
@@ -711,6 +733,10 @@ public class MenuCapture
 			}
 		}
 		if(getMenuTargetOption(currentMenu).equals(TransformOption.TRANSLATE_API)) {
+			// if the target includes player name, pending is false
+			if(isPlayerMenu(currentMenu.getType()) || (isWalkOrCancel(currentMenu.getType()) && hasLevel(currentMenu.getTarget()))){
+				return false;
+			}
 			String oldTarget_colTag = currentMenu.getTarget();
 			newTarget = Colors.removeNonImgTags(newTarget);
 			boolean haveTranslatedBefore = plugin.getDeepl().getDeeplPastTranslationManager().haveTranslatedBefore(oldTarget_colTag);
