@@ -363,4 +363,20 @@ public enum Colors {
         }
         return color.getColorTag() + str + "</col>";
     }
+
+    public static String removeRedundantConsecutiveColorTags(String str) {
+        /*
+        removes redundant and consecutive color tags
+        eg: <col=ff00><col=ff0000>Nex<col=ff0000> (level-1) -> <col=ff0000>Nex<col=ff0000> (level-1)
+         */
+        Pattern re = Pattern.compile("(<col=[a-zA-Z0-9]*?>)(<col=[a-zA-Z0-9]*?>)+");
+        Matcher matcher = re.matcher(str);
+        while (matcher.find()) {
+            String redundantTags = matcher.group(0);
+            String firstTag = matcher.group(1);
+            str = str.replace(redundantTags, firstTag);
+            matcher = re.matcher(str);
+        }
+        return str;
+    }
 }

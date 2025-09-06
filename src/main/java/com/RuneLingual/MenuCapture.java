@@ -123,6 +123,7 @@ public class MenuCapture
 		MenuAction menuType = currentMenu.getType();
 
 		String menuTarget = currentMenu.getTarget();  // eg. <col=ffff00>Sand Crab<col=ff00>  (level-15)     eg2. <col=ff9040>Dramen staff</col>
+		menuTarget = Colors.removeRedundantConsecutiveColorTags(menuTarget); // remove redundant consecutive color tags eg: <col=ff00><col=ff0000>Nex<col=ff0000> (level-1) -> <col=ff0000>Nex<col=ff0000> (level-1)
 		String[] targetWordArray = Colors.getWordArray(menuTarget); // eg. ["Sand Crab", " (level-15)"]
 		Colors[] targetColorArray = Colors.getColorArray(menuTarget, Colors.white); // eg. [Colors.yellow, Colors.green]
 
@@ -833,8 +834,6 @@ public class MenuCapture
 			menu.setTarget(newTarget);
 			swapOptionTarget(menu);
 		}
-
-
 		return remove;
 	}
 
