@@ -323,9 +323,9 @@ public class WidgetCapture {
                     && (widget.getTextColor() == 0xffffff || widget.getTextColor() == 0x9f9f9f);
         boolean isGroupingGroupMemberName = ids.getGroupingGroupMemberNameId() == widgetId
                 && widget.getTextColor() == 0xffffff;
-
+        boolean isChatBoxLine = Chatbox.SCROLLAREA == widgetId;
         return isFriendsListNames || isGimMemberNames || isFcTitleOrOwner || isFriendsChatList || isClanMemberName || isClanName
-                || isGuesClanName || isGuestClanMemberName || isPvPMemberName || isGroupingGroupMemberName;
+                || isGuesClanName || isGuestClanMemberName || isPvPMemberName || isGroupingGroupMemberName || isChatBoxLine;
     }
 
     /* check if the text should be translated

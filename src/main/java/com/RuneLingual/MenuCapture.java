@@ -14,15 +14,18 @@ import net.runelite.api.Client;
 import net.runelite.api.Menu;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
+import net.runelite.api.gameval.InterfaceID.*;
 
 import javax.inject.Inject;
 
 import lombok.Setter;
 import net.runelite.api.events.MenuOpened;
+import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.widgets.Widget;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -327,6 +330,8 @@ public class MenuCapture
 	private String[] translateGeneralMenu(String menuTarget, String menuOption, String[] actionWordArray,
 										  Colors[] actionColorArray, String[] targetWordArray, MenuEntry currentMenu){
 		String newTarget, newOption;
+		int widgetID = getWidgetIdFromMenu(currentMenu);
+		log.info("Translating general menu: " + menuOption + " on " + menuTarget + " in widget " + widgetID);
 		// check what widget it is in, then set the source column value accordingly
 		String source;
 		if(plugin.getConfig().getMenuOptionConfig().equals(ingameTranslationConfig.USE_API) && plugin.getConfig().ApiConfig()){
@@ -386,7 +391,8 @@ public class MenuCapture
 			}
 			// if the menu target is a widget not to translate (e.g. player name in widgets) return as is
 			Widget widget = currentMenu.getWidget();
-			if (widget != null && this.plugin.getWidgetCapture().isWidgetIdNot2Translate(widget)) {
+			if ((widget != null && this.plugin.getWidgetCapture().isWidgetIdNot2Translate(widget)) ||
+					widgetMenuHasPlayerNameMenu(currentMenu)) {
 				return new String[]{menuTarget, newOption};
 			}
 			SqlQuery targetSqlQuery = new SqlQuery(this.plugin);
@@ -715,6 +721,14 @@ public class MenuCapture
 		return false;
 	}
 
+	private int getWidgetIdFromMenu(MenuEntry menuEntry){
+		Widget widget = client.getWidget(menuEntry.getParam1());
+		if(widget != null){
+			return widget.getId();
+		}
+		return -1;
+	}
+
 	private boolean addPendingMenuApiTranslation(MenuEntry currentMenu, String newOption, String newTarget) {
 		if (!plugin.getConfig().ApiConfig()){
 			return false;
@@ -849,6 +863,28 @@ public class MenuCapture
 		}
 
 		return getTransformOption(this.plugin.getConfig().getMenuOptionConfig(), plugin.getConfig().getSelectedLanguage());
+	}
+
+	private boolean widgetMenuHasPlayerNameMenu(MenuEntry menuEntry){
+		// check if the menu is from a widget that contains player names, such as chatbox, friends list, clan member list, etc
+		int widgetId = getWidgetIdFromMenu(menuEntry);
+		// for chatbox's menu
+		if((isChildWidgetOf(Chatbox.SCROLLAREA, menuEntry) && Set.of("Message", "Add friend", "Add ignore", "Report").contains(menuEntry.getOption()))
+		 || (widgetId == -1 && Set.of("Copy to clipboard", "Lookup").contains(menuEntry.getOption())) ){
+			return true;
+		}
+
+		// for friends list
+		if((isChildWidgetOf(Friends.LIST, menuEntry) && Set.of("Delete", "Message").contains(menuEntry.getOption()))
+			|| (widgetId == -1 && Set.of("Lookup", "Hide notifications", "Add Note").contains(menuEntry.getOption())) ){
+			return true;
+		}
+		// for ignore list
+		// everything is covered elsewhere
+
+
+
+		return false;
 	}
 
 //	private void outputToDump(MenuEntry menu, SqlQuery query){
