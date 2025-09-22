@@ -62,7 +62,16 @@ public class WidgetCapture {
 
         // stop the recursion if the widget is hidden, outside the window or should be ignored
         // without the isOutsideWindow check, client will lag heavily when opening deep widget hierarchy, like combat achievement task list
-        if (widget.isHidden() || (!isInLobby() && isOutsideWindow(widget)) || ids.getWidgetIdNot2Translate().contains(widgetId)) {
+//        if (widget.isHidden() || (!isInLobby() && isOutsideWindow(widget)) || ids.getWidgetIdNot2Translate().contains(widgetId)) {
+//            return;
+//        }
+        if (widget.isHidden()) {
+            return;
+        }
+        if (!isInLobby() && isOutsideWindow(widget)) {
+            return;
+        }
+        if (ids.getWidgetIdNot2Translate().contains(widgetId)) {
             return;
         }
         if (ids.getWidgetIdNot2ApiTranslate().contains(widgetId)) {
@@ -169,7 +178,7 @@ public class WidgetCapture {
         // add more general UIs here
 
         // if one of the main tabs, set the category and subcategory. main tabs = combat options, skills tab, etc.
-        if (widgetId == ids.getWidgetIdMainTabs()) {
+        if (ids.getWidgetIdSetMainTabs().contains(widgetId)) {
             sqlQuery.setCategory(SqlVariables.categoryValue4Interface.getValue());
             sqlQuery.setSubCategory(SqlVariables.subcategoryValue4MainTabs.getValue());
         }
@@ -456,7 +465,14 @@ public class WidgetCapture {
     }
 
     private boolean isOutsideWindow(Widget widget) {
-        Widget canvasWidget = client.getWidget(ids.getRootWidgetId());
+        Widget canvasWidget = null;
+        for (int id : ids.getRootWidgetIdSet()) {
+            Widget w = client.getWidget(id);
+            if (w != null && !w.isHidden()) {
+                canvasWidget = w;
+            }
+        }
+
         if (canvasWidget == null) {
             return true;
         }

@@ -6,7 +6,6 @@ import lombok.Getter;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InterfaceID.*;
 import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.Widget;
@@ -44,7 +43,7 @@ public class Ids {
 
     // Ids of widgets
     // main tabs
-    private final int widgetIdMainTabs = ToplevelPreEoc.SIDE_PANELS;
+    private final Set<Integer> widgetIdSetMainTabs = Set.of(ToplevelPreEoc.SIDE_PANELS, ToplevelOsrsStretch.SIDE_PANELS, Toplevel.SIDE_PANELS);
     private final int widgetIdAttackStyleTab = CombatInterface.UNIVERSE;
     private final int widgetIdSkillsTab = Stats.UNIVERSE;
     private final int widgetIdCharacterSummaryTab = AccountSummarySidepanel.SUMMARY_CONTENTS;
@@ -78,7 +77,7 @@ public class Ids {
 
     //general interface
     private final int widgetIdSkillGuide = SkillGuide.UNIVERSE;
-    private final int rootWidgetId = ToplevelPreEoc.GAMEFRAME;
+    private final Set<Integer> rootWidgetIdSet = Set.of(ToplevelPreEoc.GAMEFRAME, ToplevelOsrsStretch.GAMEFRAME, Toplevel.GAMEFRAME);
 
     /* example for adding set of widget ids
     private final Set<Integer> idSet4Raids_Colosseum = Set.of(
