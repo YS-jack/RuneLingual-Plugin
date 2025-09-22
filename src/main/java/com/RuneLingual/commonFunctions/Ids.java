@@ -173,7 +173,7 @@ public class Ids {
             xpBarTopRightHoverTextId // hover display of xp bar top right
     );
 
-    // for English transcript to be kept as is
+    // for transcript's break lines to be kept as is
     // useful for widgets that have multiple variables in one widget
     // can also use to prevent splitting at <br> tags if the text is to be kept as is
     // e.g (first line is level, second line is prayer name, third line is description, all in one widget)
