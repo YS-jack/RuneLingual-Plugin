@@ -98,7 +98,7 @@ public class WidgetCapture {
                 || widgetGroup == WidgetUtil.componentToInterface(ChatRight.NAME)
                 || widgetGroup == WidgetUtil.componentToInterface(Chatmenu.OPTIONS)) {
             dialogTranslator.handleDialogs(widget);
-            alignIfChatButton(widget);
+            //alignIfChatButton(widget);
             return;
         }
 
@@ -457,10 +457,21 @@ public class WidgetCapture {
 
     private void alignIfChatButton(Widget widget) {
         int widgetId = widget.getId();
-        if(ids.getWidgetIdChatButton2SetXTextAliLeft().contains(widgetId) && plugin.getConfig().getSelectedLanguage().isChatButtonHorizontal()) {
-            widget.setXTextAlignment(WidgetTextAlignment.LEFT);
-        } else if (ids.getWidgetIdChatButton2SetXTextAliRight().contains(widgetId) && plugin.getConfig().getSelectedLanguage().isChatButtonHorizontal()) {
-            widget.setXTextAlignment(WidgetTextAlignment.RIGHT);
+        if (plugin.getConfig().getSelectedLanguage().isChatButtonHorizontal()) {
+            if (ids.getWidgetIdChatButtonName().contains(widgetId)) { // if chat button is set to be horizontal, the button name is to be left aligned
+                widget.setXTextAlignment(WidgetTextAlignment.LEFT);
+            } else if (ids.getWidgetIdChatButtonFilterType().contains(widgetId)) { // the filter type is to be right aligned
+                widget.setXTextAlignment(WidgetTextAlignment.RIGHT);
+            }
+        } else {
+            String text = widget.getText();
+            if (ids.getWidgetIdChatButtonName().contains(widgetId) && !text.contains("<br>")) {
+                widget.setText(text+"<br>"); // add <br> to the button name to place this above the filter type
+                widget.setXTextAlignment(WidgetTextAlignment.CENTER);
+            } else if (ids.getWidgetIdChatButtonFilterType().contains(widgetId) && !text.contains("<br>")) {
+                widget.setText("<br>"+text); // add <br> to the filter type to place this below the button name
+                widget.setXTextAlignment(WidgetTextAlignment.CENTER);
+            }
         }
     }
 

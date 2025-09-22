@@ -192,12 +192,12 @@ public class Ids {
             GimSidepanel.TITLE, GimSidepanel.INVITE, GimSidepanel.SETTINGS,
             ChatchannelCurrent.CHANNELNAME, ChatchannelCurrent.CHANNELOWNER, ChatchannelCurrent.JOINLEAVE, ChatchannelCurrent.SETUP,
             ClansSidepanel.HEADER, ClansSidepanel.CHAT, ClansSidepanel.INFO,
-            ClansGuestSidepanel.HEADER, ClansGuestSidepanel.CHAT, ClansGuestSidepanel.INFO, //ClansGuestSidepanel.SEARCH,
+            ClansGuestSidepanel.HEADER, ClansGuestSidepanel.CHAT, ClansGuestSidepanel.INFO, ClansGuestSidepanel.SEARCH,
             Friends.LIST,
             Account.NAME_TEXT
     );
 
-    private final Set<Integer> widgetIdChatButton2SetXTextAliLeft = Set.of(
+    private final Set<Integer> widgetIdChatButtonName = Set.of(
             Chatbox.CHAT_GAME_TEXT1, // CHATBOX_TAB_GAME 's "Game" widget
             Chatbox.CHAT_PUBLIC_TEXT1, // CHATBOX_TAB_PUBLIC 's "Public" widget
             Chatbox.CHAT_PRIVATE_TEXT1, // CHATBOX_TAB_PRIVATE 's "Private" widget
@@ -205,7 +205,7 @@ public class Ids {
             Chatbox.CHAT_CLAN_TEXT1, // CHATBOX_TAB_CLAN 's "Clan" widget
             Chatbox.CHAT_TRADE_TEXT // CHATBOX_TAB_TRADE 's "Trade" widget
     );
-    private final Set<Integer> widgetIdChatButton2SetXTextAliRight = Set.of(
+    private final Set<Integer> widgetIdChatButtonFilterType = Set.of(
             Chatbox.CHAT_GAME_FILTER, // CHATBOX_TAB_GAME 's setting widget
             Chatbox.CHAT_PUBLIC_FILTER, // CHATBOX_TAB_PUBLIC 's setting widget
             Chatbox.CHAT_PRIVATE_FILTER, // CHATBOX_TAB_PRIVATE 's setting widget

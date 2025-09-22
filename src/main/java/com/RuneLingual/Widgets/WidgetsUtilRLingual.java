@@ -116,6 +116,9 @@ public class WidgetsUtilRLingual
 		// if language uses charImages and needs space between words
 		if(plugin.getConfig().getSelectedLanguage().needsSpaceBetweenWords()) { // todo: test this when such language is added
 			String[] words = text.split("(?=\\s)");
+			if (words.length == 1) { // if there are no spaces, don't insert br
+				return text;
+			}
 			StringBuilder newTextBuilder = new StringBuilder();
 			int currentLineLength = 0;
 			for(String word : words) {
@@ -157,8 +160,9 @@ public class WidgetsUtilRLingual
 			widget.setText(newText);
 			return;
 		}
-		// if newText has <br> tag,
-		// insert br automatically if it's inside <autoBr> tags, or doesnt have <br> tag at all
+		// insert br automatically if
+		// newText has <br> tag and is inside <autoBr> tags
+		// or the text doesn't have <br> tag at all
 		String[] splitText = newText.split("(?=<autoBr>)|(?<=</autoBr>)");
 		StringBuilder newTextBuilder = new StringBuilder();
 		for (String part : splitText) {
