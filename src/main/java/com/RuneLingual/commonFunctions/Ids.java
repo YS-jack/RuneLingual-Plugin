@@ -175,6 +175,7 @@ public class Ids {
 
     // for English transcript to be kept as is
     // useful for widgets that have multiple variables in one widget
+    // can also use to prevent splitting at <br> tags if the text is to be kept as is
     // e.g (first line is level, second line is prayer name, third line is description, all in one widget)
     // (original text) "Level 22<br>Rapid Heal<br>2x restore rate for<br>Hitpoints stat."
     // -> (translated to) "レベル22<br>急激な回復<br>体力の回復速度を<br>２倍にする"
@@ -186,7 +187,14 @@ public class Ids {
             settingsHoverTextId,
             emotesHoverTextId,
             worldSwitcherHoverTextId, worldSwitcherWorldActivityId,
-            houseOptionsHoverTextId, houseOptionsTextOnID, houseOptionsTextOffID
+            houseOptionsHoverTextId, houseOptionsTextOnID, houseOptionsTextOffID,
+            Prayerbook.FILTERBUTTON, MagicSpellbook.FILTERBUTTON,
+            GimSidepanel.TITLE, GimSidepanel.INVITE, GimSidepanel.SETTINGS,
+            ChatchannelCurrent.CHANNELNAME, ChatchannelCurrent.CHANNELOWNER, ChatchannelCurrent.JOINLEAVE, ChatchannelCurrent.SETUP,
+            ClansSidepanel.HEADER, ClansSidepanel.CHAT, ClansSidepanel.INFO,
+            ClansGuestSidepanel.HEADER, ClansGuestSidepanel.CHAT, ClansGuestSidepanel.INFO, //ClansGuestSidepanel.SEARCH,
+            Friends.LIST,
+            Account.NAME_TEXT
     );
 
     private final Set<Integer> widgetIdChatButton2SetXTextAliLeft = Set.of(

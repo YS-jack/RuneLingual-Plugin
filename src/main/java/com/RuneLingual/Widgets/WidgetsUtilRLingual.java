@@ -119,12 +119,11 @@ public class WidgetsUtilRLingual
 			StringBuilder newTextBuilder = new StringBuilder();
 			int currentLineLength = 0;
 			for(String word : words) {
-				int charCount = 0;
-				if(plugin.getConfig().getSelectedLanguage().needsCharImages()){
-					charCount = word.replaceAll("<img=[0-9]+>", "a").length(); // replace <img=??> tags with "a" and count the length
-				} else {
-					charCount = word.length();
-				}
+				String tmp = word;
+				tmp = tmp.replaceAll("<col=[0-9]+>", "").replaceAll("</col>", ""); // remove <col=??> and </col> tags
+				tmp  = tmp.replaceAll("<img=[0-9]+>", "a"); // replace <img=??> tags with "a" to count them as 1 char
+				int charCount = tmp.length();
+
 				if(currentLineLength + charCount > maxChars) {
 					newTextBuilder.append("<br>");
 					currentLineLength = 0;
