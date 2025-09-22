@@ -331,8 +331,8 @@ public class MenuCapture
 	private String[] translateGeneralMenu(String menuTarget, String menuOption, String[] actionWordArray,
 										  Colors[] actionColorArray, String[] targetWordArray, MenuEntry currentMenu){
 		String newTarget, newOption;
-		int widgetID = getWidgetIdFromMenu(currentMenu);
-		log.info("Translating general menu: " + menuOption + " on " + menuTarget + " in widget " + widgetID);
+		//int widgetID = getWidgetIdFromMenu(currentMenu);
+		//log.info("Translating general menu: " + menuOption + " on " + menuTarget + " in widget " + widgetID);
 		// check what widget it is in, then set the source column value accordingly
 		String source;
 		if(plugin.getConfig().getMenuOptionConfig().equals(ingameTranslationConfig.USE_API) && plugin.getConfig().ApiConfig()){
