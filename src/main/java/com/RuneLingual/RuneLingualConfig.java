@@ -382,7 +382,7 @@ public interface RuneLingualConfig extends Config {
 
     @ConfigItem(
             name = "Local file location",
-            description = "Location of the files to be translated",
+            description = "Location of the files used for translation and logs. Right click this text then choose 'reset' to get default location",
             keyName = "fileLocation",
             position = 1 + offset_section6,
             secret = true,
@@ -416,7 +416,7 @@ public interface RuneLingualConfig extends Config {
 
     @ConfigItem(
             name = "Enable logging (Widgets)",
-            description = "Output untranslated widget texts to a file, which will be found in the local file location defined above.",
+            description = "Output untranslated game messages to a file, which will be found in '<the local file location defined above>/logs'.",
             keyName = "enableLogging",
             position = 4 + offset_section6,
             section = SECTION_DEBUGGING
@@ -427,7 +427,7 @@ public interface RuneLingualConfig extends Config {
 
     @ConfigItem(
             name = "Enable logging (Game Messages)",
-            description = "Output untranslated game messages to a file, which will be found in the local file location defined above.",
+            description = "Output untranslated game messages to a file, which will be found in '<the local file location defined above>/logs'.",
             keyName = "enableLoggingSql",
             position = 5 + offset_section6,
             section = SECTION_DEBUGGING
@@ -438,7 +438,7 @@ public interface RuneLingualConfig extends Config {
 
     @ConfigItem(
             name = "Enable logging (Any)",
-            description = "Output any untranslated to a file, which will be found in the local file location defined above.",
+            description = "Output untranslated game messages to a file, which will be found in '<the local file location defined above>/logs'.",
             keyName = "enableLoggingChat",
             position = 6 + offset_section6,
             section = SECTION_DEBUGGING
