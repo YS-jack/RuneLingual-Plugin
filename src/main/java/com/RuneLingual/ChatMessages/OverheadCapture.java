@@ -139,6 +139,8 @@ public class OverheadCapture {
                 return TransformOption.AS_IS;
             case TRANSFORM:
                 return TransformOption.TRANSFORM;
+            case USE_API:
+                return TransformOption.TRANSLATE_API;
             default:
                 return TransformOption.AS_IS;
         }

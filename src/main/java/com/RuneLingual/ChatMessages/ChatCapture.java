@@ -210,6 +210,13 @@ public class ChatCapture
     }
 
     private void chatTransformer(String message, MessageNode node, ChatMessage chatMessage) {
+        String originalOutgoing = plugin.consumeOutgoingOriginalMessage(chatMessage);
+        if (originalOutgoing != null) {
+            replaceChatMessage(originalOutgoing, node);
+            addMsgToSidePanel(chatMessage, originalOutgoing);
+            return;
+        }
+
         String newMessage = plugin.getChatInputRLingual().transformChatText(message);
         Transformer transformer = new Transformer(plugin);
         Colors textColor = chatColorManager.getMessageColor();
@@ -343,6 +350,8 @@ public class ChatCapture
         switch (chatConfig) {
             case TRANSFORM:
                 return TransformOption.TRANSFORM;
+            case USE_API:
+                return TransformOption.TRANSLATE_API;
             case LEAVE_AS_IS:
                 return TransformOption.AS_IS;
             default:

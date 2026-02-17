@@ -64,7 +64,6 @@ public class WidgetsUtilRLingual
 	public void setWidgetText_ApiTranslation(Widget widget, String originalText, Colors color){
 		final String text_withoutBrAndTags = Colors.removeNonImgTags(originalText);
 		String translatedText = plugin.getDeepl().translate(text_withoutBrAndTags, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
-		int originalLineHeight = widget.getLineHeight();
 		if(translatedText.equals(text_withoutBrAndTags)) { // if the translation is the same as the original text, don't set the text
 			return;
 		}
@@ -73,7 +72,33 @@ public class WidgetsUtilRLingual
 			translatedText = generalFunctions.StringToTags(translatedText, color);
 		}
 		setWidgetText_NiceBr(widget, translatedText);
-		widget.setLineHeight(originalLineHeight);
+	}
+
+	public void setWidgetText_ApiTranslationSingleLine(Widget widget, String originalText, Colors color) {
+		final String textWithoutBrAndTags = Colors.removeNonImgTags(originalText);
+		String translatedText = plugin.getDeepl().translate(textWithoutBrAndTags, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
+		if (translatedText.equals(textWithoutBrAndTags)) {
+			return;
+		}
+
+		if (plugin.getTargetLanguage().needsCharImages()) {
+			translatedText = generalFunctions.StringToTags(translatedText, color);
+		}
+		widget.setText(translatedText);
+	}
+
+	public void setWidgetText_ApiTranslatedResolved(Widget widget, String translatedText, Colors color, boolean singleLine) {
+		if (translatedText == null || translatedText.isBlank()) {
+			return;
+		}
+		if (plugin.getTargetLanguage().needsCharImages()) {
+			translatedText = generalFunctions.StringToTags(translatedText, color);
+		}
+		if (singleLine) {
+			widget.setText(translatedText);
+			return;
+		}
+		setWidgetText_NiceBr_apiTranslated(widget, translatedText);
 	}
 
 	private void setWidgetText_NiceBr_CharImages(Widget widget, String newText) {
@@ -156,7 +181,7 @@ public class WidgetsUtilRLingual
 		// if newText doesnt have <br> tag at all, insert br automatically
 		if (!newText.contains("<br>")) {
 			newText = newText.replaceAll("<autoBr>|</autoBr>", ""); // remove <autoBr> tags
-			newText = getWidgetText_NiceBr_CharImages(widget, newText);
+			newText = getWidgetText_NiceBr_NoCharImages(widget, newText);
 			widget.setText(newText);
 			return;
 		}

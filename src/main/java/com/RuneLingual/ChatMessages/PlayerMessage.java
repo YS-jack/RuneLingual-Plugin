@@ -393,6 +393,9 @@ public class PlayerMessage {
         if(config == RuneLingualConfig.chatSelfConfig.LEAVE_AS_IS){
             return Transformer.TransformOption.AS_IS;
         }
+        if(config == RuneLingualConfig.chatSelfConfig.USE_API){
+            return Transformer.TransformOption.TRANSLATE_API;
+        }
         if(config == RuneLingualConfig.chatSelfConfig.TRANSFORM){
             return Transformer.TransformOption.TRANSFORM;
         }
