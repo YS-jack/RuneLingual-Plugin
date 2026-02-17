@@ -82,6 +82,24 @@ public class Deepl {
         deeplPastTranslationManager = new PastTranslationManager(this, plugin);
     }
 
+    private void apiDebugLog(String message, Object... args) {
+        if (!config.apiDebugLogs()) {
+            return;
+        }
+        log.info("[RuneLingual API] " + message, args);
+    }
+
+    private String previewText(String text) {
+        if (text == null) {
+            return "";
+        }
+        String normalized = text.replace('\n', ' ').replace('\r', ' ').trim();
+        if (normalized.length() <= 100) {
+            return normalized;
+        }
+        return normalized.substring(0, 100) + "...";
+    }
+
     /**
      * Translates the given text from the source language to the target language.
      * Sets deeplCount the number of characters translated using the API
@@ -96,6 +114,8 @@ public class Deepl {
             return text;
         }
         if (isRetryCoolingDown(text)) {
+            apiDebugLog("Skip translate: retry cooldown active (service={}, text='{}')",
+                    config.getApiServiceConfig(), previewText(text));
             return text;
         }
         // if the text is already translated, return the past translation
@@ -123,12 +143,21 @@ public class Deepl {
 
         String url = getTranslatorUrl();
         if(url.isEmpty()){// if selected service is not deepl, return as is
+            apiDebugLog("Skip translate: no API URL configured (service={})", config.getApiServiceConfig());
             return text;
         }
 
         JsonObject urlParameters = getUrlParameters(sourceLang, targetLang, text);
         RequestBody requestBody = FormBody.create(mediaType, urlParameters.toString());
         long requestBodyBytes = getRequestBodyBytes(requestBody);
+        apiDebugLog("Queue request service={} url={} source={} target={} chars={} bodyBytes={} text='{}'",
+                config.getApiServiceConfig(),
+                url,
+                getLanguageCodeForService(sourceLang, true),
+                getLanguageCodeForService(targetLang, false),
+                countTextCharacters(text),
+                requestBodyBytes,
+                previewText(text));
         if (requestBodyBytes > DEEPL_MAX_TOTAL_REQUEST_BYTES) {
             log.warn("Skipping DeepL request: request body too large ({} bytes, max {} bytes).",
                     requestBodyBytes, DEEPL_MAX_TOTAL_REQUEST_BYTES);
@@ -148,6 +177,14 @@ public class Deepl {
                     // add the new translation to the past translations and its file
                     deeplPastTranslationManager.addToPastTranslations(text, translation);
                     setKeyValid(true);
+                    apiDebugLog("Success service={} source='{}' translated='{}'",
+                            config.getApiServiceConfig(),
+                            previewText(text),
+                            previewText(translation));
+                } else {
+                    apiDebugLog("Success but empty translation service={} source='{}'",
+                            config.getApiServiceConfig(),
+                            previewText(text));
                 }
 
             }
@@ -161,6 +198,10 @@ public class Deepl {
                 }
                 translationAttempt.remove(text);
                 scheduleRetryBackoff(text, error);
+                apiDebugLog("Failure service={} source='{}' error={}",
+                        config.getApiServiceConfig(),
+                        previewText(text),
+                        error == null ? "unknown" : previewText(error.getMessage()));
                 handleError(error);
             }
 
@@ -307,6 +348,7 @@ public class Deepl {
         }
 
         if (isDeepLServiceSelected() && (deeplKey == null || deeplKey.isEmpty())) {
+            apiDebugLog("Request blocked: missing API key for DeepL service");
             callback.onFailure(new IOException("API key is missing"));
             return;
         }
@@ -353,6 +395,11 @@ public class Deepl {
                     }
                     if (retryCount < 5) {
                         long delaySeconds = getRetryDelaySeconds();
+                        apiDebugLog("Network failure (service={}) retry={} in {}s error={}",
+                                config.getApiServiceConfig(),
+                                retryCount + 1,
+                                delaySeconds,
+                                previewText(error.getMessage()));
                         scheduler.schedule(() -> {
                             synchronized (apiStateLock) {
                                 if (currentVersion != apiStateVersion || !plugin.getConfig().ApiConfig()) {
@@ -388,6 +435,11 @@ public class Deepl {
                             setGlobalRetryBackoff(System.currentTimeMillis() + RATE_LIMIT_BACKOFF_MILLIS);
                             if (retryCount < 5) {
                                 long delaySeconds = getRetryDelaySeconds();
+                                apiDebugLog("HTTP congestion service={} status={} retry={} in {}s",
+                                        config.getApiServiceConfig(),
+                                        responseCode,
+                                        retryCount + 1,
+                                        delaySeconds);
                                 scheduler.schedule(() -> {
                                     synchronized (apiStateLock) {
                                         if (currentVersion != apiStateVersion || !plugin.getConfig().ApiConfig()) {
@@ -407,6 +459,10 @@ public class Deepl {
                             if (message.length() > 300) {
                                 message = message.substring(0, 300) + "...";
                             }
+                            apiDebugLog("HTTP error service={} status={} body='{}'",
+                                    config.getApiServiceConfig(),
+                                    responseCode,
+                                    previewText(message));
                             callback.onFailure(new IOException("Translation API HTTP " + responseCode + ": " + message));
                             return;
                         }
@@ -491,6 +547,10 @@ public class Deepl {
                         keyValid = true;
                         deeplCount = jsonObject.getInt("character_count");
                         deeplLimit = jsonObject.getInt("character_limit");
+                        apiDebugLog("Usage update service={} count={} limit={}",
+                                config.getApiServiceConfig(),
+                                deeplCount,
+                                deeplLimit);
                         //log.info("Updated deepl count: " + deeplCount + "\nUpdated deepl limit: " + deeplLimit);
                     } else {
                         keyValid = false;

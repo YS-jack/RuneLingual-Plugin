@@ -151,6 +151,17 @@ public interface RuneLingualConfig extends Config {
     }
 
     @ConfigItem(
+            name = "API Debug Logs",
+            description = "Logs API request/result details in client.log for troubleshooting",
+            section = SECTION_CHAT_SETTINGS,
+            keyName = "apiDebugLogs",
+            position = 6 + offset
+    )
+    default boolean apiDebugLogs() {
+        return false;
+    }
+
+    @ConfigItem(
             name = "Enable Word Count Overlay",
             description = "whether to show how many characters you have used",
             section = SECTION_CHAT_SETTINGS,
