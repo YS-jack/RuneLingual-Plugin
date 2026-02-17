@@ -38,13 +38,27 @@ public class WidgetCapture {
         return WidgetUtil.componentToInterface(componentId);
     }
 
-    private static final Set<Integer> API_BOOK_SCROLL_INTERFACE_IDS = Set.of(
+    private static int normalizeInterfaceOrComponentId(int id) {
+        return id > 0xFFFF ? WidgetUtil.componentToInterface(id) : id;
+    }
+
+    private static Set<Integer> normalizeInterfaceIds(Set<Integer> rawIds) {
+        Set<Integer> normalized = new HashSet<>();
+        for (int rawId : rawIds) {
+            normalized.add(normalizeInterfaceOrComponentId(rawId));
+        }
+        return Collections.unmodifiableSet(normalized);
+    }
+
+    private static final Set<Integer> API_BOOK_SCROLL_INTERFACE_IDS = normalizeInterfaceIds(Set.of(
             Book.UNIVERSE,
             IndexedBook.UNIVERSE,
             Bookofscrolls.UNIVERSE,
             Journalscroll.UNIVERSE,
             Questscroll.UNIVERSE,
             QuestscrollSpeedrun.UNIVERSE,
+            Questdisplay.UNIVERSE,
+            Questlist.UNIVERSE,
             Scroll.UNIVERSE,
             IiScroll.UNIVERSE,
             MagicSpellbook.UNIVERSE,
@@ -104,7 +118,7 @@ public class WidgetCapture {
             KillLog.UNIVERSE,
             FairyringsLog.UNIVERSE,
             SailingLog.UNIVERSE
-    );
+    ));
 
     @Inject
     private RuneLingualPlugin plugin;
