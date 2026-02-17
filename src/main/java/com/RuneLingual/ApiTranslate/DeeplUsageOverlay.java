@@ -12,6 +12,7 @@ import net.runelite.client.ui.overlay.components.PanelComponent;
 
 import javax.inject.Inject;
 import java.awt.*;
+import java.text.NumberFormat;
 
 
 public class DeeplUsageOverlay  extends Overlay {
@@ -51,12 +52,21 @@ public class DeeplUsageOverlay  extends Overlay {
         if (selectedService == TranslatingServiceSelectableList.LibreTranslate) {
             boolean libreAvailable = plugin.getDeepl().canTranslateNow();
             if (libreAvailable) {
+                NumberFormat nf = NumberFormat.getIntegerInstance();
+                String chars = nf.format(plugin.getDeepl().getLibreTranslateCharCount());
+                String reqs = nf.format(plugin.getDeepl().getLibreTranslateRequestCount());
                 panelComponent.setBackgroundColor(bgColorCount);
                 panelComponent.getChildren().add(LineComponent.builder()
                         .left("LibreTranslate:")
-                        .right("usage N/A")
+                        .right(chars + " chars")
                         .build());
-                len = ("LibreTranslate: usage N/A".length() + 2) * enCharSize;
+                panelComponent.getChildren().add(LineComponent.builder()
+                        .left("Requests:")
+                        .right(reqs)
+                        .build());
+                int line1 = ("LibreTranslate: " + chars + " chars").length() + 2;
+                int line2 = ("Requests: " + reqs).length() + 2;
+                len = Math.max(line1, line2) * enCharSize;
             } else {
                 String errorMessage = "LibreTranslate unavailable.\nCheck URL/API key.";
                 panelComponent.setBackgroundColor(bgColorInvalid);

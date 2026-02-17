@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.inject.Inject;
 
 @Slf4j
@@ -66,6 +67,11 @@ public class Deepl {
 
     private final Object apiStateLock = new Object();
     private volatile int apiStateVersion = 0; // Tracks the current state version of the API
+
+    // LibreTranslate doesn't provide a standard /usage endpoint.
+    // Track local usage so the overlay can show something meaningful.
+    private final AtomicLong libreTranslateCharCount = new AtomicLong(0L);
+    private final AtomicLong libreTranslateRequestCount = new AtomicLong(0L);
 
     // add texts that has already been attempted to be translated.
     // this avoids translating same texts multiple times when ran in a thread, which will waste limited or paid word count
@@ -146,6 +152,7 @@ public class Deepl {
             apiDebugLog("Skip translate: no API URL configured (service={})", config.getApiServiceConfig());
             return text;
         }
+        final TranslatingServiceSelectableList serviceAtQueue = config.getApiServiceConfig();
 
         JsonObject urlParameters = getUrlParameters(sourceLang, targetLang, text);
         RequestBody requestBody = FormBody.create(mediaType, urlParameters.toString());
@@ -172,6 +179,9 @@ public class Deepl {
             public void onSuccess(String response) {
                 translationAttempt.remove(text);
                 setUsageAndLimit();
+                if (serviceAtQueue == TranslatingServiceSelectableList.LibreTranslate) {
+                    recordLibreTranslateUsage(text);
+                }
                 String translation = getTranslationInResponse(response);
                 if (!translation.isEmpty()) {
                     // add the new translation to the past translations and its file
@@ -212,6 +222,19 @@ public class Deepl {
         });
 
         return text; // return original text while the translation is being processed in the thread
+    }
+
+    public long getLibreTranslateCharCount() {
+        return libreTranslateCharCount.get();
+    }
+
+    public long getLibreTranslateRequestCount() {
+        return libreTranslateRequestCount.get();
+    }
+
+    private void recordLibreTranslateUsage(String text) {
+        libreTranslateRequestCount.incrementAndGet();
+        libreTranslateCharCount.addAndGet(countTextCharacters(text));
     }
 
     /**
