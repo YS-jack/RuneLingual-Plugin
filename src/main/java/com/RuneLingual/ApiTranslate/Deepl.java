@@ -491,6 +491,7 @@ public class Deepl {
         if (!plugin.getConfig().ApiConfig()) {
             return false;
         }
+        deeplKey = plugin.getConfig().getAPIKey();
         if (deeplKey == null || deeplKey.isEmpty()) {
             return false;
         }
