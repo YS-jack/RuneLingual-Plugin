@@ -110,12 +110,17 @@ public class Deepl {
         }
         deeplKey = plugin.getConfig().getAPIKey();
 
-        setUsageAndLimit();
-        int billedCharacters = countTextCharacters(text);
-        int effectiveLimit = getEffectiveMonthlyCharacterLimit();
-        // if the character count is close to the limit, return the original text
-        if(deeplCount > effectiveLimit - billedCharacters - DEEPL_MONTHLY_LIMIT_SAFETY_BUFFER){
-            return text;
+        if (isDeepLServiceSelected()) {
+            setUsageAndLimit();
+            int billedCharacters = countTextCharacters(text);
+            int effectiveLimit = getEffectiveMonthlyCharacterLimit();
+            // if the character count is close to the limit, return the original text
+            if(deeplCount > effectiveLimit - billedCharacters - DEEPL_MONTHLY_LIMIT_SAFETY_BUFFER){
+                return text;
+            }
+        } else {
+            // Non-DeepL providers do not expose DeepL usage/quota semantics.
+            keyValid = true;
         }
 
 
@@ -152,7 +157,9 @@ public class Deepl {
 
             @Override
             public void onFailure(Exception error) {
-                setKeyValid(false);
+                if (isDeepLServiceSelected()) {
+                    setKeyValid(false);
+                }
                 translationAttempt.remove(text);
                 scheduleRetryBackoff(text, error);
                 handleError(error);
@@ -196,19 +203,32 @@ public class Deepl {
     }
 
     private JsonObject getUrlParameters(LangCodeSelectableList sourceLang, LangCodeSelectableList targetLang, String text) {
-        String targetLangCode = targetLang.getDeeplLangCodeTarget();
-        String sourceLangCode = sourceLang.getDeeplLangCodeSource();
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(text);
-
         JsonObject jsonObject = new JsonObject();
-        jsonObject.add("text", jsonArray);
-        jsonObject.addProperty("target_lang", targetLangCode);
-        jsonObject.addProperty("context", "runescape; dungeons and dragons; medieval fantasy;");
-        jsonObject.addProperty("split_sentences", "nonewlines");
-        jsonObject.addProperty("preserve_formatting", true);
-        jsonObject.addProperty("formality", "prefer_less");
-        jsonObject.addProperty("source_lang", sourceLangCode);
+        String targetLangCode = getLanguageCodeForService(targetLang, false);
+        String sourceLangCode = getLanguageCodeForService(sourceLang, true);
+
+        if (isDeepLServiceSelected()) {
+            JsonArray jsonArray = new JsonArray();
+            jsonArray.add(text);
+            jsonObject.add("text", jsonArray);
+            jsonObject.addProperty("target_lang", targetLangCode);
+            jsonObject.addProperty("context", "runescape; dungeons and dragons; medieval fantasy;");
+            jsonObject.addProperty("split_sentences", "nonewlines");
+            jsonObject.addProperty("preserve_formatting", true);
+            jsonObject.addProperty("formality", "prefer_less");
+            jsonObject.addProperty("source_lang", sourceLangCode);
+            return jsonObject;
+        }
+
+        if (isLibreTranslateServiceSelected()) {
+            jsonObject.addProperty("q", text);
+            jsonObject.addProperty("source", sourceLangCode);
+            jsonObject.addProperty("target", targetLangCode);
+            jsonObject.addProperty("format", "text");
+            if (deeplKey != null && !deeplKey.isEmpty()) {
+                jsonObject.addProperty("api_key", deeplKey);
+            }
+        }
 
         return jsonObject;
     }
@@ -218,25 +238,58 @@ public class Deepl {
         if(baseUrl.isEmpty()){
             return "";
         }
-        return baseUrl + "translate";
+        return baseUrl + "/translate";
     }
 
     private String getUsageUrl() {
+        if (!isDeepLServiceSelected()) {
+            return "";
+        }
         String baseUrl = getBaseUrl();
         if(baseUrl.isEmpty()){
             return "";
         }
-        return baseUrl + "usage";
+        return baseUrl + "/usage";
     }
 
     private String getBaseUrl() {
-        if (Objects.equals(config.getApiServiceConfig().getServiceName(), TranslatingServiceSelectableList.DeepL.getServiceName())) {
-            return "https://api-free.deepl.com/v2/";
-        } else if (Objects.equals(config.getApiServiceConfig().getServiceName(), TranslatingServiceSelectableList.DeepL_PRO.getServiceName())) {
-            return "https://api.deepl.com/v2/";
+        if (isDeepLFreeServiceSelected()) {
+            return "https://api-free.deepl.com/v2";
+        } else if (isDeepLProServiceSelected()) {
+            return "https://api.deepl.com/v2";
+        } else if (isLibreTranslateServiceSelected()) {
+            String configuredUrl = config.getLibreTranslateUrl();
+            if (configuredUrl == null) {
+                return "";
+            }
+            String trimmed = configuredUrl.trim();
+            if (trimmed.isEmpty()) {
+                return "";
+            }
+            while (trimmed.endsWith("/")) {
+                trimmed = trimmed.substring(0, trimmed.length() - 1);
+            }
+            return trimmed;
         } else {
             return "";
         }
+    }
+
+    private String getLanguageCodeForService(LangCodeSelectableList lang, boolean isSource) {
+        if (isDeepLServiceSelected()) {
+            return isSource ? lang.getDeeplLangCodeSource() : lang.getDeeplLangCodeTarget();
+        }
+        if (isLibreTranslateServiceSelected()) {
+            String langCode = lang.getLangCode();
+            if ("pt_br".equalsIgnoreCase(langCode) || "pt".equalsIgnoreCase(langCode)) {
+                return "pt";
+            }
+            if ("no".equalsIgnoreCase(langCode)) {
+                return "nb";
+            }
+            return langCode.replace('_', '-').toLowerCase(Locale.ROOT);
+        }
+        return lang.getLangCode();
     }
 
     private void getResponse(String url, RequestBody requestBody, ResponseCallback callback) {
@@ -254,7 +307,7 @@ public class Deepl {
             return;
         }
 
-        if (deeplKey == null || deeplKey.isEmpty()) {
+        if (isDeepLServiceSelected() && (deeplKey == null || deeplKey.isEmpty())) {
             callback.onFailure(new IOException("API key is missing"));
             return;
         }
@@ -262,12 +315,17 @@ public class Deepl {
         try {
             Request.Builder request = new Request.Builder()
                     .addHeader("User-Agent", RuneLite.USER_AGENT + " (runelingual)")
-                    .addHeader("Authorization", "DeepL-Auth-Key " + deeplKey)
                     .addHeader("Accept", "application/json")
                     .addHeader("Content-Type", "application/json")
-                    .addHeader("Content-Length", String.valueOf(requestBody.contentLength()))
                     .url(url)
                     .post(requestBody);
+            if (isDeepLServiceSelected()) {
+                request.addHeader("Authorization", "DeepL-Auth-Key " + deeplKey);
+            }
+            long contentLength = requestBody.contentLength();
+            if (contentLength >= 0L) {
+                request.addHeader("Content-Length", String.valueOf(contentLength));
+            }
 
             Request builtRequest = request.build();
             long headerBytes = getHeaderBytes(builtRequest);
@@ -341,7 +399,7 @@ public class Deepl {
                                 }, delaySeconds, TimeUnit.SECONDS);
                                 return;
                             }
-                            callback.onFailure(new IOException("DeepL congestion/rate limit: HTTP " + responseCode));
+                            callback.onFailure(new IOException("Translation API congestion/rate limit: HTTP " + responseCode));
                             return;
                         }
 
@@ -350,7 +408,7 @@ public class Deepl {
                             if (message.length() > 300) {
                                 message = message.substring(0, 300) + "...";
                             }
-                            callback.onFailure(new IOException("DeepL HTTP " + responseCode + ": " + message));
+                            callback.onFailure(new IOException("Translation API HTTP " + responseCode + ": " + message));
                             return;
                         }
 
@@ -367,7 +425,7 @@ public class Deepl {
     }
 
     private void handleError(Exception error) {
-        log.error("Failed to get response from DeepL API.", error);
+        log.error("Failed to get response from translation API {}.", config.getApiServiceConfig(), error);
     }
 
 
@@ -379,6 +437,17 @@ public class Deepl {
 
     private String getTranslationInResponse(String response) {
         JSONObject jsonObject = new JSONObject(response);
+        if (jsonObject.has("translatedText")) {
+            Object translatedText = jsonObject.get("translatedText");
+            if (translatedText instanceof JSONArray) {
+                JSONArray arr = (JSONArray) translatedText;
+                if (arr.length() > 0) {
+                    return arr.getString(0);
+                }
+            } else if (translatedText != null) {
+                return translatedText.toString();
+            }
+        }
         if (jsonObject.has("translations")) {
             JSONArray translationsArray = jsonObject.getJSONArray("translations");
             if (translationsArray != null && translationsArray.length() > 0) { // .length() > 0 is used instead of ! .isEmpty() because .isEmpty on JsonObject doesnt work on the runelite client for some reason
@@ -391,6 +460,12 @@ public class Deepl {
 
     // function to set usage of the API
     public void setUsageAndLimit() {
+        if (!isDeepLServiceSelected()) {
+            keyValid = true;
+            deeplCount = 0;
+            deeplLimit = Integer.MAX_VALUE;
+            return;
+        }
         String usageUrl = getUsageUrl();
         if (usageUrl.isEmpty()) {
             return;
@@ -491,26 +566,58 @@ public class Deepl {
         if (!plugin.getConfig().ApiConfig()) {
             return false;
         }
-        deeplKey = plugin.getConfig().getAPIKey();
-        if (deeplKey == null || deeplKey.isEmpty()) {
+        if (System.currentTimeMillis() < globalRetryNotBeforeMillis) {
             return false;
+        }
+        if (isDeepLServiceSelected()) {
+            deeplKey = plugin.getConfig().getAPIKey();
+            if (deeplKey == null || deeplKey.isEmpty()) {
+                return false;
+            }
+            if (!keyValid) {
+                return false;
+            }
+            int effectiveLimit = getEffectiveMonthlyCharacterLimit();
+            return deeplCount <= effectiveLimit - DEEPL_MONTHLY_LIMIT_SAFETY_BUFFER;
+        }
+        if (isLibreTranslateServiceSelected()) {
+            return !getTranslatorUrl().isEmpty();
         }
         if (!keyValid) {
             return false;
         }
-        if (System.currentTimeMillis() < globalRetryNotBeforeMillis) {
-            return false;
-        }
-        int effectiveLimit = getEffectiveMonthlyCharacterLimit();
-        return deeplCount <= effectiveLimit - DEEPL_MONTHLY_LIMIT_SAFETY_BUFFER;
+        return !getTranslatorUrl().isEmpty();
     }
 
     private int getEffectiveMonthlyCharacterLimit() {
+        if (!isDeepLServiceSelected()) {
+            return Integer.MAX_VALUE;
+        }
         int configuredLimit = deeplLimit > 0 ? deeplLimit : DEEPL_FREE_MONTHLY_CHAR_LIMIT;
-        if (Objects.equals(config.getApiServiceConfig().getServiceName(), TranslatingServiceSelectableList.DeepL.getServiceName())) {
+        if (isDeepLFreeServiceSelected()) {
             return Math.min(configuredLimit, DEEPL_FREE_MONTHLY_CHAR_LIMIT);
         }
         return configuredLimit;
+    }
+
+    public boolean usesDeepLUsageLimits() {
+        return isDeepLServiceSelected();
+    }
+
+    private boolean isDeepLServiceSelected() {
+        return config.getApiServiceConfig().isDeepLFamily();
+    }
+
+    private boolean isDeepLFreeServiceSelected() {
+        return config.getApiServiceConfig() == TranslatingServiceSelectableList.DeepL;
+    }
+
+    private boolean isDeepLProServiceSelected() {
+        return config.getApiServiceConfig() == TranslatingServiceSelectableList.DeepL_PRO;
+    }
+
+    private boolean isLibreTranslateServiceSelected() {
+        return config.getApiServiceConfig() == TranslatingServiceSelectableList.LibreTranslate;
     }
 
     private int countTextCharacters(String text) {

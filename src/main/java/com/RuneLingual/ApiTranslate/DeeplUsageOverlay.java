@@ -3,6 +3,7 @@ package com.RuneLingual.ApiTranslate;
 import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.RuneLingualPlugin;
+import com.RuneLingual.TranslatingServiceSelectableList;
 import net.runelite.api.Client;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -41,11 +42,33 @@ public class DeeplUsageOverlay  extends Overlay {
         boolean deeplKeyValid = plugin.getDeepl().isKeyValid();
         String deeplCount = Long.toString(plugin.getDeepl().getDeeplCount());
         String deeplLimit = Long.toString(plugin.getDeepl().getDeeplLimit());
+        TranslatingServiceSelectableList selectedService = config.getApiServiceConfig();
 
         Color bgColorCount = new Color(80, 148, 144);
         Color bgColorInvalid = new Color(194, 93, 93);
         panelComponent.getChildren().clear();
         int len;
+        if (selectedService == TranslatingServiceSelectableList.LibreTranslate) {
+            boolean libreAvailable = plugin.getDeepl().canTranslateNow();
+            if (libreAvailable) {
+                panelComponent.setBackgroundColor(bgColorCount);
+                panelComponent.getChildren().add(LineComponent.builder()
+                        .left("LibreTranslate:")
+                        .right("usage N/A")
+                        .build());
+                len = ("LibreTranslate: usage N/A".length() + 2) * enCharSize;
+            } else {
+                String errorMessage = "LibreTranslate unavailable.\nCheck URL/API key.";
+                panelComponent.setBackgroundColor(bgColorInvalid);
+                panelComponent.getChildren().add(LineComponent.builder()
+                        .left(errorMessage)
+                        .build());
+                len = (getMaxLetters(errorMessage.split("\n")) + 2) * foreignCharSize;
+            }
+            panelComponent.setPreferredSize(new Dimension(len,0));
+            return panelComponent.render(graphics);
+        }
+
         if (deeplKeyValid) {
             panelComponent.setBackgroundColor(bgColorCount);
             panelComponent.getChildren().add(LineComponent.builder()

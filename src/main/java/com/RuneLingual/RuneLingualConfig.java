@@ -140,6 +140,17 @@ public interface RuneLingualConfig extends Config {
     }
 
     @ConfigItem(
+            name = "LibreTranslate URL",
+            description = "Base URL for LibreTranslate (self-host or public instance), ex: https://libretranslate.com",
+            section = SECTION_CHAT_SETTINGS,
+            keyName = "libreTranslateUrl",
+            position = 5 + offset
+    )
+    default String getLibreTranslateUrl() {
+        return "https://libretranslate.com";
+    }
+
+    @ConfigItem(
             name = "Enable Word Count Overlay",
             description = "whether to show how many characters you have used",
             section = SECTION_CHAT_SETTINGS,

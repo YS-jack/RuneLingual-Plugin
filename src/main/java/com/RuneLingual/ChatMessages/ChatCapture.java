@@ -190,7 +190,8 @@ public class ChatCapture
     
     private void onlineTranslator(String message, MessageNode node, ChatMessage chatMessage)
     {
-        if(plugin.getDeepl().getDeeplCount() + message.length() + 1000 > plugin.getDeepl().getDeeplLimit()) {
+        if(plugin.getDeepl().usesDeepLUsageLimits()
+                && plugin.getDeepl().getDeeplCount() + message.length() + 1000 > plugin.getDeepl().getDeeplLimit()) {
             //log.info("DeepL limit reached, cannot translate message.");
             return;
         }
