@@ -487,6 +487,23 @@ public class Deepl {
         return new Random().nextInt(8) + 3;
     }
 
+    public boolean canTranslateNow() {
+        if (!plugin.getConfig().ApiConfig()) {
+            return false;
+        }
+        if (deeplKey == null || deeplKey.isEmpty()) {
+            return false;
+        }
+        if (!keyValid) {
+            return false;
+        }
+        if (System.currentTimeMillis() < globalRetryNotBeforeMillis) {
+            return false;
+        }
+        int effectiveLimit = getEffectiveMonthlyCharacterLimit();
+        return deeplCount <= effectiveLimit - DEEPL_MONTHLY_LIMIT_SAFETY_BUFFER;
+    }
+
     private int getEffectiveMonthlyCharacterLimit() {
         int configuredLimit = deeplLimit > 0 ? deeplLimit : DEEPL_FREE_MONTHLY_CHAR_LIMIT;
         if (Objects.equals(config.getApiServiceConfig().getServiceName(), TranslatingServiceSelectableList.DeepL.getServiceName())) {

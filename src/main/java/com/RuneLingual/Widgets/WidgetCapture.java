@@ -191,8 +191,9 @@ public class WidgetCapture {
             return;
         }
 
-        boolean interfaceApiMode = plugin.getConfig().getInterfaceTextConfig() == RuneLingualConfig.ingameTranslationConfig.USE_API
+        boolean interfaceApiConfigured = plugin.getConfig().getInterfaceTextConfig() == RuneLingualConfig.ingameTranslationConfig.USE_API
                 && plugin.getConfig().ApiConfig();
+        boolean interfaceApiAvailable = interfaceApiConfigured && plugin.getDeepl().canTranslateNow();
         boolean booksAndScrollsApiEnabled = plugin.getConfig().apiBooksAndScrolls();
         boolean isApiBookOrScrollWidget = booksAndScrollsApiEnabled
                 && (API_BOOK_SCROLL_INTERFACE_IDS.contains(widgetGroup)
@@ -200,18 +201,20 @@ public class WidgetCapture {
 
         // Book/scroll widgets do not always use WidgetType.TEXT + valid font ids.
         // Handle them with a dedicated API path based on "has translatable text".
-        if (interfaceApiMode && isApiBookOrScrollWidget) {
+        if (interfaceApiAvailable && isApiBookOrScrollWidget) {
             translateWidgetApiBookOrScroll(widget);
             return;
         }
 
-        if (interfaceApiMode && shouldApiTranslateLobbyWidget(widget)) {
+        if (interfaceApiAvailable && shouldApiTranslateLobbyWidget(widget)) {
             translateWidgetApiLobby(widget);
             return;
         }
 
         if(shouldTranslateWidget(widget)) {
-            if (interfaceApiMode) {
+            // If API mode is configured but temporarily unavailable (key/limit/congestion),
+            // keep translating with local resources instead of skipping interface text.
+            if (interfaceApiAvailable) {
                 return;
             }
 
