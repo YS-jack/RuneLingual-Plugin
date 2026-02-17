@@ -91,6 +91,8 @@ public class Ids {
     private final Set<Integer> widgetIdNot2Translate = Set.of(
             Chatbox.CHATDISPLAY,
             10617391,//some sort of background for chatbox
+            // Report Abuse interface is layout-sensitive; changing text/line height can break the rule numbering UI.
+            Reportabuse.UNIVERSE,
             widgetIdCharacterSummaryName,
             Ignore.LIST_CONTAINER,
             widgetIdGimGroupName, //gim group name in group tab

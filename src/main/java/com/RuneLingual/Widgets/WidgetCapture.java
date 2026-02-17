@@ -61,6 +61,7 @@ public class WidgetCapture {
             Questlist.UNIVERSE,
             Scroll.UNIVERSE,
             IiScroll.UNIVERSE,
+            Prayerbook.UNIVERSE,
             MagicSpellbook.UNIVERSE,
             Longscroll.UNIVERSE,
             Eventscroll.UNIVERSE,

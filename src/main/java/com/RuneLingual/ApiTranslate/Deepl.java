@@ -321,7 +321,10 @@ public class Deepl {
         }
         if (isLibreTranslateServiceSelected()) {
             String langCode = lang.getLangCode();
-            if ("pt_br".equalsIgnoreCase(langCode) || "pt".equalsIgnoreCase(langCode)) {
+            if ("pt_br".equalsIgnoreCase(langCode)) {
+                return "pt-BR";
+            }
+            if ("pt".equalsIgnoreCase(langCode)) {
                 return "pt";
             }
             if ("no".equalsIgnoreCase(langCode)) {
