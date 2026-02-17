@@ -118,9 +118,6 @@ public class Deepl {
             if(deeplCount > effectiveLimit - billedCharacters - DEEPL_MONTHLY_LIMIT_SAFETY_BUFFER){
                 return text;
             }
-        } else {
-            // Non-DeepL providers do not expose DeepL usage/quota semantics.
-            keyValid = true;
         }
 
 
@@ -158,6 +155,8 @@ public class Deepl {
             @Override
             public void onFailure(Exception error) {
                 if (isDeepLServiceSelected()) {
+                    setKeyValid(false);
+                } else if (isLikelyAuthenticationError(error)) {
                     setKeyValid(false);
                 }
                 translationAttempt.remove(text);
@@ -581,7 +580,7 @@ public class Deepl {
             return deeplCount <= effectiveLimit - DEEPL_MONTHLY_LIMIT_SAFETY_BUFFER;
         }
         if (isLibreTranslateServiceSelected()) {
-            return !getTranslatorUrl().isEmpty();
+            return keyValid && !getTranslatorUrl().isEmpty();
         }
         if (!keyValid) {
             return false;
@@ -618,6 +617,19 @@ public class Deepl {
 
     private boolean isLibreTranslateServiceSelected() {
         return config.getApiServiceConfig() == TranslatingServiceSelectableList.LibreTranslate;
+    }
+
+    private boolean isLikelyAuthenticationError(Exception error) {
+        if (error == null || error.getMessage() == null) {
+            return false;
+        }
+        String message = error.getMessage().toLowerCase(Locale.ROOT);
+        return message.contains("api key")
+                || message.contains("invalid key")
+                || message.contains("unauthorized")
+                || message.contains("forbidden")
+                || message.contains("http 401")
+                || message.contains("http 403");
     }
 
     private int countTextCharacters(String text) {
