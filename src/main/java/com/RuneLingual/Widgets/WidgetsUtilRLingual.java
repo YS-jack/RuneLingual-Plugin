@@ -62,16 +62,63 @@ public class WidgetsUtilRLingual
 	}
 
 	public void setWidgetText_ApiTranslation(Widget widget, String originalText, Colors color){
-		final String text_withoutBrAndTags = Colors.removeNonImgTags(originalText);
-		String translatedText = plugin.getDeepl().translate(text_withoutBrAndTags, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
-		if(translatedText.equals(text_withoutBrAndTags)) { // if the translation is the same as the original text, don't set the text
+		if (originalText == null) {
 			return;
 		}
 
-		if (plugin.getTargetLanguage().needsCharImages()) {
-			translatedText = generalFunctions.StringToTags(translatedText, color);
+		// Some widgets (eg: Prayer/Spellbook tooltips) rely on explicit <br> lines.
+		// Preserve those instead of stripping <br> and re-wrapping, which can look like "Enter" was pressed.
+		final boolean preserveBr = ids.getWidgetId2KeepBr().contains(widget.getId())
+				|| ids.getWidgetId2SplitTextAtBr().contains(widget.getId());
+
+		if (!preserveBr) {
+			final String textWithoutBrAndTags = sanitizeTranslatedWidgetText(Colors.removeNonImgTags(originalText));
+			String translatedText = plugin.getDeepl().translate(textWithoutBrAndTags, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
+			translatedText = sanitizeTranslatedWidgetText(translatedText);
+			if (translatedText.equals(textWithoutBrAndTags)) { // if the translation is the same as the original text, don't set the text
+				return;
+			}
+
+			if (plugin.getTargetLanguage().needsCharImages()) {
+				translatedText = generalFunctions.StringToTags(translatedText, color);
+			}
+			setWidgetText_NiceBr(widget, translatedText);
+			return;
 		}
-		setWidgetText_NiceBr(widget, translatedText);
+
+		String[] parts = originalText.split("<br>");
+		StringBuilder sb = new StringBuilder();
+		boolean anyChanged = false;
+
+		for (int i = 0; i < parts.length; i++) {
+			String partPlain = sanitizeTranslatedWidgetText(Colors.removeNonImgTags(parts[i]));
+			if (partPlain.isEmpty()) {
+				// Keep blank lines as-is.
+				if (i != parts.length - 1) {
+					sb.append("<br>");
+				}
+				continue;
+			}
+			String translatedPart = plugin.getDeepl().translate(partPlain, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
+			translatedPart = sanitizeTranslatedWidgetText(translatedPart);
+			if (!translatedPart.equals(partPlain)) {
+				anyChanged = true;
+			}
+			if (plugin.getTargetLanguage().needsCharImages()) {
+				// Convert line-by-line so <br> tags are not consumed by the char-image converter.
+				translatedPart = generalFunctions.StringToTags(translatedPart, color);
+			}
+			sb.append(translatedPart);
+			if (i != parts.length - 1) {
+				sb.append("<br>");
+			}
+		}
+
+		if (!anyChanged) {
+			return;
+		}
+
+		widget.setText(sb.toString());
 	}
 
 	public void setWidgetText_ApiTranslationSingleLine(Widget widget, String originalText, Colors color) {
@@ -316,6 +363,22 @@ public class WidgetsUtilRLingual
 	public void changeLineHeight(Widget widget) {
 		int lineHeight = plugin.getConfig().getSelectedLanguage().getCharHeight();
 		widget.setLineHeight(lineHeight);
+	}
+
+	private static String sanitizeTranslatedWidgetText(String text) {
+		if (text == null) {
+			return "";
+		}
+		// Prevent raw newlines/line-separators from showing as "empty squares" or breaking layout.
+		String sanitized = text
+				.replace("\r\n", " ")
+				.replace('\n', ' ')
+				.replace('\r', ' ')
+				.replace('\u2028', ' ')
+				.replace('\u2029', ' ');
+		// Collapse repeated whitespace.
+		sanitized = sanitized.replaceAll("\\s{2,}", " ").trim();
+		return sanitized;
 	}
 
 }
