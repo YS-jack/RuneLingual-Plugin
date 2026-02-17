@@ -284,6 +284,13 @@ public class WidgetCapture {
     private void translateWidgetApi(Widget widget) {
         String text = widget.getText();
         Colors color = Colors.getColorArray(widget.getText(), Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor())))[0];
+
+        // Tooltips can be bottom-aligned by default; once we resize them to fit translated text,
+        // the content can appear to "drop" down or get clipped. Force top alignment for stability.
+        if (widget.getId() == ids.getPrayerTabHoverTextId() || widget.getId() == ids.getSpellbookTabHoverTextId()) {
+            widget.setYTextAlignment(WidgetTextAlignment.TOP);
+        }
+
         widgetsUtilRLingual.setWidgetText_ApiTranslation(widget, text, color);
         widgetsUtilRLingual.changeLineHeight(widget);
         widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget);

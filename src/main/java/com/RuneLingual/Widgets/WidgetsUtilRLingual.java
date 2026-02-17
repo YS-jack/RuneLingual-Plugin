@@ -70,6 +70,10 @@ public class WidgetsUtilRLingual
 		// Preserve those instead of stripping <br> and re-wrapping, which can look like "Enter" was pressed.
 		final boolean preserveBr = ids.getWidgetId2KeepBr().contains(widget.getId())
 				|| ids.getWidgetId2SplitTextAtBr().contains(widget.getId());
+		final boolean shouldForceColTag = !plugin.getTargetLanguage().needsCharImages()
+				&& color != null
+				// Some widgets rely on <col> tags for visibility (textColor can be 0/transparent).
+				&& (originalText.contains("<col") || widget.getTextColor() == 0);
 
 		if (!preserveBr) {
 			final String textWithoutBrAndTags = sanitizeTranslatedWidgetText(Colors.removeNonImgTags(originalText));
@@ -83,6 +87,10 @@ public class WidgetsUtilRLingual
 				translatedText = generalFunctions.StringToTags(translatedText, color);
 			}
 			setWidgetText_NiceBr(widget, translatedText);
+			if (shouldForceColTag) {
+				// Wrap after NiceBr so tag length doesn't interfere with auto <br> insertion.
+				widget.setText(Colors.surroundWithColorTag(widget.getText(), color));
+			}
 			return;
 		}
 
@@ -118,7 +126,11 @@ public class WidgetsUtilRLingual
 			return;
 		}
 
-		widget.setText(sb.toString());
+		String out = sb.toString();
+		if (shouldForceColTag) {
+			out = Colors.surroundWithColorTag(out, color);
+		}
+		widget.setText(out);
 	}
 
 	public void setWidgetText_ApiTranslationSingleLine(Widget widget, String originalText, Colors color) {
