@@ -11,6 +11,7 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetSizeMode;
 
 import javax.inject.Inject;
+import java.text.Normalizer;
 
 public class WidgetsUtilRLingual
 {
@@ -109,6 +110,10 @@ public class WidgetsUtilRLingual
 			}
 			String translatedPart = plugin.getDeepl().translate(partPlain, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
 			translatedPart = sanitizeTranslatedWidgetText(translatedPart);
+			if (translatedPart.isBlank()) {
+				// Defensive: avoid rendering an empty line (can look like a blank tooltip in some fonts).
+				translatedPart = partPlain;
+			}
 			if (!translatedPart.equals(partPlain)) {
 				anyChanged = true;
 			}
@@ -381,13 +386,49 @@ public class WidgetsUtilRLingual
 		if (text == null) {
 			return "";
 		}
-		// Prevent raw newlines/line-separators from showing as "empty squares" or breaking layout.
-		String sanitized = text
+
+		String sanitized = Normalizer.normalize(text, Normalizer.Form.NFKC);
+
+		// Prevent raw newlines/line-separators from breaking layout.
+		sanitized = sanitized
 				.replace("\r\n", " ")
 				.replace('\n', ' ')
 				.replace('\r', ' ')
 				.replace('\u2028', ' ')
 				.replace('\u2029', ' ');
+
+		// Replace common "unsupported glyph" characters with simpler ASCII punctuation.
+		sanitized = sanitized
+				.replace('\u00A0', ' ')      // NBSP
+				.replace("\uFEFF", "")      // BOM
+				.replace("\u200B", "")      // zero width space
+				.replace("\u200C", "")      // zero width non-joiner
+				.replace("\u200D", "")      // zero width joiner
+				.replace("\u2060", "")      // word joiner
+				.replace('\u2018', '\'')    // left single quote
+				.replace('\u2019', '\'')    // right single quote
+				.replace('\u201A', '\'')
+				.replace('\u201B', '\'')
+				.replace('\u02BC', '\'')
+				.replace('\u201C', '"')     // left double quote
+				.replace('\u201D', '"')     // right double quote
+				.replace('\u201E', '"')
+				.replace('\u00AB', '"')     // guillemet left
+				.replace('\u00BB', '"')     // guillemet right
+				.replace('\u2010', '-')     // hyphen
+				.replace('\u2011', '-')     // non-breaking hyphen
+				.replace('\u2012', '-')     // figure dash
+				.replace('\u2013', '-')     // en dash
+				.replace('\u2014', '-')     // em dash
+				.replace('\u2212', '-')     // minus
+				.replace('\u00AD', '-')     // soft hyphen
+				.replace('\u2022', '*')     // bullet
+				.replace('\u00B7', '.')     // middle dot
+				.replace("\u2026", "...");  // ellipsis
+
+		// Remove remaining control characters (often render as empty squares).
+		sanitized = sanitized.replaceAll("[\\u0000-\\u001F\\u007F]+", " ");
+
 		// Collapse repeated whitespace.
 		sanitized = sanitized.replaceAll("\\s{2,}", " ").trim();
 		return sanitized;
