@@ -118,7 +118,7 @@ public class OutputToFile {
                 Files.write(filePath, (str + System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("An error occurred [describe the action here]", e);
         }
     }
 
