@@ -76,7 +76,7 @@ public class Ids {
     private final int widgetIdBehindLoginScreen = ToplevelDisplay.LAYERS;
 
     //general interface
-    private final int widgetIdSkillGuide = SkillGuide.UNIVERSE;
+    private final int widgetIdSkillGuide = SkillGuide.INFINITY; //Id for parent of skill guide, or parent of element in list
     private final Set<Integer> rootWidgetIdSet = Set.of(ToplevelPreEoc.GAMEFRAME, ToplevelOsrsStretch.GAMEFRAME, Toplevel.GAMEFRAME);
 
     /* example for adding set of widget ids
