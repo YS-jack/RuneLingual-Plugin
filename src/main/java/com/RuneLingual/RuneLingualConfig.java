@@ -94,6 +94,17 @@ public interface RuneLingualConfig extends Config {
     } // getHelpLink shouldnt be used anywhere, instead use helpLink
 
     @ConfigItem(
+            name = "Build marker",
+            description = "Confirms this patched dev build is loaded",
+            position = 2 + offset_section1,
+            keyName = "devBuildMarkerBasic",
+            section = SECTION_BASIC_SETTINGS
+    )
+    default String devBuildMarkerBasic() {
+        return "DEV PATCH ACTIVE: local chat keeps original outgoing text";
+    }
+
+    @ConfigItem(
             name = "Enable Online Translation",
             description = "whether to translate using online services",
             section = SECTION_CHAT_SETTINGS,
@@ -126,6 +137,28 @@ public interface RuneLingualConfig extends Config {
     )
     default String getAPIKey() {
         return "";
+    }
+
+    @ConfigItem(
+            name = "LibreTranslate URL",
+            description = "Base URL for LibreTranslate (self-host or public instance), ex: https://libretranslate.com",
+            section = SECTION_CHAT_SETTINGS,
+            keyName = "libreTranslateUrl",
+            position = 5 + offset
+    )
+    default String getLibreTranslateUrl() {
+        return "https://libretranslate.com";
+    }
+
+    @ConfigItem(
+            name = "API Debug Logs",
+            description = "Logs API request/result details in client.log for troubleshooting",
+            section = SECTION_CHAT_SETTINGS,
+            keyName = "apiDebugLogs",
+            position = 6 + offset
+    )
+    default boolean apiDebugLogs() {
+        return false;
     }
 
     @ConfigItem(
@@ -234,6 +267,28 @@ public interface RuneLingualConfig extends Config {
             section = SECTION_GAME_SYSTEM_TEXT
     )
     default boolean getMouseHoverConfig() {
+        return true;
+    }
+
+    @ConfigItem(
+            name = "Books/Scrolls via API",
+            description = "When 'Interfaces' is set to 'USE_API', also translate books, scrolls and journals with API.",
+            position = 10 + offset_section2,
+            keyName = "apiBooksAndScrolls",
+            section = SECTION_GAME_SYSTEM_TEXT
+    )
+    default boolean apiBooksAndScrolls() {
+        return true;
+    }
+
+    @ConfigItem(
+            name = "Lobby/Login via API",
+            description = "When 'Interfaces' is set to 'USE_API', also translate lobby/login page text widgets with API.",
+            position = 11 + offset_section2,
+            keyName = "apiLobbyScreen",
+            section = SECTION_GAME_SYSTEM_TEXT
+    )
+    default boolean apiLobbyScreen() {
         return true;
     }
 
@@ -347,6 +402,17 @@ public interface RuneLingualConfig extends Config {
         return chatSelfConfig.TRANSFORM;
     }
 
+    @ConfigItem(
+            name = "Show original outgoing locally",
+            description = "When transforming your own outgoing messages, keep your local chat history showing the original text.",
+            position = 6 + offset_section4,
+            keyName = "showOriginalOutgoing",
+            section = SECTION_MY_CHAT_MESSAGES
+    )
+    default boolean showOriginalOutgoing() {
+        return true;
+    }
+
     String defaultText4ForcefulPlayerSettings = "enter player names here, separated by commas or new line";
 
     @ConfigItem(
@@ -381,10 +447,21 @@ public interface RuneLingualConfig extends Config {
     }
 
     @ConfigItem(
+            name = "Build marker (dev)",
+            description = "Marker to confirm this is the patched build with outgoing chat local-original fix",
+            keyName = "devBuildMarker",
+            position = 1 + offset_section6,
+            section = SECTION_DEBUGGING
+    )
+    default String devBuildMarker() {
+        return "DEV PATCH: outgoing transform keeps local original (2026-02-16)";
+    }
+
+    @ConfigItem(
             name = "Local file location",
             description = "Location of the files used for translation and logs. Right click this text then choose 'reset' to get default location",
             keyName = "fileLocation",
-            position = 1 + offset_section6,
+            position = 2 + offset_section6,
             secret = true,
             section = SECTION_DEBUGGING
     )
@@ -396,7 +473,7 @@ public interface RuneLingualConfig extends Config {
             name = "Use Custom Data",
             description = "Use custom data for translations on github repository",
             keyName = "useCustomData",
-            position = 2 + offset_section6,
+            position = 3 + offset_section6,
             section = SECTION_DEBUGGING
     )
     default boolean useCustomData() {
@@ -407,7 +484,7 @@ public interface RuneLingualConfig extends Config {
             name = "Use Custom Data URL",
             description = "Change the user name part and public to draft if necessary. Do not include the language code. Right click 'reset' to get default url",
             keyName = "customDataUrl",
-            position = 3 + offset_section6,
+            position = 4 + offset_section6,
             section = SECTION_DEBUGGING
     )
     default String getCustomDataUrl() {
@@ -418,7 +495,7 @@ public interface RuneLingualConfig extends Config {
             name = "Enable logging (Widgets)",
             description = "Output untranslated game messages to a file, which will be found in '<the local file location defined above>/logs'.",
             keyName = "enableLogging",
-            position = 4 + offset_section6,
+            position = 5 + offset_section6,
             section = SECTION_DEBUGGING
     )
     default boolean enableLoggingWidget() {
@@ -429,7 +506,7 @@ public interface RuneLingualConfig extends Config {
             name = "Enable logging (Game Messages)",
             description = "Output untranslated game messages to a file, which will be found in '<the local file location defined above>/logs'.",
             keyName = "enableLoggingSql",
-            position = 5 + offset_section6,
+            position = 6 + offset_section6,
             section = SECTION_DEBUGGING
     )
     default boolean enableLoggingGameMessage() {
@@ -440,7 +517,7 @@ public interface RuneLingualConfig extends Config {
             name = "Enable logging (Any)",
             description = "Output untranslated game messages to a file, which will be found in '<the local file location defined above>/logs'.",
             keyName = "enableLoggingChat",
-            position = 6 + offset_section6,
+            position = 7 + offset_section6,
             section = SECTION_DEBUGGING
     )
     default boolean enableLoggingAny() {
@@ -463,6 +540,7 @@ public interface RuneLingualConfig extends Config {
 
     enum chatSelfConfig {
         TRANSFORM,
+        USE_API,
         LEAVE_AS_IS,
     }
 

@@ -11,6 +11,7 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetSizeMode;
 
 import javax.inject.Inject;
+import java.text.Normalizer;
 
 public class WidgetsUtilRLingual
 {
@@ -62,18 +63,106 @@ public class WidgetsUtilRLingual
 	}
 
 	public void setWidgetText_ApiTranslation(Widget widget, String originalText, Colors color){
-		final String text_withoutBrAndTags = Colors.removeNonImgTags(originalText);
-		String translatedText = plugin.getDeepl().translate(text_withoutBrAndTags, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
-		int originalLineHeight = widget.getLineHeight();
-		if(translatedText.equals(text_withoutBrAndTags)) { // if the translation is the same as the original text, don't set the text
+		if (originalText == null) {
+			return;
+		}
+
+		// Some widgets (eg: Prayer/Spellbook tooltips) rely on explicit <br> lines.
+		// Preserve those instead of stripping <br> and re-wrapping, which can look like "Enter" was pressed.
+		final boolean preserveBr = ids.getWidgetId2KeepBr().contains(widget.getId())
+				|| ids.getWidgetId2SplitTextAtBr().contains(widget.getId());
+		final boolean shouldForceColTag = !plugin.getTargetLanguage().needsCharImages()
+				&& color != null
+				// Some widgets rely on <col> tags for visibility (textColor can be 0/transparent).
+				&& (originalText.contains("<col") || widget.getTextColor() == 0);
+
+		if (!preserveBr) {
+			final String textWithoutBrAndTags = sanitizeTranslatedWidgetText(Colors.removeNonImgTags(originalText));
+			String translatedText = plugin.getDeepl().translate(textWithoutBrAndTags, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
+			translatedText = sanitizeTranslatedWidgetText(translatedText);
+			if (translatedText.equals(textWithoutBrAndTags)) { // if the translation is the same as the original text, don't set the text
+				return;
+			}
+
+			if (plugin.getTargetLanguage().needsCharImages()) {
+				translatedText = generalFunctions.StringToTags(translatedText, color);
+			}
+			setWidgetText_NiceBr(widget, translatedText);
+			if (shouldForceColTag) {
+				// Wrap after NiceBr so tag length doesn't interfere with auto <br> insertion.
+				widget.setText(Colors.surroundWithColorTag(widget.getText(), color));
+			}
+			return;
+		}
+
+		String[] parts = originalText.split("<br>");
+		StringBuilder sb = new StringBuilder();
+		boolean anyChanged = false;
+
+		for (int i = 0; i < parts.length; i++) {
+			String partPlain = sanitizeTranslatedWidgetText(Colors.removeNonImgTags(parts[i]));
+			if (partPlain.isEmpty()) {
+				// Keep blank lines as-is.
+				if (i != parts.length - 1) {
+					sb.append("<br>");
+				}
+				continue;
+			}
+			String translatedPart = plugin.getDeepl().translate(partPlain, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
+			translatedPart = sanitizeTranslatedWidgetText(translatedPart);
+			if (translatedPart.isBlank()) {
+				// Defensive: avoid rendering an empty line (can look like a blank tooltip in some fonts).
+				translatedPart = partPlain;
+			}
+			if (!translatedPart.equals(partPlain)) {
+				anyChanged = true;
+			}
+			if (plugin.getTargetLanguage().needsCharImages()) {
+				// Convert line-by-line so <br> tags are not consumed by the char-image converter.
+				translatedPart = generalFunctions.StringToTags(translatedPart, color);
+			}
+			sb.append(translatedPart);
+			if (i != parts.length - 1) {
+				sb.append("<br>");
+			}
+		}
+
+		if (!anyChanged) {
+			return;
+		}
+
+		String out = sb.toString();
+		if (shouldForceColTag) {
+			out = Colors.surroundWithColorTag(out, color);
+		}
+		widget.setText(out);
+	}
+
+	public void setWidgetText_ApiTranslationSingleLine(Widget widget, String originalText, Colors color) {
+		final String textWithoutBrAndTags = Colors.removeNonImgTags(originalText);
+		String translatedText = plugin.getDeepl().translate(textWithoutBrAndTags, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
+		if (translatedText.equals(textWithoutBrAndTags)) {
 			return;
 		}
 
 		if (plugin.getTargetLanguage().needsCharImages()) {
 			translatedText = generalFunctions.StringToTags(translatedText, color);
 		}
-		setWidgetText_NiceBr(widget, translatedText);
-		widget.setLineHeight(originalLineHeight);
+		widget.setText(translatedText);
+	}
+
+	public void setWidgetText_ApiTranslatedResolved(Widget widget, String translatedText, Colors color, boolean singleLine) {
+		if (translatedText == null || translatedText.isBlank()) {
+			return;
+		}
+		if (plugin.getTargetLanguage().needsCharImages()) {
+			translatedText = generalFunctions.StringToTags(translatedText, color);
+		}
+		if (singleLine) {
+			widget.setText(translatedText);
+			return;
+		}
+		setWidgetText_NiceBr_apiTranslated(widget, translatedText);
 	}
 
 	private void setWidgetText_NiceBr_CharImages(Widget widget, String newText) {
@@ -156,7 +245,7 @@ public class WidgetsUtilRLingual
 		// if newText doesnt have <br> tag at all, insert br automatically
 		if (!newText.contains("<br>")) {
 			newText = newText.replaceAll("<autoBr>|</autoBr>", ""); // remove <autoBr> tags
-			newText = getWidgetText_NiceBr_CharImages(widget, newText);
+			newText = getWidgetText_NiceBr_NoCharImages(widget, newText);
 			widget.setText(newText);
 			return;
 		}
@@ -291,6 +380,58 @@ public class WidgetsUtilRLingual
 	public void changeLineHeight(Widget widget) {
 		int lineHeight = plugin.getConfig().getSelectedLanguage().getCharHeight();
 		widget.setLineHeight(lineHeight);
+	}
+
+	private static String sanitizeTranslatedWidgetText(String text) {
+		if (text == null) {
+			return "";
+		}
+
+		String sanitized = Normalizer.normalize(text, Normalizer.Form.NFKC);
+
+		// Prevent raw newlines/line-separators from breaking layout.
+		sanitized = sanitized
+				.replace("\r\n", " ")
+				.replace('\n', ' ')
+				.replace('\r', ' ')
+				.replace('\u2028', ' ')
+				.replace('\u2029', ' ');
+
+		// Replace common "unsupported glyph" characters with simpler ASCII punctuation.
+		sanitized = sanitized
+				.replace('\u00A0', ' ')      // NBSP
+				.replace("\uFEFF", "")      // BOM
+				.replace("\u200B", "")      // zero width space
+				.replace("\u200C", "")      // zero width non-joiner
+				.replace("\u200D", "")      // zero width joiner
+				.replace("\u2060", "")      // word joiner
+				.replace('\u2018', '\'')    // left single quote
+				.replace('\u2019', '\'')    // right single quote
+				.replace('\u201A', '\'')
+				.replace('\u201B', '\'')
+				.replace('\u02BC', '\'')
+				.replace('\u201C', '"')     // left double quote
+				.replace('\u201D', '"')     // right double quote
+				.replace('\u201E', '"')
+				.replace('\u00AB', '"')     // guillemet left
+				.replace('\u00BB', '"')     // guillemet right
+				.replace('\u2010', '-')     // hyphen
+				.replace('\u2011', '-')     // non-breaking hyphen
+				.replace('\u2012', '-')     // figure dash
+				.replace('\u2013', '-')     // en dash
+				.replace('\u2014', '-')     // em dash
+				.replace('\u2212', '-')     // minus
+				.replace('\u00AD', '-')     // soft hyphen
+				.replace('\u2022', '*')     // bullet
+				.replace('\u00B7', '.')     // middle dot
+				.replace("\u2026", "...");  // ellipsis
+
+		// Remove remaining control characters (often render as empty squares).
+		sanitized = sanitized.replaceAll("[\\u0000-\\u001F\\u007F]+", " ");
+
+		// Collapse repeated whitespace.
+		sanitized = sanitized.replaceAll("\\s{2,}", " ").trim();
+		return sanitized;
 	}
 
 }

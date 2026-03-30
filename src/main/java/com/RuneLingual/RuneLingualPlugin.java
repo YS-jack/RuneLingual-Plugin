@@ -10,6 +10,7 @@ import com.RuneLingual.Widgets.PartialTranslationManager;
 import com.RuneLingual.Widgets.Widget2ModDict;
 import com.RuneLingual.Widgets.WidgetCapture;
 import com.RuneLingual.Widgets.WidgetsUtilRLingual;
+import com.RuneLingual.commonFunctions.Colors;
 import com.RuneLingual.commonFunctions.FileNameAndPath;
 import com.RuneLingual.debug.OutputToFile;
 import com.RuneLingual.nonLatin.*;
@@ -28,7 +29,7 @@ import net.runelite.api.events.*;
 import net.runelite.api.widgets.InterfaceID;
 import net.runelite.api.widgets.WidgetUtil;
 import net.runelite.client.config.ConfigManager;
-import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -52,23 +53,57 @@ import okhttp3.OkHttpClient;
 import java.awt.image.BufferedImage;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @PluginDescriptor(
         // Plugin name shown at plugin hub
-        name = "RuneLingual",
-        description = "All-in-one translation plugin for OSRS."
+        name = "RuneLingual Dev",
+        description = "All-in-one translation plugin for OSRS.",
+        loadInSafeMode = true
 )
 
 public class RuneLingualPlugin extends Plugin {
+    private static final String CHATBOX_INPUT_EVENT = "chatboxInput";
+    private static final int CHATBOX_TYPE_PUBLIC = 0;
+    private static final int CHATBOX_TYPE_CHEAT = 1;
+    private static final int CHATBOX_TYPE_FRIENDS = 2;
+    private static final int CHATBOX_TYPE_CLAN = 3;
+    private static final int CHATBOX_TYPE_GUEST_CLAN = 4;
+    private static final int CHATBOX_TYPE_GIM = 5;
+    private static final int OUTGOING_TRANSFORM_MIN_LENGTH = 2;
+    private static final long OUTGOING_TRANSLATION_TIMEOUT_MILLIS = 5000L;
+    private static final long OUTGOING_RESTORE_TIMEOUT_MILLIS = 15000L;
+
+    private static final class OutgoingRestoreMessage {
+        private final ChatMessageType expectedType;
+        private final String sentMessage;
+        private final String originalMessage;
+        private final long expiresAt;
+
+        private OutgoingRestoreMessage(ChatMessageType expectedType, String sentMessage, String originalMessage, long expiresAt) {
+            this.expectedType = expectedType;
+            this.sentMessage = sentMessage;
+            this.originalMessage = originalMessage;
+            this.expiresAt = expiresAt;
+        }
+    }
+
     @Inject
     @Getter
     private Client client;
     @Inject
     private ClientThread clientThread;
+    @Inject
+    private EventBus eventBus;
     @Inject
     private OverlayManager overlayManager;
     @Inject
@@ -185,9 +220,21 @@ public class RuneLingualPlugin extends Plugin {
 
     // stores selected languages during this session, to prevent re-initializing char images
     private final Set<LangCodeSelectableList> pastLanguages = new HashSet<>();
+    private final Deque<OutgoingRestoreMessage> outgoingMessagesToRestore = new ConcurrentLinkedDeque<>();
+    private final ArrayList<EventBus.Subscriber> manualSubscriptions = new ArrayList<>();
+    private ExecutorService outgoingTranslationExecutor;
+    private boolean suppressOutgoingScriptCallback;
 
     @Override
     protected void startUp() throws Exception {
+        if (outgoingTranslationExecutor == null || outgoingTranslationExecutor.isShutdown()) {
+            outgoingTranslationExecutor = Executors.newSingleThreadExecutor(r -> {
+                Thread thread = new Thread(r, "runelingual-outgoing-translate");
+                thread.setDaemon(true);
+                return thread;
+            });
+        }
+
         //get selected language
         targetLanguage = config.getSelectedLanguage();
         pastLanguages.add(targetLanguage);
@@ -211,18 +258,21 @@ public class RuneLingualPlugin extends Plugin {
 
         // side panel
         startPanel();
+        registerEventSubscriptions();
         //log.info("RuneLingual started!");
     }
 
-    @Subscribe
-    public void onOverheadTextChanged(OverheadTextChanged event) throws Exception {
+    public void onOverheadTextChanged(OverheadTextChanged event) {
         if (targetLanguage == LangCodeSelectableList.ENGLISH) {
             return;
         }
-        overheadCapture.translateOverhead(event);
+        try {
+            overheadCapture.translateOverhead(event);
+        } catch (Exception e) {
+            log.debug("Failed to translate overhead text.", e);
+        }
     }
 
-    @Subscribe
     public void onWidgetLoaded(WidgetLoaded event) {
         if (targetLanguage == LangCodeSelectableList.ENGLISH) {
             return;
@@ -233,7 +283,6 @@ public class RuneLingualPlugin extends Plugin {
 //		});
     }
 
-    @Subscribe
     private void onBeforeRender(BeforeRender event) {
         if (targetLanguage == LangCodeSelectableList.ENGLISH) {
             return;
@@ -243,7 +292,6 @@ public class RuneLingualPlugin extends Plugin {
         widgetCapture.translateWidget();
     }
 
-    @Subscribe
     public void onMenuOpened(MenuOpened event) {
         if (targetLanguage == LangCodeSelectableList.ENGLISH) {
             return;
@@ -252,22 +300,52 @@ public class RuneLingualPlugin extends Plugin {
         menuCapture.handleOpenedMenu(event);
     }
 
+    public void onScriptCallbackEvent(ScriptCallbackEvent event) {
+        if (targetLanguage == LangCodeSelectableList.ENGLISH
+                || client.getGameState() != GameState.LOGGED_IN
+                || !CHATBOX_INPUT_EVENT.equals(event.getEventName())) {
+            return;
+        }
+        if (suppressOutgoingScriptCallback) {
+            return;
+        }
 
+        Object[] objectStack = client.getObjectStack();
+        int[] intStack = client.getIntStack();
+        int objectStackSize = client.getObjectStackSize();
+        int intStackSize = client.getIntStackSize();
 
+        if (objectStackSize < 1 || intStackSize < 2 || !(objectStack[objectStackSize - 1] instanceof String)) {
+            return;
+        }
 
-    @Subscribe
-    public void onChatMessage(ChatMessage event) throws Exception {
+        String originalText = (String) objectStack[objectStackSize - 1];
+        int chatType = intStack[intStackSize - 2];
+        int clanTarget = intStack[intStackSize - 1];
+
+        if (!shouldTransformOutgoingMessage(originalText, chatType)) {
+            return;
+        }
+
+        // Prevent the default sender from sending the original text.
+        objectStack[objectStackSize - 1] = "";
+        translateAndSendOutgoingMessage(originalText, chatType, clanTarget);
+    }
+    public void onChatMessage(ChatMessage event) {
         if (targetLanguage == LangCodeSelectableList.ENGLISH) {
             return;
         }
         if (client.getGameState() != GameState.LOGGED_IN && client.getGameState() != GameState.HOPPING) {
             return;
         }
-        chatCapture.handleChatMessage(event);
+        try {
+            chatCapture.handleChatMessage(event);
+        } catch (Exception e) {
+            log.debug("Failed handling chat message event.", e);
+        }
     }
 
 
-    @Subscribe
     public void onGameStateChanged(GameStateChanged gameStateChanged) {
         if (targetLanguage == LangCodeSelectableList.ENGLISH) {
             return;
@@ -278,11 +356,11 @@ public class RuneLingualPlugin extends Plugin {
         }
     }
 
-    @Subscribe
     public void onConfigChanged(ConfigChanged event) {
         if (!event.getGroup().equals(RuneLingualConfig.GROUP)) {
             return;
         }
+        outgoingMessagesToRestore.clear();
         // if language is changed
         if (targetLanguage != config.getSelectedLanguage()) {
             targetLanguage = config.getSelectedLanguage();
@@ -326,14 +404,12 @@ public class RuneLingualPlugin extends Plugin {
 
     }
 
-    @Subscribe
     public void onNpcDespawned(NpcDespawned npcDespawned) {
         if (npcDespawned.getNpc() == interactedNpc) {
             interactedNpc = null;
         }
     }
 
-    @Subscribe
     public void onGameTick(GameTick gameTick) {
         if (client.getTickCount() > clickTick && client.getLocalDestinationLocation() == null) {
             // when the destination is reached, clear the interacting object
@@ -349,7 +425,6 @@ public class RuneLingualPlugin extends Plugin {
         overheadCapture.handlePendingOverheadTranslations();
     }
 
-    @Subscribe
     public void onInteractingChanged(InteractingChanged interactingChanged) {
         if (interactingChanged.getSource() == client.getLocalPlayer()
                 && client.getTickCount() > clickTick && interactingChanged.getTarget() != interactedNpc) {
@@ -358,7 +433,6 @@ public class RuneLingualPlugin extends Plugin {
         }
     }
 
-    @Subscribe
     public void onMenuOptionClicked(MenuOptionClicked menuOptionClicked) {
         switch (menuOptionClicked.getMenuAction()) {
             case WIDGET_TARGET_ON_GAME_OBJECT:
@@ -413,6 +487,184 @@ public class RuneLingualPlugin extends Plugin {
         }
     }
 
+    private void registerEventSubscriptions() {
+        unregisterEventSubscriptions();
+        manualSubscriptions.add(eventBus.register(OverheadTextChanged.class, this::onOverheadTextChanged, 0f));
+        manualSubscriptions.add(eventBus.register(WidgetLoaded.class, this::onWidgetLoaded, 0f));
+        manualSubscriptions.add(eventBus.register(BeforeRender.class, this::onBeforeRender, 0f));
+        manualSubscriptions.add(eventBus.register(MenuOpened.class, this::onMenuOpened, 0f));
+        manualSubscriptions.add(eventBus.register(ScriptCallbackEvent.class, this::onScriptCallbackEvent, 100f));
+        manualSubscriptions.add(eventBus.register(ChatMessage.class, this::onChatMessage, 0f));
+        manualSubscriptions.add(eventBus.register(GameStateChanged.class, this::onGameStateChanged, 0f));
+        manualSubscriptions.add(eventBus.register(ConfigChanged.class, this::onConfigChanged, 0f));
+        manualSubscriptions.add(eventBus.register(NpcDespawned.class, this::onNpcDespawned, 0f));
+        manualSubscriptions.add(eventBus.register(GameTick.class, this::onGameTick, 0f));
+        manualSubscriptions.add(eventBus.register(InteractingChanged.class, this::onInteractingChanged, 0f));
+        manualSubscriptions.add(eventBus.register(MenuOptionClicked.class, this::onMenuOptionClicked, 0f));
+    }
+
+    private void unregisterEventSubscriptions() {
+        for (EventBus.Subscriber subscriber : manualSubscriptions) {
+            eventBus.unregister(subscriber);
+        }
+        manualSubscriptions.clear();
+    }
+
+    @Nullable
+    public String consumeOutgoingOriginalMessage(ChatMessage chatMessage) {
+        if (!config.showOriginalOutgoing() || !isOwnMessage(chatMessage)) {
+            return null;
+        }
+
+        long now = System.currentTimeMillis();
+        cleanupExpiredOutgoingMessages(now);
+
+        OutgoingRestoreMessage matched = null;
+        for (OutgoingRestoreMessage message : outgoingMessagesToRestore) {
+            if (message.expiresAt < now) {
+                continue;
+            }
+
+            if (message.expectedType == chatMessage.getType() && Objects.equals(message.sentMessage, chatMessage.getMessage())) {
+                matched = message;
+                break;
+            }
+        }
+
+        if (matched == null) {
+            return null;
+        }
+
+        outgoingMessagesToRestore.remove(matched);
+        return matched.originalMessage;
+    }
+
+    private void translateAndSendOutgoingMessage(String originalText, int chatType, int clanTarget) {
+        if (outgoingTranslationExecutor == null || outgoingTranslationExecutor.isShutdown()) {
+            clientThread.invoke(() -> sendTranslatedChat(originalText, originalText, chatType, clanTarget));
+            return;
+        }
+
+        CompletableFuture
+                .supplyAsync(() -> translateOutgoingMessage(originalText), outgoingTranslationExecutor)
+                .exceptionally(ex -> {
+                    log.debug("Failed to translate outgoing chat message, sending original text.", ex);
+                    return originalText;
+                })
+                .thenAccept(translatedText ->
+                        clientThread.invoke(() -> sendTranslatedChat(originalText, translatedText, chatType, clanTarget)));
+    }
+
+    private String translateOutgoingMessage(String originalText) {
+        if (!config.ApiConfig()) {
+            return originalText;
+        }
+        return deepl.translateBlocking(
+                originalText,
+                config.getSelectedLanguage(),
+                LangCodeSelectableList.ENGLISH,
+                OUTGOING_TRANSLATION_TIMEOUT_MILLIS
+        );
+    }
+
+    private void sendTranslatedChat(String originalMessage, String translatedMessage, int chatType, int clanTarget) {
+        String messageToSend = translatedMessage;
+        if (messageToSend == null || messageToSend.isBlank()) {
+            messageToSend = originalMessage;
+        }
+
+        ChatMessageType expectedType = getExpectedOutgoingType(chatType);
+        if (config.showOriginalOutgoing()
+                && expectedType != null
+                && !Objects.equals(messageToSend, originalMessage)) {
+            outgoingMessagesToRestore.addLast(
+                    new OutgoingRestoreMessage(
+                            expectedType,
+                            messageToSend,
+                            originalMessage,
+                            System.currentTimeMillis() + OUTGOING_RESTORE_TIMEOUT_MILLIS
+                    )
+            );
+            cleanupExpiredOutgoingMessages(System.currentTimeMillis());
+        }
+
+        suppressOutgoingScriptCallback = true;
+        try {
+            client.runScript(ScriptID.CHAT_SEND, messageToSend, chatType, clanTarget, 0, -1);
+        } finally {
+            suppressOutgoingScriptCallback = false;
+        }
+    }
+
+    private boolean shouldTransformOutgoingMessage(String originalText, int chatType) {
+        if (originalText == null || originalText.trim().length() < OUTGOING_TRANSFORM_MIN_LENGTH) {
+            return false;
+        }
+        if (!config.ApiConfig()) {
+            return false;
+        }
+        if (chatType == CHATBOX_TYPE_CHEAT) {
+            return false;
+        }
+        RuneLingualConfig.chatSelfConfig outgoingMode = getMyOutgoingConfig(chatType);
+        return outgoingMode == RuneLingualConfig.chatSelfConfig.TRANSFORM
+                || outgoingMode == RuneLingualConfig.chatSelfConfig.USE_API;
+    }
+
+    private RuneLingualConfig.chatSelfConfig getMyOutgoingConfig(int chatType) {
+        switch (chatType) {
+            case CHATBOX_TYPE_PUBLIC:
+                return config.getMyPublicConfig();
+            case CHATBOX_TYPE_FRIENDS:
+                return config.getMyFcConfig();
+            case CHATBOX_TYPE_CLAN:
+                return config.getMyClanConfig();
+            case CHATBOX_TYPE_GUEST_CLAN:
+                return config.getMyGuestClanConfig();
+            case CHATBOX_TYPE_GIM:
+                return config.getMyGIMConfig();
+            default:
+                return RuneLingualConfig.chatSelfConfig.LEAVE_AS_IS;
+        }
+    }
+
+    private ChatMessageType getExpectedOutgoingType(int chatType) {
+        switch (chatType) {
+            case CHATBOX_TYPE_PUBLIC:
+                return ChatMessageType.PUBLICCHAT;
+            case CHATBOX_TYPE_FRIENDS:
+                return ChatMessageType.FRIENDSCHAT;
+            case CHATBOX_TYPE_CLAN:
+                return ChatMessageType.CLAN_CHAT;
+            case CHATBOX_TYPE_GUEST_CLAN:
+                return ChatMessageType.CLAN_GUEST_CHAT;
+            case CHATBOX_TYPE_GIM:
+                return ChatMessageType.CLAN_GIM_CHAT;
+            default:
+                return null;
+        }
+    }
+
+    private void cleanupExpiredOutgoingMessages(long now) {
+        while (true) {
+            OutgoingRestoreMessage head = outgoingMessagesToRestore.peekFirst();
+            if (head == null || head.expiresAt >= now) {
+                return;
+            }
+            outgoingMessagesToRestore.pollFirst();
+        }
+    }
+
+    private boolean isOwnMessage(ChatMessage chatMessage) {
+        Player localPlayer = client.getLocalPlayer();
+        if (localPlayer == null || localPlayer.getName() == null || chatMessage.getName() == null) {
+            return false;
+        }
+        String localPlayerName = Colors.removeAllTags(localPlayer.getName());
+        String senderName = Colors.removeAllTags(chatMessage.getName());
+        return Objects.equals(localPlayerName, senderName);
+    }
+
     private void queueUpdateAllOverrides()
     {
         clientThread.invoke(() -> {
@@ -432,6 +684,13 @@ public class RuneLingualPlugin extends Plugin {
 
     @Override
     protected void shutDown() throws Exception {
+        unregisterEventSubscriptions();
+        if (outgoingTranslationExecutor != null) {
+            outgoingTranslationExecutor.shutdownNow();
+            outgoingTranslationExecutor = null;
+        }
+        outgoingMessagesToRestore.clear();
+
         clientToolBar.removeNavigation(navButton);
         overlayManager.remove(mouseTooltipOverlay);
         overlayManager.remove(deeplUsageOverlay);
@@ -514,4 +773,3 @@ public class RuneLingualPlugin extends Plugin {
     }
 
 }
-

@@ -190,7 +190,8 @@ public class ChatCapture
     
     private void onlineTranslator(String message, MessageNode node, ChatMessage chatMessage)
     {
-        if(plugin.getDeepl().getDeeplCount() + message.length() + 1000 > plugin.getDeepl().getDeeplLimit()) {
+        if(plugin.getDeepl().usesDeepLUsageLimits()
+                && plugin.getDeepl().getDeeplCount() + message.length() + 1000 > plugin.getDeepl().getDeeplLimit()) {
             //log.info("DeepL limit reached, cannot translate message.");
             return;
         }
@@ -210,6 +211,13 @@ public class ChatCapture
     }
 
     private void chatTransformer(String message, MessageNode node, ChatMessage chatMessage) {
+        String originalOutgoing = plugin.consumeOutgoingOriginalMessage(chatMessage);
+        if (originalOutgoing != null) {
+            replaceChatMessage(originalOutgoing, node);
+            addMsgToSidePanel(chatMessage, originalOutgoing);
+            return;
+        }
+
         String newMessage = plugin.getChatInputRLingual().transformChatText(message);
         Transformer transformer = new Transformer(plugin);
         Colors textColor = chatColorManager.getMessageColor();
@@ -343,6 +351,8 @@ public class ChatCapture
         switch (chatConfig) {
             case TRANSFORM:
                 return TransformOption.TRANSFORM;
+            case USE_API:
+                return TransformOption.TRANSLATE_API;
             case LEAVE_AS_IS:
                 return TransformOption.AS_IS;
             default:

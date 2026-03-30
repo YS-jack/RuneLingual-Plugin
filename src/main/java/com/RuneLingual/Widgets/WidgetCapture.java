@@ -1,5 +1,6 @@
 package com.RuneLingual.Widgets;
 
+import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.RuneLingualPlugin;
 import com.RuneLingual.SQL.SqlQuery;
@@ -14,13 +15,112 @@ import net.runelite.api.widgets.*;
 import net.runelite.api.gameval.InterfaceID.*;
 
 import javax.inject.Inject;
-import java.awt.*;
+import java.awt.Rectangle;
 import java.util.*;
 
 import static com.RuneLingual.Widgets.WidgetsUtilRLingual.removeBrAndTags;
 
 @Slf4j
 public class WidgetCapture {
+    private static final class BookPageState {
+        private final int sourceHash;
+        private final int renderedHash;
+        private final List<List<String>> translatedLinesByColumn;
+
+        private BookPageState(int sourceHash, int renderedHash, List<List<String>> translatedLinesByColumn) {
+            this.sourceHash = sourceHash;
+            this.renderedHash = renderedHash;
+            this.translatedLinesByColumn = translatedLinesByColumn;
+        }
+    }
+
+    private static int toInterfaceId(int componentId) {
+        return WidgetUtil.componentToInterface(componentId);
+    }
+
+    private static int normalizeInterfaceOrComponentId(int id) {
+        return id > 0xFFFF ? WidgetUtil.componentToInterface(id) : id;
+    }
+
+    private static Set<Integer> normalizeInterfaceIds(Set<Integer> rawIds) {
+        Set<Integer> normalized = new HashSet<>();
+        for (int rawId : rawIds) {
+            normalized.add(normalizeInterfaceOrComponentId(rawId));
+        }
+        return Collections.unmodifiableSet(normalized);
+    }
+
+    private static final Set<Integer> API_BOOK_SCROLL_INTERFACE_IDS = normalizeInterfaceIds(Set.of(
+            Book.UNIVERSE,
+            IndexedBook.UNIVERSE,
+            Bookofscrolls.UNIVERSE,
+            Journalscroll.UNIVERSE,
+            Questscroll.UNIVERSE,
+            QuestscrollSpeedrun.UNIVERSE,
+            Questdisplay.UNIVERSE,
+            Questlist.UNIVERSE,
+            Scroll.UNIVERSE,
+            IiScroll.UNIVERSE,
+            Prayerbook.UNIVERSE,
+            MagicSpellbook.UNIVERSE,
+            Longscroll.UNIVERSE,
+            Eventscroll.UNIVERSE,
+            HorrorPrayerbooks.UNIVERSE,
+            SideJournal.UNIVERSE,
+            Note.UNIVERSE,
+            GhorrockRequisitionNote.UNIVERSE,
+            toInterfaceId(Page.CONTENT_MODEL0),
+            toInterfaceId(Questjournal.INFINITY),
+            toInterfaceId(QuestjournalOverview.INFINITY),
+            toInterfaceId(Letterscroll.ROOT_MODEL0),
+            toInterfaceId(KingsLetterV2.KING_LETTER),
+            toInterfaceId(Elem2MaintenanceScroll.KING_LETTER),
+            toInterfaceId(SurokLetter1.ROOT_MODEL0),
+            toInterfaceId(SurokLetter2.ROOT_MODEL0),
+            toInterfaceId(ContactScrollBlood.ROOT_MODEL0),
+            toInterfaceId(WiseOldManScroll.ROOT_MODEL0),
+            toInterfaceId(ScrollGodfather.ROOT_MODEL0),
+            toInterfaceId(BarbassaultScrollPl1.ROOT_MODEL0),
+            toInterfaceId(BarbassaultScrollPl2.ROOT_MODEL0),
+            toInterfaceId(BlastFurnacePlanScroll.CONTENTS_MODEL0),
+            toInterfaceId(LostTribeSymbolBook.LOST_TRIBE_BOOK_COVER),
+            toInterfaceId(PengClockworkBookInterface.BOOK),
+            toInterfaceId(PogBolriesDiary.BACKGROUND_MODEL),
+            toInterfaceId(PohBookcase.INFINITE),
+            toInterfaceId(Messagescroll.ROOT_MODEL0),
+            toInterfaceId(Messagescroll2.MESSAGESCROLL2_CLOSE),
+            toInterfaceId(MessagescrollHandwriting.ROOT_MODEL0),
+            toInterfaceId(MessagescrollHandwriting2.ROOT_MODEL0),
+            toInterfaceId(MessagescrollHandwriting3.ROOT_MODEL0),
+            toInterfaceId(TrailCluetext.ROOT_MODEL0),
+            toInterfaceId(ChampionsScroll.ROOT_MODEL0),
+            Messagebox.UNIVERSE,
+            MessageboxTitled.UNIVERSE,
+            MessageboxUrl.UNIVERSE,
+            toInterfaceId(MmMessage.ROOT_MODEL0),
+            toInterfaceId(Fairy2Message.ROOT_MODEL0),
+            CluequestMap.UNIVERSE,
+            CoaTablet1.UNIVERSE,
+            CoaTablet2.UNIVERSE,
+            CoaTablet3.UNIVERSE,
+            CoaTablet4.UNIVERSE,
+            EyegloCluePanel.UNIVERSE,
+            toInterfaceId(EyegloGnomeMachineLocked.GNOME_MACHINE_BACKGROUND_LOCKED),
+            toInterfaceId(EyegloGnomeMachineUnlocked.MACHINE_UNLOACKED_BACKGROUND),
+            toInterfaceId(TrailClueEasyMap006.BG_SCROLL),
+            toInterfaceId(TrailClueHardMap006.BG_SCROLL),
+            toInterfaceId(TrailClueHardMap007.BG_SCROLL),
+            toInterfaceId(TrailClueMediumMap008.BG_SCROLL),
+            toInterfaceId(TrailClueMediumMap009.BG_SCROLL),
+            toInterfaceId(TrailClueMediumMap010.BG_SCROLL),
+            toInterfaceId(TrailClueMediumMap011.BG_SCROLL),
+            toInterfaceId(TrailClueMediumMap012.BG_SCROLL),
+            ChampionsLog.UNIVERSE,
+            KillLog.UNIVERSE,
+            FairyringsLog.UNIVERSE,
+            SailingLog.UNIVERSE
+    ));
+
     @Inject
     private RuneLingualPlugin plugin;
     @Inject
@@ -37,6 +137,9 @@ public class WidgetCapture {
     private Ids ids;
     @Getter
     Set<String> pastTranslationResults = new HashSet<>();
+    private final Set<Integer> loggedBookFallbackGroups = new HashSet<>();
+    private final Set<Integer> processedBookLineParents = new HashSet<>();
+    private final Map<Integer, BookPageState> bookPageCache = new HashMap<>();
 
 
     @Inject
@@ -50,6 +153,7 @@ public class WidgetCapture {
          && plugin.getConfig().getNpcDialogueConfig() == RuneLingualConfig.ingameTranslationConfig.DONT_TRANSLATE) {
             return;
         }
+        processedBookLineParents.clear();
         Widget[] roots = client.getWidgetRoots();
         SqlQuery sqlQuery = new SqlQuery(this.plugin);
         for (Widget root : roots) {
@@ -102,10 +206,30 @@ public class WidgetCapture {
             return;
         }
 
+        boolean interfaceApiConfigured = plugin.getConfig().getInterfaceTextConfig() == RuneLingualConfig.ingameTranslationConfig.USE_API
+                && plugin.getConfig().ApiConfig();
+        boolean interfaceApiAvailable = interfaceApiConfigured && plugin.getDeepl().canTranslateNow();
+        boolean booksAndScrollsApiEnabled = plugin.getConfig().apiBooksAndScrolls();
+        boolean isApiBookOrScrollWidget = booksAndScrollsApiEnabled
+                && (API_BOOK_SCROLL_INTERFACE_IDS.contains(widgetGroup)
+                || shouldUseBookOrScrollFallbackApi(widget, widgetGroup));
+
+        // Book/scroll widgets do not always use WidgetType.TEXT + valid font ids.
+        // Handle them with a dedicated API path based on "has translatable text".
+        if (interfaceApiAvailable && isApiBookOrScrollWidget) {
+            translateWidgetApiBookOrScroll(widget);
+            return;
+        }
+
+        if (interfaceApiAvailable && shouldApiTranslateLobbyWidget(widget)) {
+            translateWidgetApiLobby(widget);
+            return;
+        }
+
         if(shouldTranslateWidget(widget)) {
-            if (plugin.getConfig().getInterfaceTextConfig() == RuneLingualConfig.ingameTranslationConfig.USE_API
-                 && plugin.getConfig().ApiConfig()) {
-                //translateWidgetApi(widget); //todo: disabled until mass api translation is seamless
+            // If API mode is configured but temporarily unavailable (key/limit/congestion),
+            // keep translating with local resources instead of skipping interface text.
+            if (interfaceApiAvailable) {
                 return;
             }
 
@@ -160,8 +284,464 @@ public class WidgetCapture {
     private void translateWidgetApi(Widget widget) {
         String text = widget.getText();
         Colors color = Colors.getColorArray(widget.getText(), Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor())))[0];
+
+        // Tooltips can be bottom-aligned by default; once we resize them to fit translated text,
+        // the content can appear to "drop" down or get clipped. Force top alignment for stability.
+        if (widget.getId() == ids.getPrayerTabHoverTextId() || widget.getId() == ids.getSpellbookTabHoverTextId()) {
+            widget.setYTextAlignment(WidgetTextAlignment.TOP);
+        }
+
         widgetsUtilRLingual.setWidgetText_ApiTranslation(widget, text, color);
+        widgetsUtilRLingual.changeLineHeight(widget);
         widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget);
+    }
+
+    private void translateWidgetApiBookOrScroll(Widget widget) {
+        String text = widget.getText();
+        if (!shouldTranslateTextForBookOrScrollApi(text)) {
+            return;
+        }
+
+        if (isLikelyBookLineWidget(widget)) {
+            translateBookLineWidgetsByParent(widget);
+            return;
+        }
+        translateWidgetApi(widget);
+    }
+
+    private boolean shouldTranslateTextForBookOrScrollApi(String text) {
+        if (text == null) {
+            return false;
+        }
+        String modifiedText = Colors.removeAllTags(text).trim();
+        if (modifiedText.isEmpty()) {
+            return false;
+        }
+        if (!modifiedText.matches(".*[a-zA-Z].*")) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean shouldApiTranslateLobbyWidget(Widget widget) {
+        if (!plugin.getConfig().apiLobbyScreen() || !isInLobby()) {
+            return false;
+        }
+        if (!shouldTranslateWidget(widget)) {
+            return false;
+        }
+
+        String sourceText = Colors.removeNonImgTags(widget.getText()).trim();
+        if (sourceText.isEmpty() || !sourceText.matches(".*[a-zA-Z].*")) {
+            return false;
+        }
+        if (plugin.getDeepl().getDeeplPastTranslationManager().getTranslationResults().contains(sourceText)) {
+            return false;
+        }
+        return looksLikeEnglishSource(sourceText);
+    }
+
+    private void translateWidgetApiLobby(Widget widget) {
+        String sourceText = Colors.removeNonImgTags(widget.getText()).trim();
+        if (sourceText.isEmpty()) {
+            return;
+        }
+
+        String translatedText = plugin.getDeepl().translate(
+                sourceText,
+                LangCodeSelectableList.ENGLISH,
+                plugin.getConfig().getSelectedLanguage()
+        );
+        if (translatedText.equals(sourceText)) {
+            return;
+        }
+
+        Colors color = Colors.getColorArray(widget.getText(), Colors.getColorFromHex(Colors.IntToHex(widget.getTextColor())))[0];
+        widgetsUtilRLingual.setWidgetText_ApiTranslatedResolved(widget, translatedText, color, false);
+        widgetsUtilRLingual.changeLineHeight(widget);
+        widgetsUtilRLingual.changeWidgetSize_ifNeeded(widget);
+    }
+
+    private boolean isLikelyBookLineWidget(Widget widget) {
+        if (!hasBookPageNumberSibling(widget)) {
+            return false;
+        }
+        return widget.getHeight() > 0 && widget.getHeight() <= 45
+                && widget.getWidth() >= 60;
+    }
+
+    private void translateBookLineWidgetsByParent(Widget seedWidget) {
+        Widget parent = seedWidget.getParent();
+        if (parent == null) {
+            translateWidgetApi(seedWidget);
+            return;
+        }
+
+        int parentId = parent.getId();
+        if (!processedBookLineParents.add(parentId)) {
+            return;
+        }
+
+        List<Widget> bookLineWidgets = collectBookLineWidgets(parent);
+        if (bookLineWidgets.size() < 2) {
+            translateWidgetApi(seedWidget);
+            return;
+        }
+
+        List<List<Widget>> columns = splitIntoColumns(bookLineWidgets);
+        for (List<Widget> column : columns) {
+            column.sort(Comparator.comparingInt(w -> w.getBounds().y));
+        }
+
+        String sourceText = buildBookPageSourceText(columns);
+        if (sourceText.isEmpty()) {
+            return;
+        }
+
+        int sourceHash = sourceText.hashCode();
+        int currentRenderedHash = getTextHash(bookLineWidgets);
+        BookPageState cachedState = bookPageCache.get(parentId);
+
+        if (cachedState != null) {
+            if (currentRenderedHash == cachedState.renderedHash) {
+                return;
+            }
+            if (sourceHash == cachedState.sourceHash || !looksLikeEnglishSource(sourceText)) {
+                applyPageLines(columns, cachedState.translatedLinesByColumn);
+                return;
+            }
+        }
+
+        if (!looksLikeEnglishSource(sourceText)) {
+            return;
+        }
+
+        String translatedText = plugin.getDeepl().translate(
+                sourceText,
+                LangCodeSelectableList.ENGLISH,
+                plugin.getConfig().getSelectedLanguage()
+        );
+        if (translatedText.equals(sourceText)) {
+            return;
+        }
+
+        List<List<String>> translatedLinesByColumn = distributeTranslatedTextAcrossColumns(translatedText, columns);
+        applyPageLines(columns, translatedLinesByColumn);
+        int renderedHash = getTextHash(bookLineWidgets);
+        bookPageCache.put(parentId, new BookPageState(sourceHash, renderedHash, deepCopyLines(translatedLinesByColumn)));
+    }
+
+    private List<Widget> collectBookLineWidgets(Widget parent) {
+        List<Widget> result = new ArrayList<>();
+        for (Widget child : parent.getDynamicChildren()) {
+            if (isLikelyBookLineWidget(child) && shouldTranslateTextForBookOrScrollApi(child.getText())) {
+                result.add(child);
+            }
+        }
+        for (Widget child : parent.getNestedChildren()) {
+            if (isLikelyBookLineWidget(child) && shouldTranslateTextForBookOrScrollApi(child.getText())) {
+                result.add(child);
+            }
+        }
+        for (Widget child : parent.getStaticChildren()) {
+            if (isLikelyBookLineWidget(child) && shouldTranslateTextForBookOrScrollApi(child.getText())) {
+                result.add(child);
+            }
+        }
+        return result;
+    }
+
+    private List<List<Widget>> splitIntoColumns(List<Widget> bookLineWidgets) {
+        if (bookLineWidgets.size() < 2) {
+            return Collections.singletonList(bookLineWidgets);
+        }
+
+        int minX = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        for (Widget widget : bookLineWidgets) {
+            Rectangle bounds = widget.getBounds();
+            minX = Math.min(minX, bounds.x);
+            maxX = Math.max(maxX, bounds.x);
+        }
+
+        if (maxX - minX < 120) {
+            return Collections.singletonList(bookLineWidgets);
+        }
+
+        int splitX = minX + ((maxX - minX) / 2);
+        List<Widget> left = new ArrayList<>();
+        List<Widget> right = new ArrayList<>();
+
+        for (Widget widget : bookLineWidgets) {
+            Rectangle bounds = widget.getBounds();
+            int centerX = bounds.x + (Math.max(bounds.width, 1) / 2);
+            if (centerX <= splitX) {
+                left.add(widget);
+            } else {
+                right.add(widget);
+            }
+        }
+
+        if (left.isEmpty() || right.isEmpty()) {
+            return Collections.singletonList(bookLineWidgets);
+        }
+
+        List<List<Widget>> columns = new ArrayList<>(2);
+        columns.add(left);
+        columns.add(right);
+        return columns;
+    }
+
+    private String buildBookPageSourceText(List<List<Widget>> columns) {
+        List<String> columnTexts = new ArrayList<>();
+        for (List<Widget> column : columns) {
+            List<String> sourceLines = new ArrayList<>();
+            for (Widget widget : column) {
+                String text = Colors.removeAllTags(widget.getText()).trim();
+                if (!text.isEmpty()) {
+                    sourceLines.add(text);
+                }
+            }
+            if (!sourceLines.isEmpty()) {
+                columnTexts.add(String.join(" ", sourceLines));
+            }
+        }
+        return String.join(" ", columnTexts).trim();
+    }
+
+    private List<List<String>> distributeTranslatedTextAcrossColumns(String translatedText, List<List<Widget>> columns) {
+        List<Integer> slotCapacities = new ArrayList<>();
+        List<Integer> columnLineCounts = new ArrayList<>();
+
+        for (List<Widget> column : columns) {
+            int lineCount = column.size();
+            columnLineCounts.add(lineCount);
+
+            int minWidth = column.stream().mapToInt(Widget::getWidth).filter(w -> w > 0).min().orElse(120);
+            int charWidth = Math.max(1, LangCodeSelectableList.getLatinCharWidth(column.get(0), plugin.getConfig().getSelectedLanguage()));
+            int maxCharsPerLine = Math.max(6, (int) Math.floor((minWidth / (double) charWidth) * 0.72));
+            for (int i = 0; i < lineCount; i++) {
+                slotCapacities.add(maxCharsPerLine);
+            }
+        }
+
+        List<String> slotLines = wrapTextToCapacitySlots(translatedText, slotCapacities);
+        List<List<String>> linesByColumn = new ArrayList<>();
+        int cursor = 0;
+        for (int columnIndex = 0; columnIndex < columnLineCounts.size(); columnIndex++) {
+            int count = columnLineCounts.get(columnIndex);
+            List<String> lines = new ArrayList<>();
+            for (int i = 0; i < count; i++) {
+                lines.add(cursor < slotLines.size() ? slotLines.get(cursor) : "");
+                cursor++;
+            }
+            linesByColumn.add(lines);
+        }
+        return linesByColumn;
+    }
+
+    private List<String> wrapTextToCapacitySlots(String text, List<Integer> capacities) {
+        if (capacities.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<String> normalizedWords = new ArrayList<>();
+        for (String word : text.trim().split("\\s+")) {
+            if (!word.isEmpty()) {
+                normalizedWords.add(word);
+            }
+        }
+
+        List<String> lines = new ArrayList<>(Collections.nCopies(capacities.size(), ""));
+        int wordIndex = 0;
+
+        for (int slot = 0; slot < capacities.size(); slot++) {
+            int capacity = Math.max(1, capacities.get(slot));
+            StringBuilder line = new StringBuilder();
+
+            while (wordIndex < normalizedWords.size()) {
+                String word = normalizedWords.get(wordIndex);
+                if (word.length() > capacity) {
+                    if (line.length() == 0) {
+                        line.append(word, 0, capacity);
+                        normalizedWords.set(wordIndex, word.substring(capacity));
+                    }
+                    break;
+                }
+
+                if (line.length() == 0) {
+                    line.append(word);
+                    wordIndex++;
+                    continue;
+                }
+
+                if (line.length() + 1 + word.length() <= capacity) {
+                    line.append(' ').append(word);
+                    wordIndex++;
+                } else {
+                    break;
+                }
+            }
+
+            lines.set(slot, line.toString());
+        }
+
+        if (wordIndex < normalizedWords.size()) {
+            StringBuilder tail = new StringBuilder(lines.get(lines.size() - 1));
+            for (int i = wordIndex; i < normalizedWords.size(); i++) {
+                String word = normalizedWords.get(i);
+                if (word.isEmpty()) {
+                    continue;
+                }
+                if (tail.length() > 0) {
+                    tail.append(' ');
+                }
+                tail.append(word);
+            }
+            lines.set(lines.size() - 1, tail.toString());
+        }
+
+        return lines;
+    }
+
+    private void applyPageLines(List<List<Widget>> columns, List<List<String>> translatedLinesByColumn) {
+        int columnCount = Math.min(columns.size(), translatedLinesByColumn.size());
+        for (int columnIndex = 0; columnIndex < columnCount; columnIndex++) {
+            List<Widget> widgets = columns.get(columnIndex);
+            List<String> lines = translatedLinesByColumn.get(columnIndex);
+            for (int i = 0; i < widgets.size(); i++) {
+                String newLine = i < lines.size() ? lines.get(i) : "";
+                widgets.get(i).setText(newLine);
+            }
+        }
+    }
+
+    private List<List<String>> deepCopyLines(List<List<String>> linesByColumn) {
+        List<List<String>> copy = new ArrayList<>();
+        for (List<String> lines : linesByColumn) {
+            copy.add(new ArrayList<>(lines));
+        }
+        return copy;
+    }
+
+    private boolean looksLikeEnglishSource(String text) {
+        String t = text == null ? "" : text.trim();
+        if (t.isEmpty()) {
+            return false;
+        }
+
+        int asciiLetters = 0;
+        int accentedLetters = 0;
+        for (int i = 0; i < t.length(); i++) {
+            char ch = t.charAt(i);
+            if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
+                asciiLetters++;
+            } else if ((ch >= 192 && ch <= 255) || ch == 'ã' || ch == 'õ' || ch == 'ç' || ch == 'á' || ch == 'é'
+                    || ch == 'í' || ch == 'ó' || ch == 'ú' || ch == 'â' || ch == 'ê' || ch == 'ô') {
+                accentedLetters++;
+            }
+        }
+
+        if (asciiLetters == 0) {
+            return false;
+        }
+        return accentedLetters * 4 < asciiLetters;
+    }
+
+
+    private int getTextHash(List<Widget> widgets) {
+        StringBuilder builder = new StringBuilder();
+        widgets.stream()
+                .sorted(Comparator.comparingInt((Widget w) -> w.getBounds().x).thenComparingInt(w -> w.getBounds().y))
+                .forEach(w -> builder.append(w.getId()).append('=').append(w.getText()).append('\n'));
+        return builder.toString().hashCode();
+    }
+
+    private boolean shouldUseBookOrScrollFallbackApi(Widget widget, int widgetGroup) {
+        String text = widget.getText();
+        if (!shouldTranslateTextForBookOrScrollApi(text)) {
+            return false;
+        }
+
+        // Don't target chat widgets with long text.
+        if (isChildWidgetOf(widget, Chatbox.CHATDISPLAY)
+                || isChildWidgetOf(widget, ComponentID.CHATBOX_BUTTONS)
+                || widget.getId() == Chatbox.SCROLLAREA) {
+            return false;
+        }
+
+        String strippedText = Colors.removeAllTags(text).trim();
+        int width = widget.getWidth();
+        int height = widget.getHeight();
+        boolean isLongTextBlock = strippedText.length() >= 80;
+        boolean looksLikeBookLine = hasBookPageNumberSibling(widget)
+                && strippedText.length() >= 8
+                && width >= 60
+                && height >= 10
+                && height <= 40;
+        boolean looksLikeReadablePanelLine = isInsideLargeReadablePanel(widget)
+                && strippedText.length() >= 16
+                && width >= 80
+                && height >= 10
+                && height <= 45;
+
+        if (!isLongTextBlock && !looksLikeBookLine && !looksLikeReadablePanelLine) {
+            return false;
+        }
+
+        if (loggedBookFallbackGroups.add(widgetGroup)) {
+            String preview = strippedText.length() > 64 ? strippedText.substring(0, 64) + "..." : strippedText;
+            log.info("RuneLingual book/scroll API fallback matched group={}, widgetId={}, type={}, font={}, size={}x{}, text='{}'",
+                    widgetGroup, widget.getId(), widget.getType(), widget.getFontId(), width, height, preview);
+        }
+        return true;
+    }
+
+    private boolean hasBookPageNumberSibling(Widget widget) {
+        Widget parent = widget.getParent();
+        if (parent == null) {
+            return false;
+        }
+
+        int pageLikeSiblings = 0;
+        for (Widget child : parent.getDynamicChildren()) {
+            if (isPageNumberLike(child)) {
+                pageLikeSiblings++;
+            }
+        }
+        for (Widget child : parent.getNestedChildren()) {
+            if (isPageNumberLike(child)) {
+                pageLikeSiblings++;
+            }
+        }
+        for (Widget child : parent.getStaticChildren()) {
+            if (isPageNumberLike(child)) {
+                pageLikeSiblings++;
+            }
+        }
+        return pageLikeSiblings >= 2;
+    }
+
+    private boolean isPageNumberLike(Widget widget) {
+        if (widget == null || widget.getText() == null) {
+            return false;
+        }
+        String t = Colors.removeAllTags(widget.getText()).trim();
+        if (!t.matches("\\d{1,2}")) {
+            return false;
+        }
+        return widget.getWidth() <= 40 && widget.getHeight() <= 30;
+    }
+
+    private boolean isInsideLargeReadablePanel(Widget widget) {
+        Widget parent = widget.getParent();
+        while (parent != null) {
+            if (parent.getWidth() >= 260 && parent.getHeight() >= 160) {
+                return true;
+            }
+            parent = parent.getParent();
+        }
+        return false;
     }
 
     private void modifySqlQuery4Widget(Widget widget, SqlQuery sqlQuery) {
@@ -500,4 +1080,3 @@ public class WidgetCapture {
         return loginWidget != null && !loginWidget.isHidden();
     }
 }
-

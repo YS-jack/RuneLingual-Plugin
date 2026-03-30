@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: libretranslate
+    restart: unless-stopped
+    user: root
+    ports:
+      - "5000:5000"
+    environment:
+      # Keep only the languages we care about to reduce model downloads.
+      # Codes should match what the LibreTranslate instance reports at GET /languages.
+      - LT_LOAD_ONLY=en,pt-BR
+      - LT_CHAR_LIMIT=1000
+      - LT_REQ_LIMIT=0
+      - LT_BATCH_LIMIT=0
+      - LT_FRONTEND_LANGUAGE=pt
+      - LT_API_KEYS=false
+      - LT_SUGGESTIONS=false
+      - LT_DISABLE_FILES_TRANSLATION=true
+      - LT_DISABLE_WEB_UI=true
+      - LT_THREADS=4
+    volumes:
+      - lt-data:/home/libretranslate/.local/share
+      - lt-cache:/home/libretranslate/.local/cache
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+
+volumes:
+  lt-data:
+  lt-cache:
