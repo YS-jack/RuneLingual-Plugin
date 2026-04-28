@@ -13,7 +13,7 @@ public enum LangCodeSelectableList
     PORTUGUÊS_BRASILEIRO ("pt_br", "PT","PT-BR", 8, 11, 6, 6, false, false, false, false, true, false, true),
     NORSK("no", "NB", "NB", 8, 14, 6, 6, false, false, false, false, true, false, true),
     日本語("ja", "JA", "JA", 12, 12, 12, 15, true, false, true, true, false, true, true),
-    简体中文("zh", "ZH", "ZH-SIMPLIFIED", 12, 12, 12, 15, true, false, false, false, false, true, true),
+    简体中文("zh", "ZH", "ZH-HANS", 12, 12, 12, 15, true, false, false, false, false, true, true),
     Русский("ru", "RU", "RU", 8, 12, 6, 6, true, false, true, false, true, false, true),
     český("cs", "CS", "CS", 7, 14, 6, 6, false, false, false, false, true, false, false),
     dansk("da", "DA", "DA", 7, 14, 6, 6, false, false, false, false, true, false, false),
