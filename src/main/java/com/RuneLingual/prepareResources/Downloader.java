@@ -14,6 +14,8 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
+import okhttp3.Request;
+import okhttp3.Response;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -138,7 +140,16 @@ public class Downloader {//downloads translations and japanese char images to ex
 
             if (dataChanged) {
                 // Overwrite local hash file with the updated remote hash file
-                Files.copy(new URL(REMOTE_HASH_FILE).openStream(), Paths.get(localLangFolder.getPath(), LOCAL_HASH_NAME), StandardCopyOption.REPLACE_EXISTING);
+                Request hashRequest = new Request.Builder()
+                        .url(new URL(REMOTE_HASH_FILE))
+                        .header("User-Agent", "RuneLingual-Plugin/1.0")
+                        .build();
+                try (Response response = plugin.getHttpClient().newCall(hashRequest).execute()) {
+                    if (!response.isSuccessful()) {
+                        throw new IOException("Unexpected code " + response);
+                    }
+                    Files.copy(response.body().byteStream(), Paths.get(localLangFolder.getPath(), LOCAL_HASH_NAME), StandardCopyOption.REPLACE_EXISTING);
+                }
                 if (transcriptChanged) {
                     dataFormater.updateSqlFromTsv(localLangFolder.getPath(), tsvFileNames);
                 }
@@ -198,13 +209,22 @@ public class Downloader {//downloads translations and japanese char images to ex
     }
 
     private Map<String, String> readHashFile(URL fileUrl) throws IOException {
+        Request request = new Request.Builder()
+                .url(fileUrl)
+                .header("User-Agent", "RuneLingual-Plugin/1.0")
+                .build();
         Map<String, String> hashes = new HashMap<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(fileUrl.openStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split("\\|");
-                if (parts.length == 2) {
-                    hashes.put(parts[0], parts[1]);
+        try (Response response = plugin.getHttpClient().newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Unexpected code " + response);
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body().byteStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split("\\|");
+                    if (parts.length == 2) {
+                        hashes.put(parts[0], parts[1]);
+                    }
                 }
             }
         }
@@ -223,12 +243,19 @@ public class Downloader {//downloads translations and japanese char images to ex
             Files.createDirectories(localPath.getParent());
         }
 
-        Files.copy(fileUrl.openStream(), localPath, StandardCopyOption.REPLACE_EXISTING);
+        Request request = new Request.Builder()
+                .url(fileUrl)
+                .header("User-Agent", "RuneLingual-Plugin/1.0")
+                .build();
+        try (Response response = plugin.getHttpClient().newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Unexpected code " + response);
+            }
+            Files.copy(response.body().byteStream(), localPath, StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
     public void updateCharDir(Path localPath) throws IOException {
-        URL fileUrl3 = new URL(GITHUB_BASE_URL + "/char_" + langCode + ".zip");
-        Files.copy(fileUrl3.openStream(), localPath, StandardCopyOption.REPLACE_EXISTING);
         unzip(String.valueOf(localPath), localLangFolder.getPath());
         Files.delete(localPath);
     }

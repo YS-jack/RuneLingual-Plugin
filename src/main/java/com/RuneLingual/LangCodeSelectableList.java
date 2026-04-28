@@ -129,6 +129,33 @@ public enum LangCodeSelectableList
             return "The API key is invalid, the translation \nlimit is close, or requests are congested.";
         }
     }
+
+    public String getEnglishName() {
+        switch (this) {
+            case PORTUGUÊS_BRASILEIRO: return "Brazilian Portuguese";
+            case 日本語: return "Japanese";
+            case 简体中文: return "Chinese";
+            case Русский: return "Russian";
+            case český: return "Czech";
+            case dansk: return "Danish";
+            case eesti: return "Estonian";
+            case suomi: return "Finnish";
+            case FRANÇAIS: return "French";
+            case magyar: return "Hungarian";
+            case italiano: return "Italian";
+            case Nederlands: return "Dutch";
+            case PORTUGUÊS: return "Portuguese";
+            case svenska: return "Swedish";
+            case Türkçe: return "Turkish";
+            case Polski: return "Polish";
+            case ESPAÑOL: return "Spanish";
+            case DEUTSCH: return "German";
+            case NORSK: return "Norwegian";
+            case Indonesian: return "Indonesian";
+            case ENGLISH: return "English";
+            default: return this.name();
+        }
+    }
 }
 /*
 * deepl lang codes: https://developers.deepl.com/docs/resources/supported-languages#target-languages

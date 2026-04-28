@@ -172,6 +172,7 @@ public class RuneLingualPlugin extends Plugin {
     @Getter
     private int gameCycle;
     @Inject
+    @Getter
     private OkHttpClient httpClient;
     @Inject
     SpriteReplacer spriteReplacer;
@@ -190,14 +191,7 @@ public class RuneLingualPlugin extends Plugin {
     protected void startUp() throws Exception {
         //get selected language
         targetLanguage = config.getSelectedLanguage();
-        pastLanguages.add(targetLanguage);
         databaseUrl = h2Manager.getUrl(targetLanguage);
-        // check if online files have changed, if so download and update local files
-        initLangFiles();
-
-        //connect to database
-        conn = h2Manager.getConn(targetLanguage);
-
         // initiate overlays
         overlayManager.add(mouseTooltipOverlay);
         overlayManager.add(deeplUsageOverlay);
@@ -205,9 +199,15 @@ public class RuneLingualPlugin extends Plugin {
         overlayManager.add(chatInputCandidateOverlay);
         overlayManager.add(menuEntryHighlightOverlay);
 
-        // load image files
-        charImageInit.loadCharImages();
-        queueUpdateAllOverrides();
+        // check if online files have changed, if so download and update local files
+        initLangFiles(false, () -> {
+            if (targetLanguage.needsCharImages() && !pastLanguages.contains(targetLanguage)) {
+                charImageInit.loadCharImages();
+            }
+            pastLanguages.add(targetLanguage);
+            queueUpdateAllOverrides();
+            failedTranslations.clear();
+        });
 
         // side panel
         startPanel();
@@ -287,11 +287,8 @@ public class RuneLingualPlugin extends Plugin {
         if (targetLanguage != config.getSelectedLanguage()) {
             targetLanguage = config.getSelectedLanguage();
             spriteReplacer.resetWidgetSprite();
-            if (targetLanguage.hasLocalTranscript()) {
-                //close current connection
-                h2Manager.closeConn();
-            }
             if (targetLanguage == LangCodeSelectableList.ENGLISH || !targetLanguage.hasLocalTranscript()) {
+                h2Manager.closeConn();
                 clientToolBar.removeNavigation(navButton);
                 if(targetLanguage != LangCodeSelectableList.ENGLISH){
                     deepl = new Deepl(this, httpClient);
@@ -300,24 +297,34 @@ public class RuneLingualPlugin extends Plugin {
             }
 
             databaseUrl = h2Manager.getUrl(targetLanguage);
-            initLangFiles();
-            conn = h2Manager.getConn(targetLanguage);
-
             clientToolBar.removeNavigation(navButton);
-            queueUpdateAllOverrides();
-            if (targetLanguage.needsCharImages() && !pastLanguages.contains(targetLanguage)) {
-                charImageInit.loadCharImages();
-            }
+            
+            clientThread.invokeLater(() -> {
+                client.addChatMessage(net.runelite.api.ChatMessageType.GAMEMESSAGE, "", "RuneLingual: Preparing language files for " + targetLanguage.getEnglishName() + "...", null);
+            });
 
-            overlayManager.remove(mouseTooltipOverlay);
-            MouseTooltipOverlay.setAttemptedTranslation(new ArrayList<>());
-            overlayManager.add(mouseTooltipOverlay);
+            initLangFiles(true, () -> {
+                if (targetLanguage.needsCharImages() && !pastLanguages.contains(targetLanguage)) {
+                    charImageInit.loadCharImages();
+                }
+                
+                overlayManager.remove(mouseTooltipOverlay);
+                MouseTooltipOverlay.setAttemptedTranslation(new ArrayList<>());
+                overlayManager.add(mouseTooltipOverlay);
 
-            //reset deepl's past translations
-            deepl = new Deepl(this, httpClient);
+                //reset deepl's past translations
+                deepl = new Deepl(this, httpClient);
 
-            restartPanel();
-            pastLanguages.add(targetLanguage);
+                restartPanel();
+                pastLanguages.add(targetLanguage);
+                
+                queueUpdateAllOverrides();
+
+                // Clear any translations that failed during the brief downtime window
+                failedTranslations.clear();
+
+                client.addChatMessage(net.runelite.api.ChatMessageType.GAMEMESSAGE, "", "RuneLingual: Language successfully changed to " + targetLanguage.getEnglishName() + "!", null);
+            });
         }
         if(config.ApiConfig()){
             deepl.setUsageAndLimit();
@@ -448,13 +455,43 @@ public class RuneLingualPlugin extends Plugin {
         return configManager.getConfig(RuneLingualConfig.class);
     }
 
-    private void initLangFiles() {
+    private void initLangFiles(boolean async, Runnable onComplete) {
         if (targetLanguage == LangCodeSelectableList.ENGLISH) {
+            if (onComplete != null) {
+                clientThread.invokeLater(onComplete);
+            }
             return;
         }
         //download necessary files
         downloader.setLangCode(targetLanguage.getLangCode());
-        downloader.initDownloader();
+        
+        Runnable downloadAndDbTask = () -> {
+            downloader.initDownloader();
+            
+            // Database and IO operations
+            h2Manager.closeConn();
+            conn = h2Manager.getConn(targetLanguage);
+        };
+
+        if (async) {
+            new Thread(() -> {
+                downloadAndDbTask.run();
+                if (onComplete != null) clientThread.invokeLater(onComplete);
+            }).start();
+        } else {
+            // Run download on background thread to bypass RuneLite's EDT network restriction,
+            // but block the EDT waiting for it to finish so the load bar pauses.
+            Thread t = new Thread(downloadAndDbTask);
+            t.start();
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                log.error("Startup download interrupted", e);
+            }
+            if (onComplete != null) {
+                clientThread.invokeLater(onComplete);
+            }
+        }
     }
 
     public void restartPanel() {
