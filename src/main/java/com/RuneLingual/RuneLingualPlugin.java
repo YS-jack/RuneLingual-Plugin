@@ -207,6 +207,7 @@ public class RuneLingualPlugin extends Plugin {
             pastLanguages.add(targetLanguage);
             queueUpdateAllOverrides();
             failedTranslations.clear();
+            sqlActions.clearMatchCache();
         });
 
         // side panel
@@ -322,6 +323,7 @@ public class RuneLingualPlugin extends Plugin {
 
                 // Clear any translations that failed during the brief downtime window
                 failedTranslations.clear();
+                sqlActions.clearMatchCache();
 
                 client.addChatMessage(net.runelite.api.ChatMessageType.GAMEMESSAGE, "", "RuneLingual: Language successfully changed to " + targetLanguage.getEnglishName() + "!", null);
             });

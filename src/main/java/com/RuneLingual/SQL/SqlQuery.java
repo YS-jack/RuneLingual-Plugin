@@ -65,14 +65,25 @@ public class SqlQuery implements Cloneable{
     }
 
     public String[] getMatching(SqlVariables column, @Deprecated boolean searchAlike) {
-        // Priority-based fallback chain for finding the best matching translation
-        // P1: english + category + subCategory + source (5-tuple exact match)
-        // P2: english + category + subCategory
-        // P3: english + category
-        // P4: english only, case-insensitive
-        // P5: fuzzy match in english (strip all non-alphanumeric chars, compare case-insensitive) + category + subCategory
-        // Fallback: placeholder matching (when searchAlike=true)
         english = replaceSpecialSpaces(english);
+        // cache results in memory so the same lookup hits the H2 file only once
+        String cacheKey = column.getColumnName() + "|" + english + "|"
+                + (category == null ? "" : category) + "|"
+                + (subCategory == null ? "" : subCategory) + "|"
+                + (source == null ? "" : source);
+        String[] cached = plugin.getSqlActions().getCachedMatch(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+        String[] computed = computeMatching(column);
+        plugin.getSqlActions().putCachedMatch(cacheKey, computed);
+        return computed;
+    }
+
+    // Priority-based fallback chain for finding the best matching translation
+    // P1: english + category + subCategory + source   P2: + category + subCategory   P3: + category
+    // P4: english only, case-insensitive   P5: fuzzy (alphanumeric-only) + category + subCategory
+    private String[] computeMatching(SqlVariables column) {
         String[][] result;
 
         // P1: Full 5-tuple exact match (english + category + subCategory + source)

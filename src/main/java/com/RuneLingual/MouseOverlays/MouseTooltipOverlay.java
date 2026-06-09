@@ -88,6 +88,10 @@ public class MouseTooltipOverlay extends Overlay
     @Setter
     private static List<String> attemptedTranslation = Collections.synchronizedList(new ArrayList<>());
 
+    // cache the last hovered entry's translation so translateMenuAction isn't re-run every render frame
+    private String tooltipCacheKey = null;
+    private String[] tooltipCacheVal = null;
+
     @Inject
     MouseTooltipOverlay(Client client, TooltipManager tooltipManager, RuneLingualConfig config, RuneLingualPlugin plugin)
     {
@@ -159,8 +163,16 @@ public class MouseTooltipOverlay extends Overlay
             return;
         }
 
-        //otherwise translate the target and option
-        String[] newMenus = menuCapture.translateMenuAction(menuEntry);
+        //otherwise translate the target and option (cached per hovered entry to avoid re-translating every frame)
+        String cacheKey = menuEntry.getType() + "|" + menuEntry.getOption() + "|" + menuEntry.getTarget();
+        String[] newMenus;
+        if (cacheKey.equals(tooltipCacheKey)) {
+            newMenus = tooltipCacheVal;
+        } else {
+            newMenus = menuCapture.translateMenuAction(menuEntry);
+            tooltipCacheKey = cacheKey;
+            tooltipCacheVal = newMenus;
+        }
         if (newMenus != null)
         {
             newTarget = newMenus[0];

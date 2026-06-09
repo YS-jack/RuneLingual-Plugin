@@ -28,9 +28,24 @@ public class SqlActions {
     @Inject
     private FileNameAndPath fileNameAndPath;
 
+    // in-memory cache of getMatching results so the same lookup hits the H2 file only once
+    private final Map<String, String[]> matchCache = new java.util.concurrent.ConcurrentHashMap<>();
+
     @Inject
     public SqlActions(RuneLingualPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public String[] getCachedMatch(String key) {
+        return matchCache.get(key);
+    }
+
+    public void putCachedMatch(String key, String[] value) {
+        matchCache.put(key, value);
+    }
+
+    public void clearMatchCache() {
+        matchCache.clear();
     }
 
     // private String databaseUrl = "jdbc:h2:" + downloader.getLocalLangFolder() + File.separator + databaseFileName;

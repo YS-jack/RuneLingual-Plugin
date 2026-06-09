@@ -37,6 +37,8 @@ public class WidgetCapture {
     private Ids ids;
     @Getter
     Set<String> pastTranslationResults = new HashSet<>();
+    // quest list entries: widget -> [originalY, originalHeight, lastSetY, lastSetHeight]
+    private final Map<Widget, int[]> questLayout = new WeakHashMap<>();
 
 
     @Inject
@@ -91,6 +93,9 @@ public class WidgetCapture {
         for (Widget staticChild : widget.getStaticChildren()) {
             translateWidgetRecursive(staticChild, sqlQuery);
         }
+
+        // re-flow the quest list: entries whose translation wrapped get extra height, pushing the rest down
+        reflowQuestListIfNeeded(widget);
 
         // translate the widget text////////////////
         // dialogues are handled separately
@@ -468,11 +473,77 @@ public class WidgetCapture {
             if (ids.getWidgetIdChatButtonName().contains(widgetId) && !text.contains("<br>")) {
                 widget.setText(text+"<br>"); // add <br> to the button name to place this above the filter type
                 widget.setXTextAlignment(WidgetTextAlignment.CENTER);
+                widget.setYTextAlignment(WidgetTextAlignment.TOP); // keep the name at the top, not vertically centered
             } else if (ids.getWidgetIdChatButtonFilterType().contains(widgetId) && !text.contains("<br>")) {
                 widget.setText("<br>"+text); // add <br> to the filter type to place this below the button name
                 widget.setXTextAlignment(WidgetTextAlignment.CENTER);
             }
         }
+    }
+
+    // if this widget is the quest list container, give entries whose translation wrapped to a new line
+    // extra height and push the entries below them down so nothing overlaps
+    private void reflowQuestListIfNeeded(Widget parent) {
+        Widget[] dynamicChildren = parent.getDynamicChildren();
+        if (dynamicChildren.length < 2 || !ids.getWidgetIdQuestName().contains(dynamicChildren[0].getId())) {
+            return;
+        }
+        java.util.List<Widget> entries = new ArrayList<>();
+        for (Widget child : dynamicChildren) {
+            if (ids.getWidgetIdQuestName().contains(child.getId())
+                    && child.getType() == WidgetType.TEXT
+                    && child.getText() != null && !child.getText().isEmpty()) {
+                entries.add(child);
+            }
+        }
+        if (entries.size() < 2) {
+            return;
+        }
+        int lineHeight = entries.get(0).getLineHeight();
+        if (lineHeight <= 0) {
+            return;
+        }
+        // adopt the game's layout as the baseline whenever it (re)positions an entry, e.g. on scroll
+        for (Widget entry : entries) {
+            int[] state = questLayout.get(entry);
+            if (state == null || entry.getRelativeY() != state[2] || entry.getHeight() != state[3]) {
+                questLayout.put(entry, new int[]{entry.getRelativeY(), entry.getHeight(), entry.getRelativeY(), entry.getHeight()});
+            }
+        }
+        entries.sort(Comparator.comparingInt(e -> questLayout.get(e)[0]));
+        int offset = 0;
+        for (Widget entry : entries) {
+            int[] state = questLayout.get(entry);
+            // resize by the difference between the translation's line count and what the game allotted
+            int allottedLines = Math.max(1, Math.round((float) state[1] / (float) lineHeight));
+            int newHeight = Math.max(lineHeight, state[1] + (countLines(entry.getText()) - allottedLines) * lineHeight);
+            int newY = state[0] + offset;
+            boolean changed = false;
+            if (entry.getRelativeY() != newY) {
+                entry.setOriginalY(newY).setYPositionMode(WidgetPositionMode.ABSOLUTE_TOP);
+                changed = true;
+            }
+            if (entry.getHeight() != newHeight) {
+                entry.setOriginalHeight(newHeight).setHeightMode(WidgetSizeMode.ABSOLUTE);
+                changed = true;
+            }
+            if (changed) {
+                entry.revalidate();
+            }
+            state[2] = newY;
+            state[3] = newHeight;
+            offset += newHeight - state[1];
+        }
+    }
+
+    private int countLines(String text) {
+        int lines = 1;
+        int index = 0;
+        while ((index = text.indexOf("<br>", index)) != -1) {
+            lines++;
+            index += 4;
+        }
+        return lines;
     }
 
     private boolean isOutsideWindow(Widget widget) {

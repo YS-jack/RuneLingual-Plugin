@@ -108,8 +108,20 @@ public class MenuCapture
 				// if target is empty, remove the target part of the menu entry
 				currentMenu.setTarget("");
 			}
-			currentMenu.setOption(newOption);
+			currentMenu.setOption(keepMenuHoverHighlight(newOption));
 		}
+	}
+
+	// the game only recolours hovered options that have no colour tag, so unwrap a plain white option
+	private String keepMenuHoverHighlight(String option) {
+		if (option == null || plugin.getTargetLanguage().needsCharImages()) {
+			return option;
+		}
+		String unwrapped = option.replaceAll("^<col=ffffff>", "").replaceAll("</col>$", "");
+		if (!unwrapped.contains("<col=") && !unwrapped.contains("</col>")) { // only if uniformly white
+			return unwrapped;
+		}
+		return option;
 	}
 
 	public String[] translateMenuAction(MenuEntry currentMenu) {

@@ -156,7 +156,7 @@ public class WidgetsUtilRLingual
 		// if newText doesnt have <br> tag at all, insert br automatically
 		if (!newText.contains("<br>")) {
 			newText = newText.replaceAll("<autoBr>|</autoBr>", ""); // remove <autoBr> tags
-			newText = getWidgetText_NiceBr_CharImages(widget, newText);
+			newText = getWidgetText_NiceBr_NoCharImages(widget, newText);
 			widget.setText(newText);
 			return;
 		}
@@ -193,22 +193,30 @@ public class WidgetsUtilRLingual
 		int widgetWidth = widget.getWidth();
 		int foreignWidth = LangCodeSelectableList.getLatinCharWidth(widget, plugin.getConfig().getSelectedLanguage());
 		int maxChars = widgetWidth / foreignWidth;
+		if (maxChars <= 0) { // widget not laid out yet
+			return newText;
+		}
 
 		if(plugin.getConfig().getSelectedLanguage().needsSpaceBetweenWords()) {
 			String[] words = newText.split("(?=\\s)");
 			StringBuilder newTextBuilder = new StringBuilder();
 			int currentLineLength = 0;
 			for(String word : words) {
-				if(currentLineLength + word.length() > maxChars) {
+				if (word.isEmpty()) {
+					continue;
+				}
+				int wordLength = visibleLength(word);
+				if(currentLineLength + wordLength > maxChars) {
 					newTextBuilder.append("<br>");
 					currentLineLength = 0;
 				}
 				if (currentLineLength == 0 && word.charAt(0) == ' ') {
 					// remove space from the beginning of the word
 					word = word.replaceFirst(" ", "");
+					wordLength = Math.max(0, wordLength - 1);
 				}
 				newTextBuilder.append(word);
-				currentLineLength += word.length();
+				currentLineLength += wordLength;
 			}
 			newText = newTextBuilder.toString();
 		} else {
@@ -235,6 +243,14 @@ public class WidgetsUtilRLingual
 		newText = newText.replaceAll("<br><br>", "<br>"); // remove double <br>
 
 		return newText;
+	}
+
+	// length as drawn: colour tags take no width, an <img> counts as one char
+	private static int visibleLength(String text) {
+		return text.replaceAll("<col=[^>]*>", "")
+				.replaceAll("</col>", "")
+				.replaceAll("<img=[0-9]+>", "a")
+				.length();
 	}
 
 	public static String removeBrAndTags(String str) {
@@ -289,8 +305,10 @@ public class WidgetsUtilRLingual
 
 	// set height of line for specified widgets, because they can be too small
 	public void changeLineHeight(Widget widget) {
-		int lineHeight = plugin.getConfig().getSelectedLanguage().getCharHeight();
-		widget.setLineHeight(lineHeight);
+		// char images are drawn at a fixed height; latin text keeps the game's native line height
+		if (plugin.getConfig().getSelectedLanguage().needsCharImages()) {
+			widget.setLineHeight(plugin.getConfig().getSelectedLanguage().getCharHeight());
+		}
 	}
 
 }
