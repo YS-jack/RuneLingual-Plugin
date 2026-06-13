@@ -144,6 +144,17 @@ public class PastTranslationManager {
         return null;
     }
 
+    /** Clears the in-memory cache and empties the on-disk cache file. */
+    public void clearCache() {
+        pastTranslations.clear();
+        translationResults.clear();
+        try {
+            Files.write(Paths.get(pastTranslationFile), new byte[0]);
+        } catch (IOException e) {
+            log.error("Error clearing cache file: " + e.getMessage(), e);
+        }
+    }
+
     public void addToPastTranslations(String text, String translation) {
         // add to the map
         pastTranslations.put(text, translation);

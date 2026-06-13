@@ -3,6 +3,7 @@ package com.RuneLingual.ApiTranslate;
 import com.RuneLingual.LangCodeSelectableList;
 import com.RuneLingual.RuneLingualConfig;
 import com.RuneLingual.RuneLingualPlugin;
+import com.RuneLingual.TranslatingServiceSelectableList;
 import net.runelite.api.Client;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -35,6 +36,13 @@ public class DeeplUsageOverlay  extends Overlay {
     public Dimension render(Graphics2D graphics) {
         if (!config.showUsageOverlayConfig())
             return null;
+
+        // usage count only applies to the DeepL services
+        TranslatingServiceSelectableList service = config.getApiServiceConfig();
+        if (service != TranslatingServiceSelectableList.DeepL
+                && service != TranslatingServiceSelectableList.DeepL_PRO) {
+            return null;
+        }
 
         int enCharSize = LangCodeSelectableList.ENGLISH.getCharWidth();
         int foreignCharSize = config.getSelectedLanguage().getCharWidth();

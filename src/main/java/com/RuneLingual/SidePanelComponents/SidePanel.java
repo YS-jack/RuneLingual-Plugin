@@ -31,13 +31,19 @@ public class SidePanel extends PluginPanel{
     String discordText = "Ask for help on Discord";
     @Getter
     ChatBoxSection chatBoxSection;
+    private LangCodeSelectableList panelLanguage;
+
+    /** Font family for panel text: a Chinese face for zh, otherwise the original Japanese face. */
+    static String fontFamily(LangCodeSelectableList lang) {
+        return "zh".equals(lang.getLangCode()) ? "Microsoft YaHei" : "MS Gothic";
+    }
 
     @Inject
     private SidePanel(RuneLingualPlugin plugin){
         LangCodeSelectableList targetLanguage = FileActions.getLangCodeFromFile();
+        this.panelLanguage = targetLanguage;
         translatePanelTexts(targetLanguage);
 
-        this.setPreferredSize(new Dimension(200, 1500));
         this.add(createTitleLabel(titleText));
         this.add(createClickableLabel(helpText, helpLink));
         this.add(createClickableLabel(discordText, "https://discord.gg/ehwKcVdBGS"));
@@ -74,7 +80,7 @@ public class SidePanel extends PluginPanel{
 
     private JLabel createTitleLabel(String title){
         JLabel label = new JLabel(title, SwingConstants.CENTER);
-        label.setFont(new Font("MS Gothic", Font.BOLD, 18)); //todo: change the font if a language requires it
+        label.setFont(new Font(fontFamily(panelLanguage), Font.BOLD, 18));
         label.setPreferredSize(new Dimension(200, 20));
         label.setForeground(Color.yellow);
         return label;
@@ -82,7 +88,7 @@ public class SidePanel extends PluginPanel{
 
     private JLabel createTextLabel(String text){
         JLabel label = new JLabel(text, SwingConstants.CENTER);
-        label.setFont(new Font("MS Gothic", Font.PLAIN, 14));//todo: change the font if a language requires it
+        label.setFont(new Font(fontFamily(panelLanguage), Font.PLAIN, 14));
         label.setPreferredSize(new Dimension(200, 20));
         label.setForeground(Color.white);
         return label;
@@ -90,7 +96,7 @@ public class SidePanel extends PluginPanel{
 
     private JLabel createClickableLabel(String title, String url) {
         JLabel label = new JLabel(title, SwingConstants.CENTER);
-        label.setFont(new Font("MS Gothic", Font.PLAIN, 14));//todo: change the font if a language requires it
+        label.setFont(new Font(fontFamily(panelLanguage), Font.PLAIN, 14));
         label.setPreferredSize(new Dimension(200, 20));
         label.setForeground(Color.white);
 

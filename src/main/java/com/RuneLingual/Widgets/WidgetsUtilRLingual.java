@@ -62,14 +62,20 @@ public class WidgetsUtilRLingual
 	}
 
 	public void setWidgetText_ApiTranslation(Widget widget, String originalText, Colors color){
-		final String text_withoutBrAndTags = Colors.removeNonImgTags(originalText);
-		String translatedText = plugin.getDeepl().translate(text_withoutBrAndTags, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
+		// Strip tags per line but keep <br> so the model preserves the line structure.
+		String[] lines = originalText.split("<br>", -1);
+		for (int i = 0; i < lines.length; i++) {
+			lines[i] = Colors.removeNonImgTags(lines[i]);
+		}
+		final String text_withBr = String.join("<br>", lines);
+		String translatedText = plugin.getDeepl().translate(text_withBr, LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
 		int originalLineHeight = widget.getLineHeight();
-		if(translatedText.equals(text_withoutBrAndTags)) { // if the translation is the same as the original text, don't set the text
+		if(translatedText.equals(text_withBr)) { // if the translation is the same as the original text, don't set the text
 			return;
 		}
 
 		if (plugin.getTargetLanguage().needsCharImages()) {
+			translatedText = translatedText.replace("<br>", "<asis><br></asis>"); // keep <br> out of char-image conversion
 			translatedText = generalFunctions.StringToTags(translatedText, color);
 		}
 		setWidgetText_NiceBr(widget, translatedText);

@@ -5,7 +5,8 @@ import lombok.Getter;
 public enum TranslatingServiceSelectableList
 {
     DeepL ("deepl"),
-    DeepL_PRO ("deepl_pro"),;
+    DeepL_PRO ("deepl_pro"),
+    OLLAMA ("ollama"),;
 //    GOOGLE_TRANSLATE ("google"),
 //    OPENAI_GPT ("openai");
 

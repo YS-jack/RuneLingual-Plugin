@@ -31,11 +31,12 @@ public class ChatBoxSection {
 
         translateTabNames(langList);
 
-        addTab(tabbedPane, tabNameGame);
-        addTab(tabbedPane, tabNamePublic);
-        addTab(tabbedPane, tabNameChannel);
-        addTab(tabbedPane, tabNameClan);
-        addTab(tabbedPane, tabNameGIM);
+        String fontFamily = SidePanel.fontFamily(langList);
+        addTab(tabbedPane, tabNameGame, fontFamily);
+        addTab(tabbedPane, tabNamePublic, fontFamily);
+        addTab(tabbedPane, tabNameChannel, fontFamily);
+        addTab(tabbedPane, tabNameClan, fontFamily);
+        addTab(tabbedPane, tabNameGIM, fontFamily);
 
         // Wrap the tabbedPane in a panel with a fixed height
         JPanel fixedHeightPanel = new JPanel(new BorderLayout());
@@ -47,8 +48,9 @@ public class ChatBoxSection {
         sidePanel.setVisible(true);
     }
 
-private static void addTab(JTabbedPane tabbedPane, String title) {
+private static void addTab(JTabbedPane tabbedPane, String title, String fontFamily) {
     JTextArea textArea = new JTextArea();
+    textArea.setFont(new Font(fontFamily, Font.PLAIN, 13));
     textArea.setEditable(false); // This line makes the text uneditable
     textArea.setCursor(new Cursor(Cursor.TEXT_CURSOR)); // This line changes the cursor to the I-beam shape
     textArea.setSelectionColor(new Color(50,50,200)); // This line sets the background color of the selected text to black

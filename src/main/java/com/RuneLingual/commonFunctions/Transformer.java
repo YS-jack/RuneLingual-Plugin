@@ -34,6 +34,20 @@ public class Transformer {
         this.plugin = plugin;
     }
 
+    /**
+     * API/local-model fallback for text missing from the transcript.
+     * Returns null when API is off, or while the async translation is still pending
+     * (caller keeps the original text; a later call picks up the cached result).
+     */
+    private String apiFallback(String plainText) {
+        if (!plugin.getConfig().ApiConfig()) {
+            return null;
+        }
+        String translated = plugin.getDeepl().translate(plainText,
+                LangCodeSelectableList.ENGLISH, plugin.getConfig().getSelectedLanguage());
+        return translated.equals(plainText) ? null : translated;
+    }
+
 
     public String transformEngWithColor(TransformOption option, SqlQuery sqlQuery, boolean searchAlike){
         boolean needCharImage = plugin.getConfig().getSelectedLanguage().needsCharImages();
@@ -69,32 +83,27 @@ public class Transformer {
 //                sqlQuery.setEnglish(sqlQuery.getEnglish().replace(colorTagsAsIs.get(i), "<colNum" + i + ">")); // replace color tags with placeholders
 //            }
             sqlQuery.setEnglish(Colors.getEnumeratedColorWord(sqlQuery.getEnglish())); // replace color tags with placeholders
-            // if translating failed for this query before, return the original text with color
+            // if translating failed for this query before, skip the db query and try the API fallback
             if (plugin.getFailedTranslations().contains(sqlQuery)) {
-                return sqlQuery.getEnglish();
-            }
-
-            String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
-            if(result.length == 0){
-                //log.info("(engWithColor) No translation found for " + text + " ");
-                //log.info("query = " + sqlQuery.getSearchQuery());
-                plugin.getFailedTranslations().add(sqlQuery);
-                outputUnknown(sqlQuery);
-                return textAddColor(text, sqlQuery.getColor());
-                //translatedText = text;
+                String api = apiFallback(Colors.removeAllTags(text));
+                if (api == null) {
+                    return sqlQuery.getEnglish();
+                }
+                translatedText = api;
             } else {
-                if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
-                    //translatedText = text;
-                    //log.info("{} has not been translated yet (engWithColor)", text);
+                String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
+                if (result.length == 0 || result[0].isEmpty()) {
+                    //log.info("(engWithColor) No translation found for " + text + " ");
                     plugin.getFailedTranslations().add(sqlQuery);
                     outputUnknown(sqlQuery);
-                    return textAddColor(text, sqlQuery.getColor());
+                    String api = apiFallback(Colors.removeAllTags(text));
+                    if (api == null) {
+                        return textAddColor(text, sqlQuery.getColor());
+                    }
+                    translatedText = api;
                 } else { // text has been translated
                     translatedText = unifySimilarChars(result[0]); // convert full width characters to half width
                     translatedText = Colors.getOriginalColorWord(translatedText, colorTagsAsIs); // replace placeholders with original color tags
-//                    for(int i = 0; i < colorTagsAsIs.size(); i++){
-//                        translatedText = translatedText.replace("<colNum" + i + ">", colorTagsAsIs.get(i)); // replace placeholders with original color tags
-//                    }
                 }
             }
             //translatedText = this.plugin.getTranscriptActions().getTranslation(text);
@@ -146,27 +155,24 @@ public class Transformer {
             return textWithPlaceholders;
         } else if(option == TransformOption.TRANSLATE_LOCAL){
             sqlQuery.setEnglish(textWithPlaceholders);
-            // if translating failed for this query before, return the original text with color
+            // if translating failed for this query before, skip the db query and try the API fallback
             if (plugin.getFailedTranslations().contains(sqlQuery)) {
-                return originalText;
-            }
-
-            String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, false);
-            if(result.length == 0){
-                //log.info("(withPlaceholders func) the following placeholder text doesn't exist in the English column :{}", textWithPlaceholders);
-                //log.info("   query = {}", sqlQuery.getSearchQuery());
-                outputUnknown(sqlQuery);
-                // translatedText = text;
-                plugin.getFailedTranslations().add(sqlQuery);
-                return null;
+                String api = apiFallback(textWithPlaceholders);
+                if (api == null) {
+                    return originalText;
+                }
+                translatedText = protectPlaceholderTags(api);
             } else {
-                if(result[0].isEmpty()) { // text exists in database but hasn't been translated yet
-                    //translatedText = text;
-                    //log.info("{} has not been translated yet (withPlaceholders func)", textWithPlaceholders);
+                String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, false);
+                if (result.length == 0 || result[0].isEmpty()) {
+                    //log.info("(withPlaceholders func) the following placeholder text doesn't exist in the English column :{}", textWithPlaceholders);
                     outputUnknown(sqlQuery);
                     plugin.getFailedTranslations().add(sqlQuery);
-                    return null;
-
+                    String api = apiFallback(textWithPlaceholders);
+                    if (api == null) {
+                        return null;
+                    }
+                    translatedText = protectPlaceholderTags(api);
                 } else { // text has been translated
                     translatedText = unifySimilarChars(result[0]); // convert full width characters to half width
                     translatedText = protectPlaceholderTags(translatedText); // protect placeholder tags like <!monster> from being turned into char images
@@ -224,33 +230,40 @@ public class Transformer {
             return textAddColor(text, colors);
         } else if(option == TransformOption.TRANSLATE_LOCAL){
             sqlQuery.setEnglish(text);
-            // if translating failed for this query before, return the original text with color
+            // if translating failed for this query before, skip the db query and try the API fallback
             if (plugin.getFailedTranslations().contains(sqlQuery)) {
-                return textAddColor(text, colors);
-            }
-
-            String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
-            if(result.length == 0){
-                //log.info("(transform func) the following text doesn't exist in the English column :{}", text);
-                //log.info("   query = {}", sqlQuery.getSearchQuery());
-                // translatedText = text;
-                plugin.getFailedTranslations().add(sqlQuery);
-                outputUnknown(sqlQuery);
-                return textAddColor(text, colors);
-            } else {
-                for (String s : result) {
-                    if(!s.isEmpty()) {
-                        translatedText = unifySimilarChars(s); // convert full width characters to half width
-                        break;
-                    }
+                String api = apiFallback(text);
+                if (api == null) {
+                    return textAddColor(text, colors);
                 }
-                if(translatedText.isEmpty()) { // text exists in database but hasn't been translated yet
-                    //translatedText = text;
-                    //log.info("{} has not been translated yet (transform func)", text);
-                    //log.info("   query = {}", sqlQuery.getSearchQuery());
+                translatedText = api;
+            } else {
+                String[] result = sqlQuery.getMatching(SqlVariables.columnTranslation, searchAlike);
+                if (result.length == 0) {
+                    //log.info("(transform func) the following text doesn't exist in the English column :{}", text);
                     plugin.getFailedTranslations().add(sqlQuery);
                     outputUnknown(sqlQuery);
-                    return textAddColor(text, colors);
+                    String api = apiFallback(text);
+                    if (api == null) {
+                        return textAddColor(text, colors);
+                    }
+                    translatedText = api;
+                } else {
+                    for (String s : result) {
+                        if (!s.isEmpty()) {
+                            translatedText = unifySimilarChars(s); // convert full width characters to half width
+                            break;
+                        }
+                    }
+                    if (translatedText.isEmpty()) { // text exists in database but hasn't been translated yet
+                        plugin.getFailedTranslations().add(sqlQuery);
+                        outputUnknown(sqlQuery);
+                        String api = apiFallback(text);
+                        if (api == null) {
+                            return textAddColor(text, colors);
+                        }
+                        translatedText = api;
+                    }
                 }
             }
             //translatedText = this.plugin.getTranscriptActions().getTranslation(text);

@@ -6,7 +6,10 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Keybind;
 
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 
 @ConfigGroup(RuneLingualConfig.GROUP)
@@ -83,9 +86,31 @@ public interface RuneLingualConfig extends Config {
     }
 
     @ConfigItem(
+            name = "Toggle translation hotkey",
+            description = "Instantly switch between the translation and the original English",
+            position = 1 + offset_section1,
+            keyName = "toggleHotkey",
+            section = SECTION_BASIC_SETTINGS
+    )
+    default Keybind getToggleHotkey() {
+        return new Keybind(KeyEvent.VK_T, InputEvent.CTRL_DOWN_MASK);
+    }
+
+    @ConfigItem(
+            name = "Clear API cache hotkey",
+            description = "Clear cached API/local-model translations so they are re-fetched",
+            position = 2 + offset_section1,
+            keyName = "clearCacheHotkey",
+            section = SECTION_BASIC_SETTINGS
+    )
+    default Keybind getClearCacheHotkey() {
+        return new Keybind(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
+    }
+
+    @ConfigItem(
             name = "Help Link (right click to reset)",
             description = "right click to reset",
-            position = 1 + offset_section1,
+            position = 3 + offset_section1,
             keyName = "enableRuneLingual",
             section = SECTION_BASIC_SETTINGS
     )
@@ -126,6 +151,28 @@ public interface RuneLingualConfig extends Config {
     )
     default String getAPIKey() {
         return "";
+    }
+
+    @ConfigItem(
+            name = "Ollama URL",
+            description = "Base URL of the local Ollama server (only used when service is OLLAMA)",
+            section = SECTION_CHAT_SETTINGS,
+            keyName = "ollamaUrl",
+            position = 5 + offset
+    )
+    default String getOllamaUrl() {
+        return "http://localhost:11434";
+    }
+
+    @ConfigItem(
+            name = "Ollama Model",
+            description = "Model name to use on the Ollama server (only used when service is OLLAMA)",
+            section = SECTION_CHAT_SETTINGS,
+            keyName = "ollamaModel",
+            position = 6 + offset
+    )
+    default String getOllamaModel() {
+        return "osrs-translator";
     }
 
     @ConfigItem(

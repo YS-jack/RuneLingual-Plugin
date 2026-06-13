@@ -30,6 +30,8 @@ import net.runelite.api.widgets.WidgetUtil;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.input.KeyManager;
+import net.runelite.client.util.HotkeyListener;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
@@ -89,6 +91,23 @@ public class RuneLingualPlugin extends Plugin {
     private LangCodeSelectableList targetLanguage;
     @Getter
     private String selectedLanguageName;
+
+    @Inject
+    private KeyManager keyManager;
+    // language to restore when toggling translation back on
+    private LangCodeSelectableList toggleLanguage;
+    private final HotkeyListener toggleHotkeyListener = new HotkeyListener(() -> config.getToggleHotkey()) {
+        @Override
+        public void hotkeyPressed() {
+            toggleTranslation();
+        }
+    };
+    private final HotkeyListener clearCacheHotkeyListener = new HotkeyListener(() -> config.getClearCacheHotkey()) {
+        @Override
+        public void hotkeyPressed() {
+            clearApiCache();
+        }
+    };
 
 
     // main modules
@@ -211,7 +230,51 @@ public class RuneLingualPlugin extends Plugin {
 
         // side panel
         startPanel();
+
+        if (targetLanguage != LangCodeSelectableList.ENGLISH) {
+            toggleLanguage = targetLanguage;
+        }
+        keyManager.registerKeyListener(toggleHotkeyListener);
+        keyManager.registerKeyListener(clearCacheHotkeyListener);
         //log.info("RuneLingual started!");
+    }
+
+    /** Clears cached API/local-model translations so on-screen text is re-fetched. */
+    private void clearApiCache() {
+        clientThread.invoke(() -> {
+            deepl.getDeeplPastTranslationManager().clearCache();
+            deepl.getTranslationAttempt().clear();
+            failedTranslations.clear();
+            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
+                    "RuneLingual: API translation cache cleared", null);
+        });
+    }
+
+    /**
+     * Flips between the active translation language and English without a full reload.
+     * Switching to a language re-translates on the next frame (onBeforeRender); switching
+     * to English stops translating, so menus/hovers show English on the next interaction
+     * (an already-open dialog updates when it is advanced).
+     */
+    private void toggleTranslation() {
+        clientThread.invoke(() -> {
+            boolean turningOff = targetLanguage != LangCodeSelectableList.ENGLISH;
+            if (turningOff) {
+                toggleLanguage = targetLanguage;
+                targetLanguage = LangCodeSelectableList.ENGLISH;
+            } else {
+                LangCodeSelectableList restore = (toggleLanguage != null)
+                        ? toggleLanguage : config.getSelectedLanguage();
+                if (restore == LangCodeSelectableList.ENGLISH) {
+                    return;
+                }
+                targetLanguage = restore;
+            }
+            String msg = turningOff
+                    ? "RuneLingual: translation OFF (showing English)"
+                    : "RuneLingual: translation ON";
+            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", msg, null);
+        });
     }
 
     @Subscribe
@@ -439,6 +502,8 @@ public class RuneLingualPlugin extends Plugin {
 
     @Override
     protected void shutDown() throws Exception {
+        keyManager.unregisterKeyListener(toggleHotkeyListener);
+        keyManager.unregisterKeyListener(clearCacheHotkeyListener);
         clientToolBar.removeNavigation(navButton);
         overlayManager.remove(mouseTooltipOverlay);
         overlayManager.remove(deeplUsageOverlay);
