@@ -143,13 +143,13 @@ public class SqlQuery implements Cloneable{
             clauses.add(SqlVariables.columnEnglish.getColumnName() + " = '" + english.replace("'", "''") + "'");
         }
         if (useCat && category != null && !category.isEmpty()) {
-            clauses.add(SqlVariables.columnCategory.getColumnName() + " = '" + category + "'");
+            clauses.add(SqlVariables.columnCategory.getColumnName() + " = '" + category.replace("'", "''") + "'");
         }
         if (useSubCat && subCategory != null && !subCategory.isEmpty()) {
-            clauses.add(SqlVariables.columnSubCategory.getColumnName() + " = '" + subCategory + "'");
+            clauses.add(SqlVariables.columnSubCategory.getColumnName() + " = '" + subCategory.replace("'", "''") + "'");
         }
         if (useSource && source != null && !source.isEmpty()) {
-            clauses.add(SqlVariables.columnSource.getColumnName() + " = '" + source + "'");
+            clauses.add(SqlVariables.columnSource.getColumnName() + " = '" + source.replace("'", "''") + "'");
         }
         return "SELECT * FROM " + SqlActions.tableName + " WHERE " + String.join(" AND ", clauses);
     }
@@ -318,13 +318,13 @@ public class SqlQuery implements Cloneable{
             query += SqlVariables.columnEnglish.getColumnName() + " = '" + english.replace("'","''") + "' AND ";
         }
         if (category != null && !category.isEmpty()){
-            query += SqlVariables.columnCategory.getColumnName() + " = '" + category + "' AND ";
+            query += SqlVariables.columnCategory.getColumnName() + " = '" + category.replace("'","''") + "' AND ";
         }
         if (subCategory != null && !subCategory.isEmpty()){
-            query += SqlVariables.columnSubCategory.getColumnName() + " = '" + subCategory + "' AND ";
+            query += SqlVariables.columnSubCategory.getColumnName() + " = '" + subCategory.replace("'","''") + "' AND ";
         }
         if (source != null && !source.isEmpty()){
-            query += SqlVariables.columnSource.getColumnName() + " = '" + source + "' AND ";
+            query += SqlVariables.columnSource.getColumnName() + " = '" + source.replace("'","''") + "' AND ";
         }
         if (translation != null && !translation.isEmpty()){
             query += SqlVariables.columnTranslation.getColumnName() + " = '" + translation.replace("'","''") + "' AND ";
@@ -348,13 +348,13 @@ public class SqlQuery implements Cloneable{
             query += SqlVariables.columnEnglish.getColumnName() + ") = UPPER('" + english.replace("'","''") + "') AND ";
         }
         if (category != null && !category.isEmpty()){
-            query += SqlVariables.columnCategory.getColumnName() + " = '" + category + "' AND ";
+            query += SqlVariables.columnCategory.getColumnName() + " = '" + category.replace("'","''") + "' AND ";
         }
         if (subCategory != null && !subCategory.isEmpty()){
-            query += SqlVariables.columnSubCategory.getColumnName() + " = '" + subCategory + "' AND ";
+            query += SqlVariables.columnSubCategory.getColumnName() + " = '" + subCategory.replace("'","''") + "' AND ";
         }
         if (source != null && !source.isEmpty()){
-            query += SqlVariables.columnSource.getColumnName() + " = '" + source + "' AND ";
+            query += SqlVariables.columnSource.getColumnName() + " = '" + source.replace("'","''") + "' AND ";
         }
         if (translation != null && !translation.isEmpty()){
             query += SqlVariables.columnTranslation.getColumnName() + " = '" + translation.replace("'","''") + "' AND ";

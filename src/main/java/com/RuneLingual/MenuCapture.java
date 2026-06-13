@@ -82,6 +82,11 @@ public class MenuCapture
 
 	public void handleMenuEvent(MenuEntry currentMenu) {
 		// called whenever a right click menu is opened
+		// leave entries added by other plugins (RuneLite custom actions) untranslated, so
+		// their click handlers, which often match on the option text, keep working
+		if (currentMenu.getType().name().startsWith("RUNELITE")) {
+			return;
+		}
 		String[] newMenus = translateMenuAction(currentMenu);
 		String newTarget = newMenus[0];
 		String newOption = newMenus[1];

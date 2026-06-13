@@ -56,22 +56,24 @@ public class GeneralFunctions {
             for (int j = 0; j < part.length(); ) {//if the part is not an img tag, convert each letters to letter emojis
 
                 int codePoint = part.codePointAt(j);
+                int charCount = Character.charCount(codePoint);
                 if (Arrays.asList(32, 160, 8195, 8194, 8201, 8202, 8203, 12288).contains(codePoint)) {//if the char is a space, append a space
                     imgTagStrings.append(" ");
-                    j += 1;
+                    j += charCount;
                     continue;
                 }
                 String imgName = colors.getName() + "--" + codePoint + ".png";
                 int hash = map.getOrDefault(imgName, -99);
-                if (hash == -99) {//if the char is not in the hashmap, append a question mark
+                if (hash == -99) {//if the char is not in the hashmap, append a question mark and move on
+                    log.error("Char not found in hashmap: {}", new String(Character.toChars(codePoint)));
                     imgTagStrings.append("?");
-                    j += Character.isHighSurrogate(part.charAt(j)) ? 2 : 1;
-                    log.error("Char not found in hashmap: {}", part.charAt(j));
+                    j += charCount;
+                    continue;
                 }
                 imgTagStrings.append("<img=");
                 imgTagStrings.append(chatIconManager.chatIconIndex(hash));
                 imgTagStrings.append(">");
-                j += Character.isHighSurrogate(part.charAt(j)) ? 2 : 1;
+                j += charCount;
 
             }
             imgTagSb.append(imgTagStrings);
