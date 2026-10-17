@@ -68,6 +68,10 @@ public class SidePanel extends PluginPanel{
             titleText = "Runelingual";
             helpText = "設定助手";
             discordText = "在Discord上求助";
+        } else if (targetLanguage == LangCodeSelectableList.한국어) {
+            titleText = "룬링구얼";
+            helpText = "설정 도움말";
+            discordText = "Discord에서 도움 요청";
         }
         // todo: add more languages as needed
     }

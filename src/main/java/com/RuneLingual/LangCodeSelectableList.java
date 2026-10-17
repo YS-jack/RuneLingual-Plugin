@@ -14,6 +14,7 @@ public enum LangCodeSelectableList
     NORSK("no", "NB", "NB", 8, 14, 6, 6, false, false, false, false, true, false, true),
     日本語("ja", "JA", "JA", 12, 12, 12, 15, true, false, true, true, false, true, true),
     简体中文("zh", "ZH", "ZH-HANS", 12, 12, 12, 15, true, false, false, false, false, true, true),
+    한국어("ko", "KO", "KO", 12, 12, 12, 15, true, false, false, false, true, true, true),
     Русский("ru", "RU", "RU", 8, 12, 6, 6, true, false, true, false, true, false, true),
     český("cs", "CS", "CS", 7, 14, 6, 6, false, false, false, false, true, false, false),
     dansk("da", "DA", "DA", 7, 14, 6, 6, false, false, false, false, true, false, false),
@@ -125,6 +126,8 @@ public enum LangCodeSelectableList
             return "APIキーが無効、翻訳の上限が近い、\nもしくはリクエストが集中しています。";
         } else if (langCode == LangCodeSelectableList.简体中文) {
             return "API 密钥无效、翻译额度接近上限，\n或请求过于拥挤。";
+        } else if (langCode == LangCodeSelectableList.한국어) {
+            return "API 키가 잘못되었거나, 번역 한도에 가까워졌거나,\n요청이 몰리고 있습니다.";
         } else {
             return "The API key is invalid, the translation \nlimit is close, or requests are congested.";
         }
@@ -135,6 +138,7 @@ public enum LangCodeSelectableList
             case PORTUGUÊS_BRASILEIRO: return "Brazilian Portuguese";
             case 日本語: return "Japanese";
             case 简体中文: return "Chinese";
+            case 한국어: return "Korean";
             case Русский: return "Russian";
             case český: return "Czech";
             case dansk: return "Danish";

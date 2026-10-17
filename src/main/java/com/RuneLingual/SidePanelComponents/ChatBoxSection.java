@@ -109,6 +109,12 @@ public void addSentenceToTab(String tabTitle, String sentence) {
             tabNameChannel = "頻道";
             tabNameClan = "战队";
             tabNameGIM = "GIM";
+        } else if (targetLanguage == LangCodeSelectableList.한국어) {
+            tabNameGame = "게임";
+            tabNamePublic = "공개";
+            tabNameChannel = "채널";
+            tabNameClan = "클랜";
+            tabNameGIM = "GIM";
         }// todo: add more here as languages are added
     }
 }

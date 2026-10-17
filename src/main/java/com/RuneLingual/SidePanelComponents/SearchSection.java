@@ -164,6 +164,12 @@ public class SearchSection extends JPanel {
             textSearch = "搜索";
             textResult = "结果";
             textType = "类型";
+        } else if (targetLanguage == LangCodeSelectableList.한국어) {
+            textSearchEnglish = "영어 이름으로 검색";
+            textSearchForeign = "한국어 이름으로 검색";
+            textSearch = "검색";
+            textResult = "결과";
+            textType = "종류";
         }// todo: add more languages as needed
     }
 
