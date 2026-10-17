@@ -78,6 +78,8 @@ public class RuneLingualPlugin extends Plugin {
     private ChatIconManager chatIconManager;
     @Getter
     private HashMap<String, Integer> charIds = new HashMap<>();    // colour-char(key) <-> CharIds(val)
+    @Getter
+    private HashMap<Integer, Integer> charImageWidths = new HashMap<>();    // CharIds(key) <-> image width in pixels(val)
 
     @Inject
     @Getter

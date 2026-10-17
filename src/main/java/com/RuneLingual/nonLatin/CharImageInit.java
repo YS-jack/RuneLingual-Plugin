@@ -47,6 +47,7 @@ public class CharImageInit {
 
                 final int charID = chatIconManager.registerChatIcon(image);
                 charIds.put(imageName, charID);
+                runeLingualPlugin.getCharImageWidths().put(charID, image.getWidth());
             } catch (Exception e){log.error("error:",e);}
         }
         //log.info("end of making character image hashmap");

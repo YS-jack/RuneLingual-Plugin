@@ -11,6 +11,10 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetSizeMode;
 
 import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class WidgetsUtilRLingual
 {
@@ -22,6 +26,9 @@ public class WidgetsUtilRLingual
 	private GeneralFunctions generalFunctions;
 	@Inject
 	private Ids ids;
+
+	private static final Pattern IMG_TAG = Pattern.compile("<img=([0-9]+)>");
+	private final Map<Integer, Integer> charImageWidthsByTag = new HashMap<>();
 
 	@Inject
 	public WidgetsUtilRLingual(Client client, RuneLingualPlugin plugin)
@@ -37,6 +44,13 @@ public class WidgetsUtilRLingual
 			return;
 		// Set the text of the widget, but keep br as is
 		widget.setText(newText);
+	}
+
+	// keep the translation's line breaks, but break each line again if it is wider than the widget
+	// (eg. the spellbook tooltip: "description<br>Members only", where only the description is too long)
+	public void setWidgetText_KeepBrAndFit(Widget widget, String newText) {
+		String[] lines = newText.split("<br>", -1);
+		setWidgetText_NiceBr(widget, "<autoBr>" + String.join("</autoBr><br><autoBr>", lines) + "</autoBr>");
 	}
 
 	public void setWidgetText_NiceBr(Widget widget, String newText) {
@@ -119,20 +133,17 @@ public class WidgetsUtilRLingual
 			if (words.length == 1) { // if there are no spaces, don't insert br
 				return text;
 			}
+			// measure in pixels: character images of latin letters, digits and symbols are much narrower than foreignWidth
 			StringBuilder newTextBuilder = new StringBuilder();
-			int currentLineLength = 0;
+			int currentLineWidth = 0;
 			for(String word : words) {
-				String tmp = word;
-				tmp = tmp.replaceAll("<col=[0-9]+>", "").replaceAll("</col>", ""); // remove <col=??> and </col> tags
-				tmp  = tmp.replaceAll("<img=[0-9]+>", "a"); // replace <img=??> tags with "a" to count them as 1 char
-				int charCount = tmp.length();
-
-				if(currentLineLength + charCount > maxChars) {
+				int wordWidth = getDisplayedWidth(word, foreignWidth);
+				if(currentLineWidth > 0 && currentLineWidth + wordWidth > widgetWidth) {
 					newTextBuilder.append("<br>");
-					currentLineLength = 0;
+					currentLineWidth = 0;
 				}
 				newTextBuilder.append(word);
-				currentLineLength += charCount;
+				currentLineWidth += wordWidth;
 			}
 			text = newTextBuilder.toString();
 		} else { // if language uses charImages and doesn't need space between words
@@ -150,6 +161,31 @@ public class WidgetsUtilRLingual
 			text = newTextBuilder.toString();
 		}
 		return text;
+	}
+
+	// width in pixels of text made of character images (<img=N>), as it will be drawn
+	private int getDisplayedWidth(String text, int foreignWidth) {
+		Map<Integer, Integer> widths = getCharImageWidthsByTag();
+		String plain = text.replaceAll("<col=[0-9a-fA-F]+>|</col>", "");
+		Matcher matcher = IMG_TAG.matcher(plain);
+		int width = 0;
+		int last = 0;
+		while (matcher.find()) {
+			width += (matcher.start() - last) * foreignWidth / 2; // plain characters, mostly spaces
+			width += widths.getOrDefault(Integer.parseInt(matcher.group(1)), foreignWidth); // icons that are not character images use the default
+			last = matcher.end();
+		}
+		return width + (plain.length() - last) * foreignWidth / 2;
+	}
+
+	// character image widths are stored by chat icon id; the <img=N> tags use the chat icon index
+	private Map<Integer, Integer> getCharImageWidthsByTag() {
+		Map<Integer, Integer> byId = plugin.getCharImageWidths();
+		if (charImageWidthsByTag.size() != byId.size()) {
+			charImageWidthsByTag.clear();
+			byId.forEach((id, w) -> charImageWidthsByTag.put(plugin.getChatIconManager().chatIconIndex(id), w));
+		}
+		return charImageWidthsByTag;
 	}
 
 	private void setWidgetText_NiceBr_NoCharImages(Widget widget, String newText) {

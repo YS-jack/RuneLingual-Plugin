@@ -167,8 +167,7 @@ public class DialogTranslator {
 
             translatedText = restorePlayerName(translatedText);
 
-            widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
-            widgetsUtilRLingual.changeLineHeight(widget);
+            setDialogText(widget, npcContent, translatedText);
         }
     }
 
@@ -191,8 +190,7 @@ public class DialogTranslator {
 
             translatedText = restorePlayerName(translatedText);
 
-            widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
-            widgetsUtilRLingual.changeLineHeight(widget);
+            setDialogText(widget, playerContent, translatedText);
         }
     }
 
@@ -216,6 +214,15 @@ public class DialogTranslator {
 
         translatedText = restorePlayerName(translatedText);
 
+        setDialogText(widget, dialogOption, translatedText);
+    }
+
+    // transform() returns the original text when no translation is found;
+    // keep the game's own line breaks and line height for it instead of laying it out like translated text
+    private void setDialogText(Widget widget, String originalText, String translatedText) {
+        if (Colors.removeNonImgTags(translatedText).equals(originalText)) {
+            return;
+        }
         widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
         widgetsUtilRLingual.changeLineHeight(widget);
     }

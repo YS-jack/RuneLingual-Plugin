@@ -280,9 +280,11 @@ public class WidgetCapture {
         pastTranslationResults.add(translatedText);
 
         if (ids.getWidgetId2SplitTextAtBr().contains(widgetId)
-                || ids.getWidgetId2KeepBr().contains(widgetId)
                 || ids.getWidgetId2FixedSize().containsKey(widgetId)) {
             widgetsUtilRLingual.setWidgetText_BrAsIs(widget, translatedText);
+        } else if (ids.getWidgetId2KeepBr().contains(widgetId)) {
+            // lines that don't fit still need line breaks, and the widget is then resized by its number of lines
+            widgetsUtilRLingual.setWidgetText_KeepBrAndFit(widget, translatedText);
         } else {
             widgetsUtilRLingual.setWidgetText_NiceBr(widget, translatedText);
         }
